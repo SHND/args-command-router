@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "alwaysStrict": true,
+    "target": "es6",
+    "module": "commonjs",
+    "rootDir": "./src",
+    "outDir": "dist",
+    "sourceMap": true,
+    "declaration": true,
+    "strict": true
+  },
+  "files": ["src/index.ts"],
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "**/*.spec.ts", "dist"]
+}

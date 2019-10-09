@@ -1,0 +1,11 @@
+# editor
+.vscode/
+.coverage/
+
+# source
+src/
+
+# tools
+.gitignore
+.eslintrc.json
+.prettierrc.json
