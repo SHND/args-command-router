@@ -1,7 +1,14 @@
 import FixedCommandNode from './FixedCommandNode'
 import ParameterCommandNode from './ParameterCommandNode'
+import Command from '../Command'
+import Condition from '../Condition'
 import { PARAMETER_PREFIX } from '../constants'
 import { NodeChildrenType } from './models'
+
+export interface CallbackRule {
+  condition: Condition
+  callback: Function
+}
 
 export default abstract class CommandNode {
   static createNode(name: string): CommandNode {
@@ -12,6 +19,8 @@ export default abstract class CommandNode {
     return new FixedCommandNode(name)
   }
 
+  private _command: Command | null = null
+  private _callbackRules: CallbackRule[] = []
   private _children: NodeChildrenType = {}
 
   constructor(private _name: string) {}
@@ -48,5 +57,35 @@ export default abstract class CommandNode {
 
       return this._children[nodeOrString]
     }
+  }
+
+  hasCommand(): boolean {
+    return !!this._command
+  }
+
+  setCommand(command: Command): CommandNode {
+    this._command = command
+
+    return this
+  }
+
+  addCallableRule(callableRule: CallbackRule): CommandNode
+  addCallableRule(condition: Condition, callback: Function): CommandNode
+  addCallableRule(condition: string, callback: Function): CommandNode
+  addCallableRule(
+    policyOrCondition: CallbackRule | Condition | string,
+    callback: Function = () => {}
+  ): CommandNode {
+    let policy: CallbackRule
+    if (policyOrCondition instanceof Condition) {
+      policy = { condition: policyOrCondition, callback }
+    } else if (typeof policyOrCondition === 'string') {
+      policy = { condition: new Condition(policyOrCondition), callback }
+    } else {
+      policy = policyOrCondition
+    }
+    this._callbackRules = [policy, ...this._callbackRules]
+
+    return this
   }
 }
