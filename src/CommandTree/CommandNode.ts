@@ -77,6 +77,24 @@ export default abstract class CommandNode {
     return this
   }
 
+  getCommand(): Command | null {
+    return this._command
+  }
+
+  get children(): NodeChildrenType {
+    return this._children
+  }
+
+  get parameterChild(): CommandNode | null {
+    return this._children[COMMAND_DELIMITER]
+  }
+
+  matchChild(name: string): CommandNode | null {
+    return this._children[name]
+      ? this._children[name]
+      : this._children[COMMAND_DELIMITER]
+  }
+
   addCallableRule(callableRule: CallbackRule): CommandNode
   addCallableRule(condition: Condition, callback: Function): CommandNode
   addCallableRule(condition: string, callback: Function): CommandNode

@@ -27,6 +27,14 @@ export default class CommandTree {
     callback: Function = () => {}
   ): void {
     if (
+      routeOrCommandOrString instanceof Route &&
+      conditionOrStringOrCallback instanceof Function
+    ) {
+      const command: Command = routeOrCommandOrString.command
+      const condition: Condition = routeOrCommandOrString.condition
+
+      this.addRoute(command, condition, callback)
+    } else if (
       typeof routeOrCommandOrString === 'string' &&
       conditionOrStringOrCallback instanceof Function
     ) {
@@ -55,16 +63,9 @@ export default class CommandTree {
       const command = new Command(routeOrCommandOrString)
       this.addRoute(command, conditionOrStringOrCallback, callback)
     } else if (
-      routeOrCommandOrString instanceof Route &&
-      conditionOrStringOrCallback instanceof Function
-    ) {
-      const command: Command = routeOrCommandOrString.command
-      const condition: Condition = routeOrCommandOrString.condition
-
-      this.addRoute(command, condition, conditionOrStringOrCallback)
-    } else if (
       routeOrCommandOrString instanceof Command &&
-      conditionOrStringOrCallback instanceof Condition
+      conditionOrStringOrCallback instanceof Condition &&
+      callback instanceof Function
     ) {
       const commandItems: CommandItem[] = routeOrCommandOrString.getCommandItems()
 
