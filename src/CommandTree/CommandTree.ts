@@ -1,6 +1,6 @@
 import CommandNode from './CommandNode'
 import FixedCommandNode from './FixedCommandNode'
-import Command from '../Command'
+import Command, { CommandItem } from '../Command'
 import Condition from '../Condition'
 import Route from '../Route'
 
@@ -15,21 +15,40 @@ export default class CommandTree {
     return this._rootNode
   }
 
-  // addRoute(route: string)
-  // addRoute(command: Command, condition: Condition)
-  // addRoute(routeOrCommand: Command | string, condition?: Condition) {
-  //   if (
-  //     typeof routeOrCommand === 'string' &&
-  //     typeof condition === 'undefined'
-  //   ) {
-  //     const route = new Route(routeOrCommand)
+  addRoute(route: Route, callback: Function): void
+  addRoute(routeString: string, callback: Function): void
+  addRoute(command: Command, condition: Condition, callback: Function): void
+  addRoute(
+    routeOrCommandOrRoute: Route | Command | string,
+    conditionOrCallback: Condition | Function,
+    callback: Function = () => {}
+  ): void {
+    if (
+      typeof routeOrCommandOrRoute === 'string' &&
+      conditionOrCallback instanceof Function
+    ) {
+      const route = new Route(routeOrCommandOrRoute)
+      this.addRoute(route, conditionOrCallback)
+    } else if (
+      routeOrCommandOrRoute instanceof Route &&
+      conditionOrCallback instanceof Function
+    ) {
+      const command: Command = routeOrCommandOrRoute.command
+      const condition: Condition = routeOrCommandOrRoute.condition
 
-  //   } else if (
-  //     routeOrCommand instanceof Command &&
-  //     condition instanceof Condition
-  //   ) {
-  //   } else {
-  //     throw Error("This path shouldn't happen")
-  //   }
-  // }
+      this.addRoute(command, condition, conditionOrCallback)
+    } else if (
+      routeOrCommandOrRoute instanceof Command &&
+      conditionOrCallback instanceof Condition
+    ) {
+      const commandItems: CommandItem[] = routeOrCommandOrRoute.getCommandItems()
+
+      let currentNode: CommandNode = this._rootNode
+      for (let commandItem of commandItems) {
+        currentNode = currentNode.addNode(commandItem.name)
+      }
+
+      currentNode.addCallableRule(conditionOrCallback, callback)
+    }
+  }
 }

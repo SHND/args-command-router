@@ -90,4 +90,8 @@ export default class Command {
       .filter(item => item.type === CommandItemType.FIXED)
       .map(item => item.name)
   }
+
+  getCommandItems(): CommandItem[] {
+    return this._commandItems
+  }
 }

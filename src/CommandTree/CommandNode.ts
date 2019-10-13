@@ -2,7 +2,7 @@ import FixedCommandNode from './FixedCommandNode'
 import ParameterCommandNode from './ParameterCommandNode'
 import Command from '../Command'
 import Condition from '../Condition'
-import { PARAMETER_PREFIX } from '../constants'
+import { PARAMETER_PREFIX, COMMAND_DELIMITER } from '../constants'
 import { NodeChildrenType } from './models'
 
 export interface CallbackRule {
@@ -35,13 +35,17 @@ export default abstract class CommandNode {
     if (nodeOrString instanceof CommandNode) {
       return this._children[nodeOrString.name] !== undefined
     } else {
-      return this._children[nodeOrString] !== undefined
+      const nodeName = nodeOrString.startsWith(COMMAND_DELIMITER)
+        ? COMMAND_DELIMITER
+        : nodeOrString
+
+      return this._children[nodeName] !== undefined
     }
   }
 
-  addNode(str: string): CommandNode | null
-  addNode(node: CommandNode): CommandNode | null
-  addNode(nodeOrString: CommandNode | string): CommandNode | null {
+  addNode(str: string): CommandNode
+  addNode(node: CommandNode): CommandNode
+  addNode(nodeOrString: CommandNode | string): CommandNode {
     if (nodeOrString instanceof CommandNode) {
       if (!this.hasNode(nodeOrString)) {
         this._children[nodeOrString.name] = nodeOrString
@@ -50,12 +54,16 @@ export default abstract class CommandNode {
 
       return this._children[nodeOrString.name]
     } else {
-      if (!this.hasNode(nodeOrString)) {
-        this._children[nodeOrString] = CommandNode.createNode(nodeOrString)
-        return this._children[nodeOrString]
+      const nodeName = nodeOrString.startsWith(COMMAND_DELIMITER)
+        ? COMMAND_DELIMITER
+        : nodeOrString
+
+      if (!this.hasNode(nodeName)) {
+        this._children[nodeName] = CommandNode.createNode(nodeName)
+        return this._children[nodeName]
       }
 
-      return this._children[nodeOrString]
+      return this._children[nodeName]
     }
   }
 
@@ -87,5 +95,20 @@ export default abstract class CommandNode {
     this._callbackRules = [policy, ...this._callbackRules]
 
     return this
+  }
+
+  /**
+   * Find the first callableRule which its condition evaluates to true;
+   * @param values these are values passed in run-time. it can be parameter or switch values without ':', '-' or '--'
+   * @returns first match callableRule function or null
+   */
+  firstMatchedCallable(args: { [key: string]: string }): Function | null {
+    for (let i = 0; i < this._callbackRules.length; i++) {
+      const rule = this._callbackRules[i]
+
+      if (rule.condition.evaluate(args)) return rule.callback
+    }
+
+    return null
   }
 }
