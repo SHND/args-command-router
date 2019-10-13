@@ -120,7 +120,7 @@ export default class Application {
       }
     }
 
-    const command: Command = currentNode.getCommand()
+    const command: Command | null = currentNode.getCommand()
     if (!command) return null
 
     const paramValues = command.getParameters()
@@ -129,7 +129,7 @@ export default class Application {
         'Expecting to have exact same number of command parameters and values'
       )
 
-    const parameters = {}
+    const parameters: { [key: string]: string } = {}
     for (let i = 0; i < paramKeys.length; i++)
       parameters[paramKeys[i]] = paramValues[i]
 
@@ -140,7 +140,10 @@ export default class Application {
             COMMAND_DELIMITER
           )}'`
         )
-      parameters[key] = shortSwitches[key]
+      if (shortSwitches[key].length === 0) parameters[key] = 'true'
+      else if (shortSwitches[key].length === 1)
+        parameters[key] = shortSwitches[key][0]
+      else throw Error(`More than one value is seen for switch '${key}'`)
     }
 
     for (let key in longSwitches) {
@@ -150,7 +153,10 @@ export default class Application {
             COMMAND_DELIMITER
           )}'`
         )
-      parameters[key] = longSwitches[key]
+      if (longSwitches[key].length === 0) parameters[key] = 'true'
+      else if (longSwitches[key].length === 1)
+        parameters[key] = longSwitches[key][0]
+      else throw Error(`More than one value is seen for switch '${key}'`)
     }
 
     const callback: Function | null = currentNode.firstMatchedCallable(
