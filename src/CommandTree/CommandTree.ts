@@ -16,39 +16,64 @@ export default class CommandTree {
   }
 
   addRoute(route: Route, callback: Function): void
-  addRoute(routeString: string, callback: Function): void
+  addRoute(route: string, callback: Function): void
+  addRoute(command: string, condition: string, callback: Function): void
+  addRoute(command: Command, condition: string, callback: Function): void
+  addRoute(command: string, condition: Condition, callback: Function): void
   addRoute(command: Command, condition: Condition, callback: Function): void
   addRoute(
-    routeOrCommandOrRoute: Route | Command | string,
-    conditionOrCallback: Condition | Function,
+    routeOrCommandOrString: Route | Command | string,
+    conditionOrStringOrCallback: Condition | Function | string,
     callback: Function = () => {}
   ): void {
     if (
-      typeof routeOrCommandOrRoute === 'string' &&
-      conditionOrCallback instanceof Function
+      typeof routeOrCommandOrString === 'string' &&
+      conditionOrStringOrCallback instanceof Function
     ) {
-      const route = new Route(routeOrCommandOrRoute)
-      this.addRoute(route, conditionOrCallback)
+      const route = new Route(routeOrCommandOrString)
+      this.addRoute(route, conditionOrStringOrCallback)
     } else if (
-      routeOrCommandOrRoute instanceof Route &&
-      conditionOrCallback instanceof Function
+      typeof routeOrCommandOrString === 'string' &&
+      typeof conditionOrStringOrCallback === 'string' &&
+      callback instanceof Function
     ) {
-      const command: Command = routeOrCommandOrRoute.command
-      const condition: Condition = routeOrCommandOrRoute.condition
+      const command = new Command(routeOrCommandOrString)
+      const condition = new Condition(conditionOrStringOrCallback)
+      this.addRoute(command, condition, callback)
+    } else if (
+      routeOrCommandOrString instanceof Command &&
+      typeof conditionOrStringOrCallback === 'string' &&
+      callback instanceof Function
+    ) {
+      const condition = new Condition(conditionOrStringOrCallback)
+      this.addRoute(routeOrCommandOrString, condition, callback)
+    } else if (
+      typeof routeOrCommandOrString === 'string' &&
+      conditionOrStringOrCallback instanceof Condition &&
+      callback instanceof Function
+    ) {
+      const command = new Command(routeOrCommandOrString)
+      this.addRoute(command, conditionOrStringOrCallback, callback)
+    } else if (
+      routeOrCommandOrString instanceof Route &&
+      conditionOrStringOrCallback instanceof Function
+    ) {
+      const command: Command = routeOrCommandOrString.command
+      const condition: Condition = routeOrCommandOrString.condition
 
-      this.addRoute(command, condition, conditionOrCallback)
+      this.addRoute(command, condition, conditionOrStringOrCallback)
     } else if (
-      routeOrCommandOrRoute instanceof Command &&
-      conditionOrCallback instanceof Condition
+      routeOrCommandOrString instanceof Command &&
+      conditionOrStringOrCallback instanceof Condition
     ) {
-      const commandItems: CommandItem[] = routeOrCommandOrRoute.getCommandItems()
+      const commandItems: CommandItem[] = routeOrCommandOrString.getCommandItems()
 
       let currentNode: CommandNode = this._rootNode
       for (let commandItem of commandItems) {
         currentNode = currentNode.addNode(commandItem.name)
       }
 
-      currentNode.addCallableRule(conditionOrCallback, callback)
+      currentNode.addCallableRule(conditionOrStringOrCallback, callback)
     }
   }
 }
