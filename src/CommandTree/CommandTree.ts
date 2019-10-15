@@ -79,28 +79,38 @@ export default class CommandTree {
 
       let currentNode: CommandNode = this._rootNode
       for (let commandItem of commandItems) {
-        let nextNode = null
-
-        if (
-          (commandItem.type === CommandItemType.FIXED &&
-            !currentNode.hasNode(commandItem.name)) ||
-          (commandItem.type === CommandItemType.PARAMETER &&
-            !currentNode.hasNode(PARAMETER_PREFIX))
-        ) {
-          nextNode = CommandTree.createNode(commandItem)
-          currentNode.addNode(nextNode)
-        } else {
-          nextNode =
-            commandItem.type === CommandItemType.FIXED
-              ? currentNode.children[commandItem.name]
-              : currentNode.children[PARAMETER_PREFIX]
-        }
-
-        currentNode = nextNode
+        currentNode = this.createOrGetNextNode(currentNode, commandItem)
       }
 
       currentNode.addCallableRule(conditionOrStringOrCallback, callback)
     }
+  }
+
+  private createOrGetNextNode(
+    currentNode: CommandNode,
+    commandItem: CommandItem
+  ): CommandNode {
+    if (!this.nodeHasCommandItem(currentNode, commandItem)) {
+      let node = CommandTree.createNode(commandItem)
+      currentNode.addNode(node)
+      return node
+    }
+
+    return commandItem.type === CommandItemType.FIXED
+      ? currentNode.children[commandItem.name]
+      : currentNode.children[PARAMETER_PREFIX]
+  }
+
+  private nodeHasCommandItem(
+    node: CommandNode,
+    commandItem: CommandItem
+  ): boolean {
+    return (
+      (commandItem.type === CommandItemType.FIXED &&
+        node.hasNode(commandItem.name)) ||
+      (commandItem.type === CommandItemType.PARAMETER &&
+        node.hasNode(PARAMETER_PREFIX))
+    )
   }
 
   printTree(): string {
