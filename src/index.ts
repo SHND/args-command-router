@@ -1,5 +1,5 @@
 import Application from './Application'
 
-export default (function() {
+export const app = (function() {
   return new Application()
 })()
