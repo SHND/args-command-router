@@ -11,14 +11,6 @@ export interface CallbackRule {
 }
 
 export default abstract class CommandNode {
-  static createNode(name: string): CommandNode {
-    if (name === PARAMETER_PREFIX) {
-      return new ParameterCommandNode()
-    }
-
-    return new FixedCommandNode(name)
-  }
-
   private _command: Command | null = null
   private _callbackRules: CallbackRule[] = []
   private _children: NodeChildrenType = {}
@@ -35,36 +27,21 @@ export default abstract class CommandNode {
     if (nodeOrString instanceof CommandNode) {
       return this._children[nodeOrString.name] !== undefined
     } else {
-      const nodeName = nodeOrString.startsWith(COMMAND_DELIMITER)
-        ? COMMAND_DELIMITER
+      const nodeName = nodeOrString.startsWith(PARAMETER_PREFIX)
+        ? PARAMETER_PREFIX
         : nodeOrString
 
       return this._children[nodeName] !== undefined
     }
   }
 
-  addNode(str: string): CommandNode
-  addNode(node: CommandNode): CommandNode
-  addNode(nodeOrString: CommandNode | string): CommandNode {
-    if (nodeOrString instanceof CommandNode) {
-      if (!this.hasNode(nodeOrString)) {
-        this._children[nodeOrString.name] = nodeOrString
-        return nodeOrString
-      }
-
-      return this._children[nodeOrString.name]
-    } else {
-      const nodeName = nodeOrString.startsWith(COMMAND_DELIMITER)
-        ? COMMAND_DELIMITER
-        : nodeOrString
-
-      if (!this.hasNode(nodeName)) {
-        this._children[nodeName] = CommandNode.createNode(nodeName)
-        return this._children[nodeName]
-      }
-
-      return this._children[nodeName]
+  addNode(nodeOrString: CommandNode): CommandNode {
+    if (!this.hasNode(nodeOrString)) {
+      this._children[nodeOrString.name] = nodeOrString
+      return nodeOrString
     }
+
+    return this._children[nodeOrString.name]
   }
 
   hasCommand(): boolean {
@@ -86,13 +63,13 @@ export default abstract class CommandNode {
   }
 
   get parameterChild(): CommandNode | null {
-    return this._children[COMMAND_DELIMITER]
+    return this._children[PARAMETER_PREFIX]
   }
 
   matchChild(name: string): CommandNode | null {
     return this._children[name]
       ? this._children[name]
-      : this._children[COMMAND_DELIMITER]
+      : this._children[PARAMETER_PREFIX]
   }
 
   addCallableRule(callableRule: CallbackRule): CommandNode

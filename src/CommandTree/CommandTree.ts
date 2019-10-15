@@ -1,8 +1,10 @@
 import CommandNode from './CommandNode'
 import FixedCommandNode from './FixedCommandNode'
-import Command, { CommandItem } from '../Command'
+import ParameterCommandNode from './ParameterCommandNode'
+import Command, { CommandItem, CommandItemType } from '../Command'
 import Condition from '../Condition'
 import Route from '../Route'
+import { COMMAND_DELIMITER, PARAMETER_PREFIX } from '../constants'
 
 export default class CommandTree {
   private _rootNode: CommandNode = new FixedCommandNode('/')
@@ -13,6 +15,12 @@ export default class CommandTree {
 
   get root(): CommandNode {
     return this._rootNode
+  }
+
+  static createNode(commandItem: CommandItem): CommandNode {
+    return commandItem.type === CommandItemType.FIXED
+      ? new FixedCommandNode(commandItem.name)
+      : new ParameterCommandNode()
   }
 
   addRoute(route: Route, callback: Function): void
@@ -71,10 +79,47 @@ export default class CommandTree {
 
       let currentNode: CommandNode = this._rootNode
       for (let commandItem of commandItems) {
-        currentNode = currentNode.addNode(commandItem.name)
+        let nextNode = null
+
+        if (
+          (commandItem.type === CommandItemType.FIXED &&
+            !currentNode.hasNode(commandItem.name)) ||
+          (commandItem.type === CommandItemType.PARAMETER &&
+            !currentNode.hasNode(PARAMETER_PREFIX))
+        ) {
+          nextNode = CommandTree.createNode(commandItem)
+          currentNode.addNode(nextNode)
+        } else {
+          nextNode =
+            commandItem.type === CommandItemType.FIXED
+              ? currentNode.children[commandItem.name]
+              : currentNode.children[PARAMETER_PREFIX]
+        }
+
+        currentNode = nextNode
       }
 
       currentNode.addCallableRule(conditionOrStringOrCallback, callback)
     }
+  }
+
+  printTree(): string {
+    return this._printTree(this.root)
+  }
+
+  private _printTree(node?: CommandNode, level: number = 0): string {
+    if (!node) return ''
+
+    let output = ''
+    for (let child in node.children) {
+      output += Array(level)
+        .fill('  ')
+        .join('')
+
+      output += child + '\n'
+      output += this._printTree(node.children[child], level + 1)
+    }
+
+    return output
   }
 }
