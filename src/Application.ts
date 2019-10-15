@@ -1,4 +1,4 @@
-import acp from 'args-command-parser'
+import { parser } from 'args-command-parser'
 import CommandTree from './CommandTree/CommandTree'
 import Route from './Route'
 import Command from './Command'
@@ -96,7 +96,7 @@ export default class Application {
   }
 
   run(argv?: string[]) {
-    const acpData: Data = acp(argv).data
+    const acpData: Data = parser(argv).data
     const { commands: commandItems, shortSwitches, longSwitches } = acpData
 
     const paramKeys = []
