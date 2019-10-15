@@ -9,7 +9,7 @@ export default class Route {
   constructor(command: Command, condition: Condition)
   constructor(routeOrCommand: Command | string, condition?: Condition) {
     if (typeof routeOrCommand === 'string' && condition === undefined) {
-      const route = new Route(routeOrCommand)
+      const route = Route.parse(routeOrCommand)
       this._command = route.command
       this._condition = route.condition
     } else if (
@@ -26,13 +26,20 @@ export default class Route {
   static parse(route: string) {
     route = route.trim()
 
-    const conditionStartingIndex = route.indexOf('[')
-    const conditionEndingIndex = route.indexOf(']')
-    const commandString = route.substring(0, conditionStartingIndex).trim()
-    const conditionString = route
-      .substring(conditionStartingIndex + 1, conditionEndingIndex)
-      .trim()
+    let commandString = ''
+    let conditionString = ''
 
+    const conditionStartingIndex = route.indexOf('[')
+    if (conditionStartingIndex >= 0) {
+      const conditionEndingIndex = route.indexOf(']')
+      if (conditionEndingIndex < 0) throw Error('Failed to parse route')
+      commandString = route.substring(0, conditionStartingIndex).trim()
+      conditionString = route
+        .substring(conditionStartingIndex + 1, conditionEndingIndex)
+        .trim()
+    } else {
+      commandString = route
+    }
     const command = new Command(commandString)
     const condition = new Condition(conditionString)
 
