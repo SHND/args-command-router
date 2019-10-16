@@ -6,6 +6,7 @@ import Condition from './Condition'
 import { Data } from 'args-command-parser/dist/Models'
 import CommandNode from './CommandTree/CommandNode'
 import { COMMAND_DELIMITER } from './constants'
+import CallbackData from './CallbackData'
 
 export default class Application {
   private _commandTree: CommandTree
@@ -99,23 +100,34 @@ export default class Application {
     const acpData: Data = parser(argv).data
     const { commands: commandItems, shortSwitches, longSwitches } = acpData
 
-    const paramKeys = []
+    const cleanedShortSwitches: { [key: string]: string | boolean } = {}
+    for (let key in shortSwitches)
+      cleanedShortSwitches[key] =
+        shortSwitches[key].length > 0 ? shortSwitches[key][0] : true
+
+    const cleanedLongSwitches: { [key: string]: string | boolean } = {}
+    for (let key in longSwitches)
+      cleanedLongSwitches[key] =
+        longSwitches[key].length > 0 ? longSwitches[key][0] : true
+
+    const commandParamValues = []
 
     let currentNode: CommandNode | null = this._commandTree.root
 
     for (let commandItem of commandItems) {
-      if (!currentNode) {
-        this._norouteCallback()
-        return
-      }
-
-      if (currentNode.children[commandItem]) {
+      if (currentNode && currentNode.children[commandItem]) {
         currentNode = currentNode.children[commandItem]
-      } else if (currentNode.parameterChild) {
+      } else if (currentNode && currentNode.parameterChild) {
         currentNode = currentNode.parameterChild
-        paramKeys.push(commandItem)
+        commandParamValues.push(commandItem)
       } else {
-        this._norouteCallback()
+        const callbackData: CallbackData = new CallbackData(
+          null,
+          {},
+          cleanedShortSwitches,
+          cleanedLongSwitches
+        )
+        this._norouteCallback(callbackData)
         return
       }
     }
@@ -123,15 +135,15 @@ export default class Application {
     const command: Command | null = currentNode.getCommand()
     if (!command) return null
 
-    const paramValues = command.getParameters()
-    if (paramKeys.length !== paramValues.length)
+    const commandParamNames = command.getParameters()
+    if (commandParamValues.length !== commandParamNames.length)
       throw Error(
         'Expecting to have exact same number of command parameters and values'
       )
 
     const parameters: { [key: string]: string } = {}
-    for (let i = 0; i < paramKeys.length; i++)
-      parameters[paramKeys[i]] = paramValues[i]
+    for (let i = 0; i < commandParamValues.length; i++)
+      parameters[commandParamNames[i]] = commandParamValues[i]
 
     for (let key in shortSwitches) {
       if (parameters[key])
@@ -163,11 +175,18 @@ export default class Application {
       parameters
     )
 
+    const callbackData: CallbackData = new CallbackData(
+      command,
+      parameters,
+      cleanedShortSwitches,
+      cleanedLongSwitches
+    )
+
     if (!callback) {
-      this._norouteCallback()
+      this._norouteCallback(callbackData)
       return
     }
 
-    callback()
+    callback(callbackData)
   }
 }
