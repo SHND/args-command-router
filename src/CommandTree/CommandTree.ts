@@ -41,7 +41,7 @@ export default class CommandTree {
       const command: Command = routeOrCommandOrString.command
       const condition: Condition = routeOrCommandOrString.condition
 
-      this.addRoute(command, condition, callback)
+      this.addRoute(command, condition, conditionOrStringOrCallback)
     } else if (
       typeof routeOrCommandOrString === 'string' &&
       conditionOrStringOrCallback instanceof Function
@@ -82,6 +82,7 @@ export default class CommandTree {
         currentNode = this.createOrGetNextNode(currentNode, commandItem)
       }
 
+      currentNode.setCommand(routeOrCommandOrString)
       currentNode.addCallableRule(conditionOrStringOrCallback, callback)
     }
   }

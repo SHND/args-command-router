@@ -87,7 +87,7 @@ export default class Command {
 
   getParameters(): string[] {
     return this._commandItems
-      .filter(item => item.type === CommandItemType.FIXED)
+      .filter(item => item.type === CommandItemType.PARAMETER)
       .map(item => item.name)
   }
 

@@ -1,5 +1,6 @@
 import Condition from './Condition'
 import Command from './Command'
+import { CONDITION_EXPR_TRUE } from './constants'
 
 export default class Route {
   private _command: Command
@@ -39,6 +40,7 @@ export default class Route {
         .trim()
     } else {
       commandString = route
+      conditionString = CONDITION_EXPR_TRUE
     }
     const command = new Command(commandString)
     const condition = new Condition(conditionString)
