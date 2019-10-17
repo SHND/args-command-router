@@ -97,7 +97,9 @@ export default abstract class CommandNode {
    * @param values these are values passed in run-time. it can be parameter or switch values without ':', '-' or '--'
    * @returns first match callableRule function or null
    */
-  firstMatchedCallable(args: { [key: string]: string }): Function | null {
+  firstMatchedCallable(args: {
+    [key: string]: string | boolean
+  }): Function | null {
     for (let i = 0; i < this._callbackRules.length; i++) {
       const rule = this._callbackRules[i]
 

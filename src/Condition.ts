@@ -23,8 +23,16 @@ export default class Condition {
     else return []
   }
 
-  evaluate(values: { [key: string]: string }): boolean {
-    if (this._expression) return this._expression.evaluate(values)
-    else return true
+  evaluate(values: { [key: string]: string | boolean }): boolean {
+    const newValues: { [key: string]: string } = {}
+
+    if (this._expression) {
+      for (let key of this._expression.variables())
+        newValues[key] = String(values[key])
+
+      return this._expression.evaluate(newValues)
+    }
+
+    return true
   }
 }

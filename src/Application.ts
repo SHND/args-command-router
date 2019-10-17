@@ -258,9 +258,11 @@ export default class Application {
     this.validateNonConflictParamsAndSwitches(parameters, cleanedShortSwitches)
     this.validateNonConflictParamsAndSwitches(parameters, cleanedLongSwitches)
 
-    const callback: Function | null = currentNode.firstMatchedCallable(
-      parameters
-    )
+    const callback: Function | null = currentNode.firstMatchedCallable({
+      ...cleanedShortSwitches,
+      ...cleanedLongSwitches,
+      ...parameters,
+    })
 
     const callbackData: CallbackData = new CallbackData(
       command,
