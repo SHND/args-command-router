@@ -96,6 +96,59 @@ export default class Application {
     this._norouteCallback = callback
   }
 
+  private validateOneValueMostForEachSwitch(acpSwitches: {
+    [key: string]: string[]
+  }): void {
+    const message = 'Only one value for each switch is supported.'
+
+    for (let key in acpSwitches) {
+      if (acpSwitches[key].length > 1)
+        throw Error(
+          message +
+            `\nSwitch '${key}' has values '${acpSwitches[key].join(' ')}'.`
+        )
+    }
+  }
+
+  private validateNonConflictSwitches(
+    acpSwitches1: {
+      [key: string]: string[]
+    },
+    acpSwitches2: {
+      [key: string]: string[]
+    }
+  ): void {
+    const message = 'There are conflicts between short and long switch names.'
+
+    for (let key in acpSwitches1) {
+      if (acpSwitches2[key])
+        throw Error(
+          message +
+            `\nSwitch name '${key}' is seen in both short and long switch forms.`
+        )
+    }
+  }
+
+  private validateNonConflictParamsAndSwitches(
+    parameters: {
+      [key: string]: string
+    },
+    acpSwitches: {
+      [key: string]: string | boolean
+    }
+  ): void {
+    const message =
+      'There are conflicts between Switches and Command parameters name.'
+
+    for (let key in parameters) {
+      if (acpSwitches[key])
+        throw Error(
+          message +
+            `\nSwitch and Command Parameter with a same name '${key}' is seen.`
+        )
+    }
+  }
+
   private cleanSwitchValues(acpSwitches: {
     [key: string]: string[]
   }): { [key: string]: string | boolean } {
@@ -162,6 +215,10 @@ export default class Application {
     const acpData: Data = parser(argv).data
     const { commands: commandItems, shortSwitches, longSwitches } = acpData
 
+    this.validateOneValueMostForEachSwitch(shortSwitches)
+    this.validateOneValueMostForEachSwitch(longSwitches)
+    this.validateNonConflictSwitches(shortSwitches, longSwitches)
+
     const cleanedShortSwitches: {
       [key: string]: string | boolean
     } = this.cleanSwitchValues(shortSwitches)
@@ -198,31 +255,8 @@ export default class Application {
       commandParamValues
     )
 
-    for (let key in shortSwitches) {
-      if (parameters[key])
-        throw Error(
-          `Conflicting parameter names on '${key}' for route '${commandItems.join(
-            COMMAND_DELIMITER
-          )}'`
-        )
-      if (shortSwitches[key].length === 0) parameters[key] = 'true'
-      else if (shortSwitches[key].length === 1)
-        parameters[key] = shortSwitches[key][0]
-      else throw Error(`More than one value is seen for switch '${key}'`)
-    }
-
-    for (let key in longSwitches) {
-      if (parameters[key])
-        throw Error(
-          `Conflicting parameter names on '${key}' for route '${commandItems.join(
-            COMMAND_DELIMITER
-          )}'`
-        )
-      if (longSwitches[key].length === 0) parameters[key] = 'true'
-      else if (longSwitches[key].length === 1)
-        parameters[key] = longSwitches[key][0]
-      else throw Error(`More than one value is seen for switch '${key}'`)
-    }
+    this.validateNonConflictParamsAndSwitches(parameters, cleanedShortSwitches)
+    this.validateNonConflictParamsAndSwitches(parameters, cleanedLongSwitches)
 
     const callback: Function | null = currentNode.firstMatchedCallable(
       parameters
