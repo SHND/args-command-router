@@ -7,7 +7,7 @@ import Route from '../Route'
 import { COMMAND_DELIMITER, PARAMETER_PREFIX } from '../constants'
 
 export default class CommandTree {
-  private _rootNode: CommandNode = new FixedCommandNode('/')
+  private _rootNode: CommandNode = new FixedCommandNode('/', null)
 
   constructor(rootNode?: CommandNode) {
     if (rootNode !== undefined) this._rootNode = rootNode
@@ -17,10 +17,13 @@ export default class CommandTree {
     return this._rootNode
   }
 
-  static createNode(commandItem: CommandItem): CommandNode {
+  static createNode(
+    commandItem: CommandItem,
+    parentNode: CommandNode | null = null
+  ): CommandNode {
     return commandItem.type === CommandItemType.FIXED
-      ? new FixedCommandNode(commandItem.name)
-      : new ParameterCommandNode()
+      ? new FixedCommandNode(commandItem.name, parentNode)
+      : new ParameterCommandNode(parentNode)
   }
 
   addRoute(route: Route, callback: Function): Command
@@ -100,7 +103,7 @@ export default class CommandTree {
     commandItem: CommandItem
   ): CommandNode {
     if (!this.nodeHasCommandItem(currentNode, commandItem)) {
-      let node = CommandTree.createNode(commandItem)
+      let node = CommandTree.createNode(commandItem, currentNode)
       currentNode.addNode(node)
       return node
     }

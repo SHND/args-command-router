@@ -11,14 +11,21 @@ export interface CallbackRule {
 }
 
 export default abstract class CommandNode {
+  private _parentNode: CommandNode | null = null
   private _command: Command | null = null
   private _callbackRules: CallbackRule[] = []
   private _children: NodeChildrenType = {}
 
-  constructor(private _name: string) {}
+  constructor(private _name: string, _parentNode: CommandNode | null) {
+    this._parentNode = _parentNode
+  }
 
   get name(): string {
     return this._name
+  }
+
+  get parent(): CommandNode | null {
+    return this._parentNode
   }
 
   hasNode(str: string): boolean
