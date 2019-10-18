@@ -1,3 +1,4 @@
+import commandLineUsage from 'command-line-usage'
 import FixedCommandNode from './FixedCommandNode'
 import ParameterCommandNode from './ParameterCommandNode'
 import Command from '../Command'
@@ -18,6 +19,8 @@ export default abstract class CommandNode {
 
   constructor(private _name: string, _parentNode: CommandNode | null) {
     this._parentNode = _parentNode
+
+    this.printHelp = this.printHelp.bind(this)
   }
 
   get name(): string {
@@ -114,5 +117,46 @@ export default abstract class CommandNode {
     }
 
     return null
+  }
+
+  commandNodePath(): CommandNode[] {
+    const commandNodes: CommandNode[] = []
+    let currentNode: CommandNode | null = this
+    while (currentNode) {
+      commandNodes.push(currentNode)
+      currentNode = currentNode.parent
+    }
+
+    return commandNodes.reverse()
+  }
+
+  commandNodePathNames(): string[] {
+    return this.commandNodePath().map(cn => cn.name)
+  }
+
+  commandNodePathString(): string {
+    return this.commandNodePathNames().join(COMMAND_DELIMITER)
+  }
+
+  printHelp(): void {
+    const command: Command | null = this.getCommand()
+    if (!command) {
+      const pathNames = this.commandNodePathNames()
+      const usage = commandLineUsage([
+        {
+          header: 'Usage',
+          content: this.commandNodePathNames().join(' '),
+        },
+      ])
+      console.log(usage)
+    } else {
+      const usage = commandLineUsage([
+        {
+          header: 'Usage',
+          content: "Hi this is something i'm doing",
+        },
+      ])
+      console.log(usage)
+    }
   }
 }

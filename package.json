@@ -30,7 +30,9 @@
     "typescript": "^3.6.4"
   },
   "dependencies": {
+    "@types/command-line-usage": "^5.0.1",
     "args-command-parser": "^1.0.9",
+    "command-line-usage": "^6.0.2",
     "expr-eval": "^2.0.2"
   }
 }

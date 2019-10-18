@@ -98,13 +98,35 @@ export default class CommandTree {
     )
   }
 
+  private createHelpNode(parentNode: CommandNode): CommandNode {
+    const helpNode = CommandTree.createNode(
+      { name: 'help', type: CommandItemType.FIXED },
+      parentNode
+    )
+
+    helpNode.setCommand(
+      new Command(helpNode.commandNodePathString().substring(1))
+    )
+
+    helpNode.addCallableRule({
+      condition: new Condition(),
+      callback: parentNode.printHelp.bind(this),
+    })
+
+    return helpNode
+  }
+
   private createOrGetNextNode(
     currentNode: CommandNode,
     commandItem: CommandItem
   ): CommandNode {
     if (!this.nodeHasCommandItem(currentNode, commandItem)) {
-      let node = CommandTree.createNode(commandItem, currentNode)
+      const node = CommandTree.createNode(commandItem, currentNode)
       currentNode.addNode(node)
+
+      const helpNode = this.createHelpNode(node)
+      node.addNode(helpNode)
+
       return node
     }
 
@@ -125,8 +147,8 @@ export default class CommandTree {
     )
   }
 
-  printTree(): string {
-    return this._printTree(this.root)
+  printTree(): void {
+    console.log(this._printTree(this.root))
   }
 
   private _printTree(node?: CommandNode, level: number = 0): string {
