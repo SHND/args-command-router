@@ -16,22 +16,22 @@ export default class Application {
     this._commandTree = new CommandTree()
   }
 
-  route(route: Route, callback: Function): void
-  route(route: string, callback: Function): void
-  route(command: string, condition: string, callback: Function): void
-  route(command: Command, condition: string, callback: Function): void
-  route(command: string, condition: Condition, callback: Function): void
-  route(command: Command, condition: Condition, callback: Function): void
+  route(route: Route, callback: Function): Command
+  route(route: string, callback: Function): Command
+  route(command: string, condition: string, callback: Function): Command
+  route(command: Command, condition: string, callback: Function): Command
+  route(command: string, condition: Condition, callback: Function): Command
+  route(command: Command, condition: Condition, callback: Function): Command
   route(
     routeOrCommandOrString: Route | Command | string,
     conditionOrStringOrCallback: Condition | Function | string,
     callback: Function = () => {}
-  ): void {
+  ): Command {
     if (
       routeOrCommandOrString instanceof Route &&
       conditionOrStringOrCallback instanceof Function
     ) {
-      this._commandTree.addRoute(
+      return this._commandTree.addRoute(
         routeOrCommandOrString,
         conditionOrStringOrCallback
       )
@@ -39,7 +39,7 @@ export default class Application {
       typeof routeOrCommandOrString === 'string' &&
       conditionOrStringOrCallback instanceof Function
     ) {
-      this._commandTree.addRoute(
+      return this._commandTree.addRoute(
         routeOrCommandOrString,
         conditionOrStringOrCallback
       )
@@ -48,7 +48,7 @@ export default class Application {
       typeof conditionOrStringOrCallback === 'string' &&
       callback instanceof Function
     ) {
-      this._commandTree.addRoute(
+      return this._commandTree.addRoute(
         routeOrCommandOrString,
         conditionOrStringOrCallback,
         callback
@@ -58,7 +58,7 @@ export default class Application {
       typeof conditionOrStringOrCallback === 'string' &&
       callback instanceof Function
     ) {
-      this._commandTree.addRoute(
+      return this._commandTree.addRoute(
         routeOrCommandOrString,
         conditionOrStringOrCallback,
         callback
@@ -68,7 +68,7 @@ export default class Application {
       conditionOrStringOrCallback instanceof Condition &&
       callback instanceof Function
     ) {
-      this._commandTree.addRoute(
+      return this._commandTree.addRoute(
         routeOrCommandOrString,
         conditionOrStringOrCallback,
         callback
@@ -78,18 +78,18 @@ export default class Application {
       conditionOrStringOrCallback instanceof Condition &&
       callback instanceof Function
     ) {
-      this._commandTree.addRoute(
+      return this._commandTree.addRoute(
         routeOrCommandOrString,
         conditionOrStringOrCallback,
         callback
       )
     }
 
-    // return this._commandTree.addRoute(
-    //   routeOrCommandOrString,
-    //   conditionOrStringOrCallback,
-    //   callback
-    // )
+    throw Error(
+      `Incorrect parameters is passed to Application::addRoute.\nThe parameters are: "${[
+        ...arguments,
+      ]}"`
+    )
   }
 
   noroute(callback: Function) {

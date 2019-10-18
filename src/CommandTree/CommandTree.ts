@@ -23,17 +23,17 @@ export default class CommandTree {
       : new ParameterCommandNode()
   }
 
-  addRoute(route: Route, callback: Function): void
-  addRoute(route: string, callback: Function): void
-  addRoute(command: string, condition: string, callback: Function): void
-  addRoute(command: Command, condition: string, callback: Function): void
-  addRoute(command: string, condition: Condition, callback: Function): void
-  addRoute(command: Command, condition: Condition, callback: Function): void
+  addRoute(route: Route, callback: Function): Command
+  addRoute(route: string, callback: Function): Command
+  addRoute(command: string, condition: string, callback: Function): Command
+  addRoute(command: Command, condition: string, callback: Function): Command
+  addRoute(command: string, condition: Condition, callback: Function): Command
+  addRoute(command: Command, condition: Condition, callback: Function): Command
   addRoute(
     routeOrCommandOrString: Route | Command | string,
     conditionOrStringOrCallback: Condition | Function | string,
     callback: Function = () => {}
-  ): void {
+  ): Command {
     if (
       routeOrCommandOrString instanceof Route &&
       conditionOrStringOrCallback instanceof Function
@@ -41,13 +41,13 @@ export default class CommandTree {
       const command: Command = routeOrCommandOrString.command
       const condition: Condition = routeOrCommandOrString.condition
 
-      this.addRoute(command, condition, conditionOrStringOrCallback)
+      return this.addRoute(command, condition, conditionOrStringOrCallback)
     } else if (
       typeof routeOrCommandOrString === 'string' &&
       conditionOrStringOrCallback instanceof Function
     ) {
       const route = new Route(routeOrCommandOrString)
-      this.addRoute(route, conditionOrStringOrCallback)
+      return this.addRoute(route, conditionOrStringOrCallback)
     } else if (
       typeof routeOrCommandOrString === 'string' &&
       typeof conditionOrStringOrCallback === 'string' &&
@@ -55,21 +55,21 @@ export default class CommandTree {
     ) {
       const command = new Command(routeOrCommandOrString)
       const condition = new Condition(conditionOrStringOrCallback)
-      this.addRoute(command, condition, callback)
+      return this.addRoute(command, condition, callback)
     } else if (
       routeOrCommandOrString instanceof Command &&
       typeof conditionOrStringOrCallback === 'string' &&
       callback instanceof Function
     ) {
       const condition = new Condition(conditionOrStringOrCallback)
-      this.addRoute(routeOrCommandOrString, condition, callback)
+      return this.addRoute(routeOrCommandOrString, condition, callback)
     } else if (
       typeof routeOrCommandOrString === 'string' &&
       conditionOrStringOrCallback instanceof Condition &&
       callback instanceof Function
     ) {
       const command = new Command(routeOrCommandOrString)
-      this.addRoute(command, conditionOrStringOrCallback, callback)
+      return this.addRoute(command, conditionOrStringOrCallback, callback)
     } else if (
       routeOrCommandOrString instanceof Command &&
       conditionOrStringOrCallback instanceof Condition &&
@@ -84,7 +84,15 @@ export default class CommandTree {
 
       currentNode.setCommand(routeOrCommandOrString)
       currentNode.addCallableRule(conditionOrStringOrCallback, callback)
+
+      return routeOrCommandOrString
     }
+
+    throw Error(
+      `Incorrect parameters is passed to CommandTree::addRoute.\nThe parameters are: "${[
+        ...arguments,
+      ]}"`
+    )
   }
 
   private createOrGetNextNode(
