@@ -1,11 +1,11 @@
-import ValuedSwitch from './ValuedSwitch'
+import Switch from './Switch'
 
-export default class RequiredSwitch extends ValuedSwitch {
+export default class RequiredSwitch extends Switch {
   constructor(
     shortName: string | null,
     longName: string | null,
     description: string = ''
   ) {
-    super(shortName, longName, null, description)
+    super(shortName, longName, description)
   }
 }

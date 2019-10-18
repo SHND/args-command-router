@@ -8,8 +8,4 @@ export default class BooleanSwitch extends Switch {
   ) {
     super(shortName, longName, description)
   }
-
-  getValue(): boolean {
-    return true
-  }
 }

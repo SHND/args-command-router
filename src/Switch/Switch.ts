@@ -12,6 +12,4 @@ export default abstract class Switch {
     this._longName = longName
     this._description = description
   }
-
-  abstract getValue(): string | boolean | null
 }
