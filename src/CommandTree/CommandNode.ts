@@ -1,8 +1,9 @@
-import commandLineUsage from 'command-line-usage'
-import FixedCommandNode from './FixedCommandNode'
-import ParameterCommandNode from './ParameterCommandNode'
+import commandLineUsage, { OptionDefinition } from 'command-line-usage'
 import Command from '../Command'
 import Condition from '../Condition'
+import BooleanSwitch from '../Switch/BooleanSwitch'
+import RequiredSwitch from '../Switch/RequiredSwitch'
+import ValuedSwitch from '../Switch/ValuedSwitch'
 import { PARAMETER_PREFIX, COMMAND_DELIMITER } from '../constants'
 import { NodeChildrenType } from './models'
 
@@ -140,20 +141,101 @@ export default abstract class CommandNode {
 
   printHelp(): void {
     const command: Command | null = this.getCommand()
+
+    const pathNames = this.commandNodePathNames()
+    if (pathNames.length > 0) pathNames[0] = '<APP>'
+    pathNames.push('[COMMAND]')
+
+    const usageContent: any[] = []
+    for (let childNodeName in this.children) {
+      const childNode = this.children[childNodeName]
+      const childCommand = childNode.getCommand()
+
+      usageContent.push({
+        name: childNode.name,
+        summary: childCommand ? childCommand.getDescription() : '',
+      })
+    }
+
     if (!command) {
-      const pathNames = this.commandNodePathNames()
       const usage = commandLineUsage([
         {
           header: 'Usage',
-          content: this.commandNodePathNames().join(' '),
+          content: pathNames.join(' '),
+        },
+        {
+          header: 'Command List',
+          content: usageContent,
         },
       ])
       console.log(usage)
     } else {
+      let requiredOptionList: OptionDefinition[] = []
+      let optionalOptionList: OptionDefinition[] = []
+
+      const booleanSwitches: BooleanSwitch[] = []
+      const requiredSwitches: RequiredSwitch[] = []
+      const valuedSwitches: ValuedSwitch[] = []
+
+      command.getSwitches().forEach(s => {
+        if (s instanceof RequiredSwitch) {
+          requiredSwitches.push(s)
+        } else if (s instanceof BooleanSwitch) {
+          booleanSwitches.push(s)
+        } else if (s instanceof ValuedSwitch) {
+          valuedSwitches.push(s)
+        }
+      })
+
+      requiredOptionList = requiredOptionList.concat(
+        requiredSwitches.map(
+          (s: RequiredSwitch): OptionDefinition => ({
+            name: s.longname || '',
+            description: s.description,
+            alias: s.shortname || '',
+            typeLabel: '{underline value}',
+          })
+        )
+      )
+
+      optionalOptionList = optionalOptionList.concat(
+        booleanSwitches.map(
+          (s: BooleanSwitch): OptionDefinition => ({
+            name: s.longname || '',
+            description: s.description,
+            alias: s.shortname || '',
+            type: Boolean,
+          })
+        )
+      )
+
+      optionalOptionList = optionalOptionList.concat(
+        valuedSwitches.map(
+          (s: ValuedSwitch): OptionDefinition => ({
+            name: s.longname || '',
+            description: s.description,
+            alias: s.shortname || '',
+            typeLabel: '{underline value}',
+          })
+        )
+      )
+
       const usage = commandLineUsage([
         {
           header: 'Usage',
-          content: "Hi this is something i'm doing",
+          content: pathNames.join(' '),
+        },
+        {
+          header: 'Command List',
+          content: usageContent,
+        },
+        {
+          header: 'Required Options',
+          optionList: requiredOptionList,
+        },
+        {
+          header: 'Optional Options',
+          optionList: optionalOptionList,
         },
       ])
       console.log(usage)

@@ -51,6 +51,14 @@ export default class Command {
     return this
   }
 
+  getDescription(): string {
+    return this._description
+  }
+
+  getSwitches(): Switch[] {
+    return this._switches
+  }
+
   booleanSwitch(
     shortName: string,
     longName: string,

@@ -12,4 +12,16 @@ export default abstract class Switch {
     this._longName = longName
     this._description = description
   }
+
+  get shortname(): string | null {
+    return this._shortName
+  }
+
+  get longname(): string | null {
+    return this._longName
+  }
+
+  get description(): string {
+    return this._description
+  }
 }

@@ -104,9 +104,9 @@ export default class CommandTree {
       parentNode
     )
 
-    helpNode.setCommand(
-      new Command(helpNode.commandNodePathString().substring(1))
-    )
+    const command = new Command(helpNode.commandNodePathString().substring(1))
+    command.description('Print help')
+    helpNode.setCommand(command)
 
     helpNode.addCallableRule({
       condition: new Condition(),
