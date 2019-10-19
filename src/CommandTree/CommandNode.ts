@@ -192,7 +192,7 @@ export default abstract class CommandNode {
       optionalOptionList = optionalOptionList.concat(
         booleanSwitches.map(
           (s: BooleanSwitch): OptionDefinition => ({
-            name: s.longname || '',
+            name: s.longname || '\b\b\b\b    ',
             description: s.description,
             alias: s.shortname || '',
             type: Boolean,
@@ -203,10 +203,11 @@ export default abstract class CommandNode {
       optionalOptionList = optionalOptionList.concat(
         valuedSwitches.map(
           (s: ValuedSwitch): OptionDefinition => ({
-            name: s.longname || '',
+            name: s.longname || '\b\b\b\b', // because name is required
             description: s.description,
             alias: s.shortname || '',
-            typeLabel: '{underline value}',
+            // because name is required and typeLabel needs to be aligned
+            typeLabel: `{underline value}${!s.longname ? '    ' : ''}`,
           })
         )
       )
