@@ -11,4 +11,8 @@ export default class ValuedSwitch extends Switch {
     super(shortName, longName, description)
     this._defaultValue = defaultValue
   }
+
+  get defaultValue() {
+    return this._defaultValue
+  }
 }

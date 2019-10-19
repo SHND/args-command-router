@@ -1,12 +1,14 @@
 import { parser } from 'args-command-parser'
+import { Data } from 'args-command-parser/dist/Models'
 import CommandTree from './CommandTree/CommandTree'
 import Route from './Route'
 import Command from './Command'
 import Condition from './Condition'
-import { Data } from 'args-command-parser/dist/Models'
 import CommandNode from './CommandTree/CommandNode'
 import CallbackData from './CallbackData'
 import RequiredSwitch from './Switch/RequiredSwitch'
+import ValuedSwitch from './Switch/ValuedSwitch'
+import BooleanSwitch from './Switch/BooleanSwitch'
 
 export default class Application {
   private _config: { [key: string]: any }
@@ -155,7 +157,6 @@ export default class Application {
     command: Command,
     switches: { [key: string]: string | boolean }
   ): void {
-    console.log(switches)
     const missingSwitches: RequiredSwitch[] = []
     const requiredSwitches: RequiredSwitch[] = command.getRequiredSwitches()
 
@@ -185,6 +186,133 @@ export default class Application {
         `There are couple of required switches missing: ${missingSwitchesString}`
       )
     }
+  }
+
+  private validateRequiredSwitchesHaveValue(
+    command: Command,
+    switches: { [key: string]: string | boolean }
+  ): void {
+    const requiredSwitches: RequiredSwitch[] = command.getRequiredSwitches()
+
+    for (let s of requiredSwitches) {
+      if (
+        s.shortname &&
+        switches[s.shortname] &&
+        typeof switches[s.shortname] === 'boolean'
+      ) {
+        throw Error(`Switch '-${s.shortname}' should have a value`)
+      }
+
+      if (
+        s.longname &&
+        switches[s.longname] &&
+        typeof switches[s.longname] === 'boolean'
+      ) {
+        throw Error(`Switch '--${s.longname}' should have a value`)
+      }
+    }
+  }
+
+  private validateValuedSwitchesWithNoDefaultHaveValue(
+    command: Command,
+    switches: { [key: string]: string | boolean }
+  ): void {
+    const valuedSwitches: ValuedSwitch[] = command.getValuedSwitches()
+
+    for (let s of valuedSwitches) {
+      if (
+        s.shortname &&
+        switches[s.shortname] &&
+        typeof switches[s.shortname] === 'boolean' &&
+        !s.defaultValue
+      ) {
+        throw Error(`Switch '-${s.shortname}' should have a value`)
+      }
+
+      if (
+        s.longname &&
+        switches[s.longname] &&
+        typeof switches[s.longname] === 'boolean' &&
+        !s.defaultValue
+      ) {
+        throw Error(`Switch '--${s.longname}' should have a value`)
+      }
+    }
+  }
+
+  private validateBooleanSwitchesDontHaveValues(
+    command: Command,
+    switches: { [key: string]: string | boolean }
+  ): void {
+    const booleanSwitches: BooleanSwitch[] = command.getBooleanSwitches()
+
+    for (let s of booleanSwitches) {
+      if (
+        s.shortname &&
+        switches[s.shortname] &&
+        typeof switches[s.shortname] !== 'boolean'
+      ) {
+        throw Error(`Switch '-${s.shortname}' does not accept a value`)
+      }
+
+      if (
+        s.longname &&
+        switches[s.longname] &&
+        typeof switches[s.longname] !== 'boolean'
+      ) {
+        throw Error(`Switch '--${s.longname}' does not accept a value`)
+      }
+    }
+  }
+
+  private defaultShortValuedSwitchesThatNeedsToBeAdded(
+    command: Command,
+    switches: { [key: string]: string | boolean }
+  ): { [key: string]: string | boolean } {
+    const output: { [key: string]: string | boolean } = {}
+    const valuedSwitches: ValuedSwitch[] = command.getValuedSwitches()
+
+    for (let s of valuedSwitches) {
+      if (s.defaultValue) {
+        if (
+          s.shortname &&
+          !switches[s.shortname] &&
+          s.longname &&
+          !switches[s.longname]
+        ) {
+          output[s.shortname] = s.defaultValue
+        } else if (!s.longname && s.shortname && !switches[s.shortname]) {
+          output[s.shortname] = s.defaultValue
+        }
+      }
+    }
+
+    return output
+  }
+
+  private defaultLongValuedSwitchesThatNeedsToBeAdded(
+    command: Command,
+    switches: { [key: string]: string | boolean }
+  ): { [key: string]: string | boolean } {
+    const output: { [key: string]: string | boolean } = {}
+    const valuedSwitches: ValuedSwitch[] = command.getValuedSwitches()
+
+    for (let s of valuedSwitches) {
+      if (s.defaultValue) {
+        if (
+          s.shortname &&
+          !switches[s.shortname] &&
+          s.longname &&
+          !switches[s.longname]
+        ) {
+          output[s.longname] = s.defaultValue
+        } else if (!s.shortname && s.longname && !switches[s.longname]) {
+          output[s.longname] = s.defaultValue
+        }
+      }
+    }
+
+    return output
   }
 
   private cleanSwitchValues(acpSwitches: {
@@ -306,11 +434,39 @@ export default class Application {
         ...cleanedShortSwitches,
         ...cleanedLongSwitches,
       })
+      this.validateRequiredSwitchesHaveValue(command, {
+        ...cleanedShortSwitches,
+        ...cleanedLongSwitches,
+      })
+      this.validateValuedSwitchesWithNoDefaultHaveValue(command, {
+        ...cleanedShortSwitches,
+        ...cleanedLongSwitches,
+      })
+      this.validateBooleanSwitchesDontHaveValues(command, {
+        ...cleanedShortSwitches,
+        ...cleanedLongSwitches,
+      })
     } catch (e) {
       console.error(e.message)
       currentNode.printHelp()
       process.exit(1)
     }
+
+    const shortDefaultValuesNeedsInjected = this.defaultShortValuedSwitchesThatNeedsToBeAdded(
+      command,
+      {
+        ...cleanedShortSwitches,
+        ...cleanedLongSwitches,
+      }
+    )
+
+    const longDefaultValuesNeedsInjected = this.defaultLongValuedSwitchesThatNeedsToBeAdded(
+      command,
+      {
+        ...cleanedShortSwitches,
+        ...cleanedLongSwitches,
+      }
+    )
 
     const callback: Function | null = currentNode.firstMatchedCallable({
       ...cleanedShortSwitches,
@@ -321,8 +477,8 @@ export default class Application {
     const callbackData: CallbackData = new CallbackData(
       command,
       parameters,
-      cleanedShortSwitches,
-      cleanedLongSwitches
+      { ...shortDefaultValuesNeedsInjected, ...cleanedShortSwitches },
+      { ...longDefaultValuesNeedsInjected, ...cleanedLongSwitches }
     )
 
     if (!callback) {
