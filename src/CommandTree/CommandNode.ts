@@ -177,16 +177,6 @@ export default abstract class CommandNode {
       const requiredSwitches: RequiredSwitch[] = command.getRequiredSwitches()
       const valuedSwitches: ValuedSwitch[] = command.getValuedSwitches()
 
-      // command.getSwitches().forEach(s => {
-      //   if (s instanceof RequiredSwitch) {
-      //     requiredSwitches.push(s)
-      //   } else if (s instanceof BooleanSwitch) {
-      //     booleanSwitches.push(s)
-      //   } else if (s instanceof ValuedSwitch) {
-      //     valuedSwitches.push(s)
-      //   }
-      // })
-
       requiredOptionList = requiredOptionList.concat(
         requiredSwitches.map(
           (s: RequiredSwitch): OptionDefinition => ({
@@ -241,7 +231,7 @@ export default abstract class CommandNode {
 
       if (optionalOptionList.length > 0) {
         commandLineUsageOptions.push({
-          header: 'Required Options',
+          header: 'Optional Options',
           optionList: optionalOptionList,
         })
       }
