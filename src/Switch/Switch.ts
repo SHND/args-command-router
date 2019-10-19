@@ -8,6 +8,11 @@ export default abstract class Switch {
     longName: string | null,
     description: string = ''
   ) {
+    if (!shortName && !longName)
+      throw Error(
+        'At least one of the Switch shortName or longName should be set.'
+      )
+
     this._shortName = shortName
     this._longName = longName
     this._description = description

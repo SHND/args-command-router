@@ -5,8 +5,8 @@ import Command from './Command'
 import Condition from './Condition'
 import { Data } from 'args-command-parser/dist/Models'
 import CommandNode from './CommandTree/CommandNode'
-import { COMMAND_DELIMITER } from './constants'
 import CallbackData from './CallbackData'
+import RequiredSwitch from './Switch/RequiredSwitch'
 
 export default class Application {
   private _config: { [key: string]: any }
@@ -151,6 +151,42 @@ export default class Application {
     }
   }
 
+  validateAllRequiredSwitchesPresent(
+    command: Command,
+    switches: { [key: string]: string | boolean }
+  ): void {
+    console.log(switches)
+    const missingSwitches: RequiredSwitch[] = []
+    const requiredSwitches: RequiredSwitch[] = command.getRequiredSwitches()
+
+    for (let s of requiredSwitches) {
+      const missingShort =
+        s.shortname &&
+        (switches[s.shortname] === undefined || switches[s.shortname] === null)
+
+      const missingLong =
+        s.longname &&
+        (switches[s.longname] === undefined || switches[s.longname] === null)
+
+      if (missingShort && missingLong) {
+        missingSwitches.push(s)
+      }
+    }
+
+    if (missingSwitches.length > 0) {
+      const missingSwitchesString: string = missingSwitches
+        .map(s => {
+          if (s.longname) return `--${s.longname}`
+          return `-${s.shortname}`
+        })
+        .join(', ')
+
+      throw Error(
+        `There are couple of required switches missing: ${missingSwitchesString}`
+      )
+    }
+  }
+
   private cleanSwitchValues(acpSwitches: {
     [key: string]: string[]
   }): { [key: string]: string | boolean } {
@@ -217,9 +253,13 @@ export default class Application {
     const acpData: Data = parser(argv).data
     const { commands: commandItems, shortSwitches, longSwitches } = acpData
 
-    this.validateOneValueMostForEachSwitch(shortSwitches)
-    this.validateOneValueMostForEachSwitch(longSwitches)
-    this.validateNonConflictSwitches(shortSwitches, longSwitches)
+    try {
+      this.validateOneValueMostForEachSwitch(shortSwitches)
+      this.validateOneValueMostForEachSwitch(longSwitches)
+    } catch (e) {
+      console.error(e.message)
+      process.exit(1)
+    }
 
     const cleanedShortSwitches: {
       [key: string]: string | boolean
@@ -257,8 +297,20 @@ export default class Application {
       commandParamValues
     )
 
+    this.validateNonConflictSwitches(shortSwitches, longSwitches)
     this.validateNonConflictParamsAndSwitches(parameters, cleanedShortSwitches)
     this.validateNonConflictParamsAndSwitches(parameters, cleanedLongSwitches)
+
+    try {
+      this.validateAllRequiredSwitchesPresent(command, {
+        ...cleanedShortSwitches,
+        ...cleanedLongSwitches,
+      })
+    } catch (e) {
+      console.error(e.message)
+      currentNode.printHelp()
+      process.exit(1)
+    }
 
     const callback: Function | null = currentNode.firstMatchedCallable({
       ...cleanedShortSwitches,

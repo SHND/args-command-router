@@ -59,6 +59,22 @@ export default class Command {
     return this._switches
   }
 
+  getBooleanSwitches(): BooleanSwitch[] {
+    return <BooleanSwitch[]>(
+      this._switches.filter(s => s instanceof BooleanSwitch)
+    )
+  }
+
+  getRequiredSwitches(): RequiredSwitch[] {
+    return <RequiredSwitch[]>(
+      this._switches.filter(s => s instanceof RequiredSwitch)
+    )
+  }
+
+  getValuedSwitches(): ValuedSwitch[] {
+    return <ValuedSwitch[]>this._switches.filter(s => s instanceof ValuedSwitch)
+  }
+
   booleanSwitch(
     shortName: string,
     longName: string,

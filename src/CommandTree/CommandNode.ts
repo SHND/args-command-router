@@ -173,27 +173,28 @@ export default abstract class CommandNode {
       let requiredOptionList: OptionDefinition[] = []
       let optionalOptionList: OptionDefinition[] = []
 
-      const booleanSwitches: BooleanSwitch[] = []
-      const requiredSwitches: RequiredSwitch[] = []
-      const valuedSwitches: ValuedSwitch[] = []
+      const booleanSwitches: BooleanSwitch[] = command.getBooleanSwitches()
+      const requiredSwitches: RequiredSwitch[] = command.getRequiredSwitches()
+      const valuedSwitches: ValuedSwitch[] = command.getValuedSwitches()
 
-      command.getSwitches().forEach(s => {
-        if (s instanceof RequiredSwitch) {
-          requiredSwitches.push(s)
-        } else if (s instanceof BooleanSwitch) {
-          booleanSwitches.push(s)
-        } else if (s instanceof ValuedSwitch) {
-          valuedSwitches.push(s)
-        }
-      })
+      // command.getSwitches().forEach(s => {
+      //   if (s instanceof RequiredSwitch) {
+      //     requiredSwitches.push(s)
+      //   } else if (s instanceof BooleanSwitch) {
+      //     booleanSwitches.push(s)
+      //   } else if (s instanceof ValuedSwitch) {
+      //     valuedSwitches.push(s)
+      //   }
+      // })
 
       requiredOptionList = requiredOptionList.concat(
         requiredSwitches.map(
           (s: RequiredSwitch): OptionDefinition => ({
-            name: s.longname || '',
+            name: s.longname || '\b\b\b\b', // because name is required
             description: s.description,
-            alias: s.shortname || '',
-            typeLabel: '{underline value}',
+            alias: s.shortname || undefined,
+            // because name is required and typeLabel needs to be aligned
+            typeLabel: `{underline value}${!s.longname ? '    ' : ''}`,
           })
         )
       )
