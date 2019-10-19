@@ -1,4 +1,4 @@
-import commandLineUsage, { OptionDefinition } from 'command-line-usage'
+import commandLineUsage, { OptionDefinition, Section } from 'command-line-usage'
 import Command from '../Command'
 import Condition from '../Condition'
 import BooleanSwitch from '../Switch/BooleanSwitch'
@@ -220,7 +220,7 @@ export default abstract class CommandNode {
         )
       )
 
-      const usage = commandLineUsage([
+      const commandLineUsageOptions: Section[] = [
         {
           header: 'Usage',
           content: pathNames.join(' '),
@@ -229,15 +229,24 @@ export default abstract class CommandNode {
           header: 'Command List',
           content: usageContent,
         },
-        {
+      ]
+
+      if (requiredOptionList.length > 0) {
+        commandLineUsageOptions.push({
           header: 'Required Options',
           optionList: requiredOptionList,
-        },
-        {
-          header: 'Optional Options',
+        })
+      }
+
+      if (optionalOptionList.length > 0) {
+        commandLineUsageOptions.push({
+          header: 'Required Options',
           optionList: optionalOptionList,
-        },
-      ])
+        })
+      }
+
+      const usage = commandLineUsage(commandLineUsageOptions)
+
       console.log(usage)
     }
   }
