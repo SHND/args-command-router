@@ -4,6 +4,7 @@
 
 # source
 src/
+test/
 
 # tools
 .gitignore
