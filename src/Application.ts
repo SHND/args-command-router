@@ -9,10 +9,12 @@ import { COMMAND_DELIMITER } from './constants'
 import CallbackData from './CallbackData'
 
 export default class Application {
+  private _config: { [key: string]: any }
   private _commandTree: CommandTree
   private _norouteCallback: Function = () => {}
 
-  constructor() {
+  constructor(config = {}) {
+    this._config = config
     this._commandTree = new CommandTree()
   }
 
