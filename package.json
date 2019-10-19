@@ -18,6 +18,10 @@
     "command-line"
   ],
   "author": "Sahand Javid <sahand.javid@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SHND/args-command-router.git"
+  },
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^12.7.11",
