@@ -1,6 +1,6 @@
 {
   "name": "args-command-router",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Nodejs command-line argument router",
   "main": "index.js",
   "scripts": {
