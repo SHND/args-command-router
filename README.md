@@ -106,7 +106,7 @@ app.route('download/folder/:folder_url', inputs => {
 
 ## More Details on the Format
 
-**args-command-router** is opinionated command-line router based on the package [args-command-parser](https://www.npmjs.com/package/args-command-parser). The idea is that the command is in the format below:
+**args-command-router** is opinionated command-line router based on the package [args-command-parser](https://www.npmjs.com/package/args-command-parser). The idea is that the commands are in the format below:
 
 ```
 node <file.js> [command1 [command2 [...]]] [switches]
@@ -114,7 +114,7 @@ node <file.js> [command1 [command2 [...]]] [switches]
 
 ### Command
 
-Commands are the first arguments showing up. These are names without `-` or `--`. As soon as a switch seen, the sequence of commands is considered finished.
+Commands are the first arguments showing up. These are names without `-` or `--`. As soon as a switch is seen, the sequence of commands is considered finished.
 
 ### Switch
 
