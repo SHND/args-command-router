@@ -8,6 +8,9 @@ export default abstract class Switch {
     longName: string | null,
     description: string = ''
   ) {
+    shortName = shortName || null // For empty string
+    longName = longName || null // For empty string
+
     if (!shortName && !longName)
       throw Error(
         'At least one of the Switch shortName or longName should be set.'
