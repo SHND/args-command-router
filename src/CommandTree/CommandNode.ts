@@ -5,12 +5,7 @@ import BooleanSwitch from '../Switch/BooleanSwitch'
 import RequiredSwitch from '../Switch/RequiredSwitch'
 import ValuedSwitch from '../Switch/ValuedSwitch'
 import { PARAMETER_PREFIX, COMMAND_DELIMITER } from '../constants'
-import { NodeChildrenType } from './models'
-
-export interface CallbackRule {
-  condition: Condition
-  callback: Function
-}
+import { NodeChildrenType, CallbackRule } from './models'
 
 export default abstract class CommandNode {
   private _parentNode: CommandNode | null = null
