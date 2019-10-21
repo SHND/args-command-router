@@ -406,7 +406,7 @@ export default class Application {
         cleanedShortSwitches,
         cleanedLongSwitches
       )
-      this._norouteCallback(callbackData)
+      this._norouteCallback.call(new Command(''), callbackData)
       return
     }
 
@@ -482,10 +482,10 @@ export default class Application {
     )
 
     if (!callback) {
-      this._norouteCallback(callbackData)
+      this._norouteCallback.call(command, callbackData)
       return
     }
 
-    callback(callbackData)
+    callback.call(command, callbackData)
   }
 }
