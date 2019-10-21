@@ -10,3 +10,9 @@ test/
 .gitignore
 .eslintrc.json
 .prettierrc.json
+.travis.yml
+.coveralls.yml
+coverage/
+.nycrc
+.nyc_output/
+tsconfig.json
