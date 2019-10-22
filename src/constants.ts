@@ -1,3 +1,5 @@
+export const ROOT_COMMAND_NAME: string = '/'
+
 export const COMMAND_DELIMITER: string = '/'
 
 export const PARAMETER_PREFIX: string = ':'

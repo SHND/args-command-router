@@ -4,10 +4,10 @@ import ParameterCommandNode from './ParameterCommandNode'
 import Command, { CommandItem, CommandItemType } from '../Command'
 import Condition from '../Condition'
 import Route from '../Route'
-import { COMMAND_DELIMITER, PARAMETER_PREFIX } from '../constants'
+import { PARAMETER_PREFIX, ROOT_COMMAND_NAME } from '../constants'
 
 export default class CommandTree {
-  private _rootNode: CommandNode = new FixedCommandNode('/')
+  private _rootNode: CommandNode = new FixedCommandNode(ROOT_COMMAND_NAME)
 
   constructor(rootNode?: CommandNode) {
     if (rootNode !== undefined) this._rootNode = rootNode
