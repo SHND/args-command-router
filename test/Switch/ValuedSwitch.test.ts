@@ -8,6 +8,12 @@ describe('ValuedSwitch class', () => {
     }).throws()
   })
 
+  it('create for shortSwitch="aa"', () => {
+    expect(() => {
+      new ValuedSwitch('aa', null, null)
+    }).throws()
+  })
+
   it('create for shortSwitch="a" longSwitch=null', () => {
     let s = new ValuedSwitch('a', null, null)
 

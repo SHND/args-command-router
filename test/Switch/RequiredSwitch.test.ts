@@ -8,6 +8,12 @@ describe('RequiredSwitch class', () => {
     }).throws()
   })
 
+  it('create for shortSwitch="aa"', () => {
+    expect(() => {
+      new RequiredSwitch('aa', null)
+    }).throws()
+  })
+
   it('create for shortSwitch="a" longSwitch=null', () => {
     let s = new RequiredSwitch('a', null)
 

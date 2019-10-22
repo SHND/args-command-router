@@ -8,6 +8,12 @@ describe('BooleanSwitch class', () => {
     }).throws()
   })
 
+  it('create for shortSwitch="aa"', () => {
+    expect(() => {
+      new BooleanSwitch('aa', null)
+    }).throws()
+  })
+
   it('create for shortSwitch="a" longSwitch=null', () => {
     let s = new BooleanSwitch('a', null)
 
