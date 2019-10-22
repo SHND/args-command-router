@@ -8,14 +8,12 @@ import { PARAMETER_PREFIX, COMMAND_DELIMITER } from '../constants'
 import { NodeChildrenType, CallbackRule } from './models'
 
 export default abstract class CommandNode {
-  private _parentNode: CommandNode | null = null
+  protected _parentNode: CommandNode | null = null
   private _command: Command | null = null
   private _callbackRules: CallbackRule[] = []
   private _children: NodeChildrenType = {}
 
-  constructor(private _name: string, _parentNode: CommandNode | null) {
-    this._parentNode = _parentNode
-
+  constructor(private _name: string) {
     this.printHelp = this.printHelp.bind(this)
   }
 
@@ -41,13 +39,14 @@ export default abstract class CommandNode {
     }
   }
 
-  addNode(nodeOrString: CommandNode): CommandNode {
-    if (!this.hasNode(nodeOrString)) {
-      this._children[nodeOrString.name] = nodeOrString
-      return nodeOrString
+  addNode(node: CommandNode): CommandNode {
+    if (!this.hasNode(node)) {
+      this._children[node.name] = node
+      node._parentNode = this
+      return node
     }
 
-    return this._children[nodeOrString.name]
+    return this._children[node.name]
   }
 
   hasCommand(): boolean {

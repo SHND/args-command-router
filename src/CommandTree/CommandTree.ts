@@ -7,7 +7,7 @@ import Route from '../Route'
 import { COMMAND_DELIMITER, PARAMETER_PREFIX } from '../constants'
 
 export default class CommandTree {
-  private _rootNode: CommandNode = new FixedCommandNode('/', null)
+  private _rootNode: CommandNode = new FixedCommandNode('/')
 
   constructor(rootNode?: CommandNode) {
     if (rootNode !== undefined) this._rootNode = rootNode
@@ -17,13 +17,10 @@ export default class CommandTree {
     return this._rootNode
   }
 
-  static createNode(
-    commandItem: CommandItem,
-    parentNode: CommandNode | null = null
-  ): CommandNode {
+  static createNode(commandItem: CommandItem): CommandNode {
     return commandItem.type === CommandItemType.FIXED
-      ? new FixedCommandNode(commandItem.name, parentNode)
-      : new ParameterCommandNode(parentNode)
+      ? new FixedCommandNode(commandItem.name)
+      : new ParameterCommandNode()
   }
 
   addRoute(route: Route, callback: Function): Command
@@ -99,10 +96,10 @@ export default class CommandTree {
   }
 
   private createHelpNode(parentNode: CommandNode): CommandNode {
-    const helpNode = CommandTree.createNode(
-      { name: 'help', type: CommandItemType.FIXED },
-      parentNode
-    )
+    const helpNode = CommandTree.createNode({
+      name: 'help',
+      type: CommandItemType.FIXED,
+    })
 
     const command = new Command(helpNode.commandNodePathString().substring(1))
     command.description('Print help')
@@ -121,7 +118,7 @@ export default class CommandTree {
     commandItem: CommandItem
   ): CommandNode {
     if (!this.nodeHasCommandItem(currentNode, commandItem)) {
-      const node = CommandTree.createNode(commandItem, currentNode)
+      const node = CommandTree.createNode(commandItem)
       currentNode.addNode(node)
 
       const helpNode = this.createHelpNode(node)
