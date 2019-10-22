@@ -1,10 +1,11 @@
 import CommandNode from './CommandNode'
 import FixedCommandNode from './FixedCommandNode'
 import ParameterCommandNode from './ParameterCommandNode'
-import Command, { CommandItem, CommandItemType } from '../Command'
+import Command from '../Command'
 import Condition from '../Condition'
 import Route from '../Route'
 import { PARAMETER_PREFIX, ROOT_COMMAND_NAME } from '../constants'
+import { CommandItem, CommandItemType } from '../models'
 
 export default class CommandTree {
   private _rootNode: CommandNode = new FixedCommandNode(ROOT_COMMAND_NAME)

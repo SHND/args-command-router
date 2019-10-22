@@ -2,17 +2,8 @@ import Switch from './Switch/Switch'
 import BooleanSwitch from './Switch/BooleanSwitch'
 import ValuedSwitch from './Switch/ValuedSwitch'
 import RequiredSwitch from './Switch/RequiredSwitch'
+import { CommandItem, CommandItemType } from './models'
 import { COMMAND_DELIMITER, PARAMETER_PREFIX } from './constants'
-
-export enum CommandItemType {
-  FIXED = 1,
-  PARAMETER,
-}
-
-export interface CommandItem {
-  name: string
-  type: CommandItemType
-}
 
 export default class Command {
   private _commandItems: CommandItem[] = []
