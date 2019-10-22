@@ -11,6 +11,9 @@ export default abstract class Switch {
     shortName = shortName || null // For empty string
     longName = longName || null // For empty string
 
+    if (shortName && shortName.length > 1)
+      throw Error(`Short switch name '${shortName}' is not allowed`)
+
     if (!shortName && !longName)
       throw Error(
         'At least one of the Switch shortName or longName should be set.'

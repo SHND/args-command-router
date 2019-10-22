@@ -21,9 +21,17 @@ export default class Command {
     }
   }
 
+  /**
+   * Parse an string command path and returns a Command object
+   * This string doesn't contain conditions and shouldn't be
+   * confused by routePaths
+   * @param commandPath string path for the command
+   */
   static parse(commandPath: string): Command {
     if (commandPath.match(/\s/))
       throw Error(`Command '${commandPath}' shouldn't contain spaces.`)
+
+    if (commandPath === '') throw Error('Command cannot be an empty string.')
 
     const items = commandPath.split(COMMAND_DELIMITER)
     const commandItems = items.map(item => ({
@@ -67,8 +75,8 @@ export default class Command {
   }
 
   booleanSwitch(
-    shortName: string,
-    longName: string,
+    shortName: string | null,
+    longName: string | null,
     description: string = ''
   ): Command {
     const s = new BooleanSwitch(shortName, longName, description)
@@ -78,8 +86,8 @@ export default class Command {
   }
 
   valuedSwitch(
-    shortName: string,
-    longName: string,
+    shortName: string | null,
+    longName: string | null,
     defaultValue: string | null = null,
     description: string = ''
   ): Command {
@@ -90,8 +98,8 @@ export default class Command {
   }
 
   requiredSwitch(
-    shortName: string,
-    longName: string,
+    shortName: string | null,
+    longName: string | null,
     description: string = ''
   ): Command {
     const s = new RequiredSwitch(shortName, longName, description)
