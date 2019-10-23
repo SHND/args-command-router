@@ -123,6 +123,12 @@ describe('FixedCommandNode class', () => {
     expect(parentNode.parameterChild).eqls(node1)
   })
 
+  it('parameterChild() when doesn not exist', () => {
+    const parentNode = new FixedCommandNode('node1')
+
+    expect(parentNode.parameterChild).is.null
+  })
+
   it('matchChild() for paramter string', () => {
     const parentNode = new FixedCommandNode('parentNode')
     const node1 = new ParameterCommandNode()
