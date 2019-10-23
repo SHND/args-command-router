@@ -2,6 +2,10 @@
 
 Nodejs opinionated command-line argument router
 
+![GitHub](https://img.shields.io/github/license/SHND/args-command-router)
+[![Build Status](https://travis-ci.org/SHND/args-command-router.svg?branch=master)](https://travis-ci.org/SHND/args-command-router)
+[![Coverage Status](https://coveralls.io/repos/github/SHND/args-command-router/badge.svg?branch=master)](https://coveralls.io/github/SHND/args-command-router?branch=master)
+
 ## Installation
 
 ```bash
