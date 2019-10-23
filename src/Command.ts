@@ -23,6 +23,20 @@ export default class Command {
     } else {
       this._commandItems = commandPathOrItems
     }
+
+    this.description = this.description.bind(this)
+    this.getCommandItemNames = this.getCommandItemNames.bind(this)
+    this.getPath = this.getPath.bind(this)
+    this.getDescription = this.getDescription.bind(this)
+    this.getSwitches = this.getSwitches.bind(this)
+    this.getBooleanSwitches = this.getBooleanSwitches.bind(this)
+    this.getRequiredSwitches = this.getRequiredSwitches.bind(this)
+    this.getValuedSwitches = this.getValuedSwitches.bind(this)
+    this.booleanSwitch = this.booleanSwitch.bind(this)
+    this.valuedSwitch = this.valuedSwitch.bind(this)
+    this.requiredSwitch = this.requiredSwitch.bind(this)
+    this.getParameters = this.getParameters.bind(this)
+    this.getCommandItems = this.getCommandItems.bind(this)
   }
 
   /**
@@ -66,6 +80,20 @@ export default class Command {
     this._description = description
 
     return this
+  }
+
+  getCommandItemNames(): string[] {
+    return this._commandItems.map(item => {
+      if (item.type === CommandItemType.FIXED) {
+        return item.name
+      } else if (item.type === CommandItemType.PARAMETER) {
+        return PARAMETER_PREFIX + item.name
+      } else return 'UNKNOWN'
+    })
+  }
+
+  getPath(): string {
+    return this.getCommandItemNames().join(COMMAND_DELIMITER)
   }
 
   getDescription(): string {

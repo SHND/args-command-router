@@ -88,7 +88,10 @@ export default abstract class CommandNode {
     if (policyOrCondition instanceof Condition) {
       policy = { condition: policyOrCondition, callback }
     } else if (typeof policyOrCondition === 'string') {
-      policy = { condition: new Condition(policyOrCondition), callback }
+      policy = {
+        condition: new Condition(policyOrCondition),
+        callback,
+      }
     } else {
       policy = policyOrCondition
     }
@@ -125,20 +128,39 @@ export default abstract class CommandNode {
     return commandNodes.reverse()
   }
 
-  commandNodePathNames(): string[] {
-    return this.commandNodePath().map(cn => cn.name)
+  commandNodePathString(): string {
+    const command: Command | null = this.getCommand()
+
+    if (command) {
+      return command.getCommandItemNames().join(COMMAND_DELIMITER)
+    } else {
+      return this.commandNodePath()
+        .slice(1)
+        .map(node => node.name)
+        .join(COMMAND_DELIMITER)
+    }
   }
 
-  commandNodePathString(): string {
-    return this.commandNodePathNames().join(COMMAND_DELIMITER)
+  getCommandPathForHelp(): string[] {
+    let output = []
+    const command: Command | null = this.getCommand()
+
+    if (command) {
+      output.push('<APP>')
+      output = output.concat(command.getCommandItemNames())
+      output.push('[COMMAND]')
+    } else {
+      output = this.commandNodePath().map(node => node.name)
+      output[0] = '<APP>'
+      output.push('<COMMAND>')
+    }
+    return output
   }
 
   printHelp(): void {
     const command: Command | null = this.getCommand()
 
-    const pathNames = this.commandNodePathNames()
-    if (pathNames.length > 0) pathNames[0] = '<APP>'
-    pathNames.push('[COMMAND]')
+    const pathNames: string[] = this.getCommandPathForHelp()
 
     const usageContent: any[] = []
     for (let childNodeName in this.children) {

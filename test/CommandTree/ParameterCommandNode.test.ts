@@ -207,32 +207,59 @@ describe('ParameterCommandNode class', () => {
     expect(path2[1]).eqls(node2)
   })
 
-  it('commandNodePathNames()', () => {
-    const node1 = new ParameterCommandNode()
+  it('commandNodePathString() when command does not exist on the CommandNode', () => {
+    const node1 = new FixedCommandNode('node1')
+    const path1 = node1.commandNodePathString()
+    expect(path1).eql('')
 
-    const path1 = node1.commandNodePathNames()
-    expect(path1.length).equals(1)
-    expect(path1[0]).eqls(PARAMETER_PREFIX)
-
-    const node2 = new FixedCommandNode('node2')
+    const node2 = new ParameterCommandNode()
     node1.addNode(node2)
-
-    const path2 = node2.commandNodePathNames()
-    expect(path2.length).equals(2)
-    expect(path2[0]).eqls(PARAMETER_PREFIX)
-    expect(path2[1]).eqls('node2')
+    const path2 = node2.commandNodePathString()
+    expect(path2).eql(PARAMETER_PREFIX)
   })
 
-  it('commandNodePathString()', () => {
-    const node1 = new ParameterCommandNode()
+  it('commandNodePathString() when command exists CommandNode', () => {
+    const node1 = new FixedCommandNode('node1')
 
     const path1 = node1.commandNodePathString()
-    expect(path1).eqls(PARAMETER_PREFIX)
+    expect(path1).eql('')
 
-    const node2 = new FixedCommandNode('node2')
+    const node2 = new ParameterCommandNode()
     node1.addNode(node2)
 
     const path2 = node2.commandNodePathString()
-    expect(path2).eqls(PARAMETER_PREFIX + COMMAND_DELIMITER + 'node2')
+    expect(path2).eql(PARAMETER_PREFIX)
+  })
+
+  it('getCommandPathForHelp() when command does not exist on the CommandNode', () => {
+    const node1 = new FixedCommandNode('node1')
+
+    const path1 = node1.getCommandPathForHelp()
+    expect(path1.length).equals(2)
+    expect(path1).eql(['<APP>', '<COMMAND>'])
+
+    const node2 = new ParameterCommandNode()
+    node1.addNode(node2)
+
+    const path2 = node2.getCommandPathForHelp()
+    expect(path2.length).equals(3)
+    expect(path2).eql(['<APP>', PARAMETER_PREFIX, '<COMMAND>'])
+  })
+
+  it('getCommandPathForHelp() when command exists CommandNode', () => {
+    const node1 = new FixedCommandNode('node1')
+    node1.setCommand(new Command('node1'))
+
+    const path1 = node1.getCommandPathForHelp()
+    expect(path1.length).equals(3)
+    expect(path1).eql(['<APP>', 'node1', '[COMMAND]'])
+
+    const node2 = new ParameterCommandNode()
+    node2.setCommand(new Command('node1/:param1'))
+    node1.addNode(node2)
+
+    const path2 = node2.getCommandPathForHelp()
+    expect(path2.length).equals(4)
+    expect(path2).eql(['<APP>', 'node1', ':param1', '[COMMAND]'])
   })
 })

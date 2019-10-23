@@ -218,32 +218,59 @@ describe('FixedCommandNode class', () => {
     expect(path2[1]).eqls(node2)
   })
 
-  it('commandNodePathNames()', () => {
+  it('commandNodePathString() when command does not exist on the CommandNode', () => {
     const node1 = new FixedCommandNode('node1')
-
-    const path1 = node1.commandNodePathNames()
-    expect(path1.length).equals(1)
-    expect(path1[0]).eqls('node1')
+    const path1 = node1.commandNodePathString()
+    expect(path1).eql('')
 
     const node2 = new FixedCommandNode('node2')
     node1.addNode(node2)
-
-    const path2 = node2.commandNodePathNames()
-    expect(path2.length).equals(2)
-    expect(path2[0]).eqls('node1')
-    expect(path2[1]).eqls('node2')
+    const path2 = node2.commandNodePathString()
+    expect(path2).eql('node2')
   })
 
-  it('commandNodePathString()', () => {
+  it('commandNodePathString() when command exists CommandNode', () => {
     const node1 = new FixedCommandNode('node1')
 
     const path1 = node1.commandNodePathString()
-    expect(path1).eqls('node1')
+    expect(path1).eql('')
 
     const node2 = new FixedCommandNode('node2')
     node1.addNode(node2)
 
     const path2 = node2.commandNodePathString()
-    expect(path2).eqls('node1' + COMMAND_DELIMITER + 'node2')
+    expect(path2).eql('node2')
+  })
+
+  it('getCommandPathForHelp() when command does not exist on the CommandNode', () => {
+    const node1 = new FixedCommandNode('node1')
+
+    const path1 = node1.getCommandPathForHelp()
+    expect(path1.length).equals(2)
+    expect(path1).eql(['<APP>', '<COMMAND>'])
+
+    const node2 = new FixedCommandNode('node2')
+    node1.addNode(node2)
+
+    const path2 = node2.getCommandPathForHelp()
+    expect(path2.length).equals(3)
+    expect(path2).eql(['<APP>', 'node2', '<COMMAND>'])
+  })
+
+  it('getCommandPathForHelp() when command exists CommandNode', () => {
+    const node1 = new FixedCommandNode('node1')
+    node1.setCommand(new Command('node1'))
+
+    const path1 = node1.getCommandPathForHelp()
+    expect(path1.length).equals(3)
+    expect(path1).eql(['<APP>', 'node1', '[COMMAND]'])
+
+    const node2 = new FixedCommandNode('node2')
+    node2.setCommand(new Command('node1/node2'))
+    node1.addNode(node2)
+
+    const path2 = node2.getCommandPathForHelp()
+    expect(path2.length).equals(4)
+    expect(path2).eql(['<APP>', 'node1', 'node2', '[COMMAND]'])
   })
 })

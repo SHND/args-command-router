@@ -4,7 +4,12 @@ import ParameterCommandNode from './ParameterCommandNode'
 import Command from '../Command'
 import Condition from '../Condition'
 import Route from '../Route'
-import { PARAMETER_PREFIX, ROOT_COMMAND_NAME } from '../constants'
+import {
+  PARAMETER_PREFIX,
+  ROOT_COMMAND_NAME,
+  COMMAND_DELIMITER,
+  HELP_COMMAND_NODE_NAME,
+} from '../constants'
 import { CommandItem, CommandItemType } from '../models'
 
 export default class CommandTree {
@@ -98,11 +103,15 @@ export default class CommandTree {
 
   private createHelpNode(parentNode: CommandNode): CommandNode {
     const helpNode = CommandTree.createNode({
-      name: 'help',
+      name: HELP_COMMAND_NODE_NAME,
       type: CommandItemType.FIXED,
     })
 
-    const command = new Command(helpNode.commandNodePathString().substring(1))
+    const command = new Command(
+      parentNode.commandNodePathString() +
+        COMMAND_DELIMITER +
+        HELP_COMMAND_NODE_NAME
+    )
     command.description('Print help')
     helpNode.setCommand(command)
 

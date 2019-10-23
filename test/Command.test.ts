@@ -154,6 +154,20 @@ describe('Command class', () => {
     expect(command['_description']).is.equal('description')
   })
 
+  it('getCommandItemNames()', () => {
+    const command = new Command('item1/:item2')
+
+    const items = command.getCommandItemNames()
+    expect(items).eql(['item1', ':item2'])
+  })
+
+  it('getPath()', () => {
+    const command = new Command('item1/:item2')
+
+    const items = command.getPath()
+    expect(items).eql('item1/:item2')
+  })
+
   it('getDescription()', () => {
     const command = new Command('item1/:item2')
 
