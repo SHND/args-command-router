@@ -68,7 +68,7 @@ export default abstract class CommandNode {
   }
 
   get parameterChild(): CommandNode | null {
-    return this._children[PARAMETER_PREFIX]
+    return this._children[PARAMETER_PREFIX] || null
   }
 
   matchChild(name: string): CommandNode | null {
