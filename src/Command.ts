@@ -3,7 +3,11 @@ import BooleanSwitch from './Switch/BooleanSwitch'
 import ValuedSwitch from './Switch/ValuedSwitch'
 import RequiredSwitch from './Switch/RequiredSwitch'
 import { CommandItem, CommandItemType } from './models'
-import { COMMAND_DELIMITER, PARAMETER_PREFIX } from './constants'
+import {
+  COMMAND_DELIMITER,
+  PARAMETER_PREFIX,
+  ROOT_COMMAND_NAME,
+} from './constants'
 
 export default class Command {
   private _commandItems: CommandItem[] = []
@@ -31,15 +35,29 @@ export default class Command {
     if (commandPath.match(/\s/))
       throw Error(`Command '${commandPath}' shouldn't contain spaces.`)
 
-    if (commandPath === '') throw Error('Command cannot be an empty string.')
+    /**
+     * '/' -> ''
+     * '/something' -> 'something
+     */
+    if (commandPath.startsWith(ROOT_COMMAND_NAME))
+      commandPath = commandPath.slice(1)
 
     const items = commandPath.split(COMMAND_DELIMITER)
-    const commandItems = items.map(item => ({
-      name: item.startsWith(PARAMETER_PREFIX) ? item.substring(1) : item,
-      type: item.startsWith(PARAMETER_PREFIX)
-        ? CommandItemType.PARAMETER
-        : CommandItemType.FIXED,
-    }))
+
+    let commandItems: CommandItem[] = []
+    if (items.length === 1 && items[0] === '') {
+      commandItems = []
+    } else {
+      if (items.findIndex(item => item === '') >= 0)
+        throw Error(`Empty commandItem is allowed in routes: '${commandPath}'`)
+
+      commandItems = items.map(item => ({
+        name: item.startsWith(PARAMETER_PREFIX) ? item.substring(1) : item,
+        type: item.startsWith(PARAMETER_PREFIX)
+          ? CommandItemType.PARAMETER
+          : CommandItemType.FIXED,
+      }))
+    }
 
     return new Command(commandItems)
   }
