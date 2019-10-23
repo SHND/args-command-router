@@ -24,7 +24,7 @@ export default class Route {
     }
   }
 
-  static parse(route: string) {
+  static parse(route: string): Route {
     route = route.trim()
 
     let commandString = ''
