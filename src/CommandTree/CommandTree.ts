@@ -13,10 +13,15 @@ import {
 import { CommandItem, CommandItemType } from '../models'
 
 export default class CommandTree {
-  private _rootNode: CommandNode = new FixedCommandNode(ROOT_COMMAND_NAME)
+  private _rootNode: CommandNode
 
   constructor(rootNode?: CommandNode) {
-    if (rootNode !== undefined) this._rootNode = rootNode
+    if (rootNode !== undefined) {
+      this._rootNode = rootNode
+    } else {
+      this._rootNode = new FixedCommandNode(ROOT_COMMAND_NAME)
+      this._rootNode.addNode(this.createHelpNode(this._rootNode))
+    }
   }
 
   get root(): CommandNode {
