@@ -90,7 +90,7 @@ export default class CommandTree {
 
       let currentNode: CommandNode = this._rootNode
       for (let commandItem of commandItems) {
-        currentNode = this.createOrGetNextNode(currentNode, commandItem)
+        currentNode = CommandTree._createOrGetNextNode(currentNode, commandItem)
       }
 
       currentNode.setCommand(routeOrCommandOrString)
@@ -128,11 +128,11 @@ export default class CommandTree {
     return helpNode
   }
 
-  private createOrGetNextNode(
+  static _createOrGetNextNode(
     currentNode: CommandNode,
     commandItem: CommandItem
   ): CommandNode {
-    if (!this.nodeHasCommandItem(currentNode, commandItem)) {
+    if (!CommandTree._nodeHasCommandItem(currentNode, commandItem)) {
       const node = CommandTree.createNode(commandItem)
       currentNode.addNode(node)
 
@@ -147,7 +147,7 @@ export default class CommandTree {
       : currentNode.children[PARAMETER_PREFIX]
   }
 
-  private nodeHasCommandItem(
+  static _nodeHasCommandItem(
     node: CommandNode,
     commandItem: CommandItem
   ): boolean {
