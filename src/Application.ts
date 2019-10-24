@@ -100,7 +100,7 @@ export default class Application {
     this._norouteCallback = callback
   }
 
-  private validateOneValueMostForEachSwitch(acpSwitches: {
+  static _validateOneValueMostForEachSwitch(acpSwitches: {
     [key: string]: string[]
   }): void {
     const message = 'Only one value for each switch is supported.'
@@ -114,7 +114,7 @@ export default class Application {
     }
   }
 
-  private validateNonConflictSwitches(
+  static _validateNonConflictSwitches(
     acpSwitches1: {
       [key: string]: string[]
     },
@@ -133,7 +133,7 @@ export default class Application {
     }
   }
 
-  private validateNonConflictParamsAndSwitches(
+  static _validateNonConflictParamsAndSwitches(
     parameters: {
       [key: string]: string
     },
@@ -153,7 +153,7 @@ export default class Application {
     }
   }
 
-  validateAllRequiredSwitchesPresent(
+  static _validateAllRequiredSwitchesPresent(
     command: Command,
     switches: { [key: string]: string | boolean }
   ): void {
@@ -188,7 +188,7 @@ export default class Application {
     }
   }
 
-  private validateRequiredSwitchesHaveValue(
+  static _validateRequiredSwitchesHaveValue(
     command: Command,
     switches: { [key: string]: string | boolean }
   ): void {
@@ -213,7 +213,7 @@ export default class Application {
     }
   }
 
-  private validateValuedSwitchesWithNoDefaultHaveValue(
+  static _validateValuedSwitchesWithNoDefaultHaveValue(
     command: Command,
     switches: { [key: string]: string | boolean }
   ): void {
@@ -240,7 +240,7 @@ export default class Application {
     }
   }
 
-  private validateBooleanSwitchesDontHaveValues(
+  static _validateBooleanSwitchesDontHaveValues(
     command: Command,
     switches: { [key: string]: string | boolean }
   ): void {
@@ -265,7 +265,7 @@ export default class Application {
     }
   }
 
-  private defaultShortValuedSwitchesThatNeedsToBeAdded(
+  static _defaultShortValuedSwitchesThatNeedsToBeAdded(
     command: Command,
     switches: { [key: string]: string | boolean }
   ): { [key: string]: string | boolean } {
@@ -290,7 +290,7 @@ export default class Application {
     return output
   }
 
-  private defaultLongValuedSwitchesThatNeedsToBeAdded(
+  static _defaultLongValuedSwitchesThatNeedsToBeAdded(
     command: Command,
     switches: { [key: string]: string | boolean }
   ): { [key: string]: string | boolean } {
@@ -315,7 +315,7 @@ export default class Application {
     return output
   }
 
-  private cleanSwitchValues(acpSwitches: {
+  static _cleanSwitchValues(acpSwitches: {
     [key: string]: string[]
   }): { [key: string]: string | boolean } {
     const output: { [key: string]: string | boolean } = {}
@@ -360,7 +360,7 @@ export default class Application {
     return commandParamValues
   }
 
-  private mapCommandParamNamesAndValues(
+  static _mapCommandParamNamesAndValues(
     commandParamNames: string[],
     commandParamValues: string[]
   ): { [key: string]: string } {
@@ -382,8 +382,8 @@ export default class Application {
     const { commands: commandItems, shortSwitches, longSwitches } = acpData
 
     try {
-      this.validateOneValueMostForEachSwitch(shortSwitches)
-      this.validateOneValueMostForEachSwitch(longSwitches)
+      Application._validateOneValueMostForEachSwitch(shortSwitches)
+      Application._validateOneValueMostForEachSwitch(longSwitches)
     } catch (e) {
       console.error(e.message)
       process.exit(1)
@@ -391,11 +391,11 @@ export default class Application {
 
     const cleanedShortSwitches: {
       [key: string]: string | boolean
-    } = this.cleanSwitchValues(shortSwitches)
+    } = Application._cleanSwitchValues(shortSwitches)
 
     const cleanedLongSwitches: {
       [key: string]: string | boolean
-    } = this.cleanSwitchValues(longSwitches)
+    } = Application._cleanSwitchValues(longSwitches)
 
     let currentNode: CommandNode | null = this.findCommandNode(commandItems)
 
@@ -420,29 +420,35 @@ export default class Application {
 
     const parameters: {
       [key: string]: string
-    } = this.mapCommandParamNamesAndValues(
+    } = Application._mapCommandParamNamesAndValues(
       commandParamNames,
       commandParamValues
     )
 
-    this.validateNonConflictSwitches(shortSwitches, longSwitches)
-    this.validateNonConflictParamsAndSwitches(parameters, cleanedShortSwitches)
-    this.validateNonConflictParamsAndSwitches(parameters, cleanedLongSwitches)
+    Application._validateNonConflictSwitches(shortSwitches, longSwitches)
+    Application._validateNonConflictParamsAndSwitches(
+      parameters,
+      cleanedShortSwitches
+    )
+    Application._validateNonConflictParamsAndSwitches(
+      parameters,
+      cleanedLongSwitches
+    )
 
     try {
-      this.validateAllRequiredSwitchesPresent(command, {
+      Application._validateAllRequiredSwitchesPresent(command, {
         ...cleanedShortSwitches,
         ...cleanedLongSwitches,
       })
-      this.validateRequiredSwitchesHaveValue(command, {
+      Application._validateRequiredSwitchesHaveValue(command, {
         ...cleanedShortSwitches,
         ...cleanedLongSwitches,
       })
-      this.validateValuedSwitchesWithNoDefaultHaveValue(command, {
+      Application._validateValuedSwitchesWithNoDefaultHaveValue(command, {
         ...cleanedShortSwitches,
         ...cleanedLongSwitches,
       })
-      this.validateBooleanSwitchesDontHaveValues(command, {
+      Application._validateBooleanSwitchesDontHaveValues(command, {
         ...cleanedShortSwitches,
         ...cleanedLongSwitches,
       })
@@ -452,7 +458,7 @@ export default class Application {
       process.exit(1)
     }
 
-    const shortDefaultValuesNeedsInjected = this.defaultShortValuedSwitchesThatNeedsToBeAdded(
+    const shortDefaultValuesNeedsInjected = Application._defaultShortValuedSwitchesThatNeedsToBeAdded(
       command,
       {
         ...cleanedShortSwitches,
@@ -460,7 +466,7 @@ export default class Application {
       }
     )
 
-    const longDefaultValuesNeedsInjected = this.defaultLongValuedSwitchesThatNeedsToBeAdded(
+    const longDefaultValuesNeedsInjected = Application._defaultLongValuedSwitchesThatNeedsToBeAdded(
       command,
       {
         ...cleanedShortSwitches,
