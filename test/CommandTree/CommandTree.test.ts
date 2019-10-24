@@ -257,4 +257,40 @@ describe('CommandTree class', () => {
       })
     ).is.true
   })
+
+  it('toString() no children', () => {
+    const commandTree = new CommandTree()
+
+    const tree = commandTree.toString()
+    expect(tree).equals('help\n')
+  })
+
+  it('toString() one FixedCommandNode child', () => {
+    const commandTree = new CommandTree()
+    commandTree.addRoute('/cmd1', () => {})
+
+    const tree = commandTree.toString()
+    console.log(`'${tree}'`)
+    expect(tree).equals('help\ncmd1\n  help\n')
+  })
+
+  it('toString() two FixedCommandNode children', () => {
+    const commandTree = new CommandTree()
+    commandTree.addRoute('/cmd1', () => {})
+    commandTree.addRoute('/cmd2', () => {})
+
+    const tree = commandTree.toString()
+    console.log(`'${tree}'`)
+    expect(tree).equals('help\ncmd1\n  help\ncmd2\n  help\n')
+  })
+
+  it('toString() one FixedCommandNode and one ParameterCommandNode child', () => {
+    const commandTree = new CommandTree()
+    commandTree.addRoute('/cmd1', () => {})
+    commandTree.addRoute('/:param1', () => {})
+
+    const tree = commandTree.toString()
+    console.log(`'${tree}'`)
+    expect(tree).equals('help\ncmd1\n  help\n:\n  help\n')
+  })
 })

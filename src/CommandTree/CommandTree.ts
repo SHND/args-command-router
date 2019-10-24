@@ -159,11 +159,11 @@ export default class CommandTree {
     )
   }
 
-  printTree(): void {
-    console.log(this._printTree(this.root))
+  toString(): string {
+    return this._toString(this.root)
   }
 
-  private _printTree(node?: CommandNode, level: number = 0): string {
+  private _toString(node?: CommandNode, level: number = 0): string {
     if (!node) return ''
 
     let output = ''
@@ -173,7 +173,7 @@ export default class CommandTree {
         .join('')
 
       output += child + '\n'
-      output += this._printTree(node.children[child], level + 1)
+      output += this._toString(node.children[child], level + 1)
     }
 
     return output
