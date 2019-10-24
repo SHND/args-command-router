@@ -173,7 +173,7 @@ export default abstract class CommandNode {
     const command: Command | null = this.getCommand()
 
     if (command) {
-      console.log(commandLineUsage(this._createHelpByCommand(command)))
+      console.log(commandLineUsage(this._createHelpByCommand()))
     } else {
       console.log(commandLineUsage(this._createHelpByNodes()))
     }
@@ -205,7 +205,14 @@ export default abstract class CommandNode {
     ]
   }
 
-  private _createHelpByCommand(command: Command) {
+  private _createHelpByCommand() {
+    const command: Command | null = this.getCommand()
+
+    if (!command)
+      throw Error(
+        '_createHelpByCommand() expects command to exist on the current node'
+      )
+
     const pathNames: string[] = this.getCommandPathForHelp()
 
     const usageContent: any[] = []
