@@ -172,6 +172,14 @@ export default abstract class CommandNode {
   printHelp(): void {
     const command: Command | null = this.getCommand()
 
+    if (command) {
+      console.log(commandLineUsage(this._createHelpByCommand(command)))
+    } else {
+      console.log(commandLineUsage(this._createHelpByNodes()))
+    }
+  }
+
+  private _createHelpByNodes() {
     const pathNames: string[] = this.getCommandPathForHelp()
 
     const usageContent: any[] = []
@@ -185,89 +193,99 @@ export default abstract class CommandNode {
       })
     }
 
-    if (!command) {
-      const usage = commandLineUsage([
-        {
-          header: 'Usage',
-          content: pathNames.join(' '),
-        },
-        {
-          header: 'Command List',
-          content: usageContent,
-        },
-      ])
-      console.log(usage)
-    } else {
-      let requiredOptionList: OptionDefinition[] = []
-      let optionalOptionList: OptionDefinition[] = []
+    return [
+      {
+        header: 'Usage',
+        content: pathNames.join(' '),
+      },
+      {
+        header: 'Command List',
+        content: usageContent,
+      },
+    ]
+  }
 
-      const booleanSwitches: BooleanSwitch[] = command.getBooleanSwitches()
-      const requiredSwitches: RequiredSwitch[] = command.getRequiredSwitches()
-      const valuedSwitches: ValuedSwitch[] = command.getValuedSwitches()
+  private _createHelpByCommand(command: Command) {
+    const pathNames: string[] = this.getCommandPathForHelp()
 
-      requiredOptionList = requiredOptionList.concat(
-        requiredSwitches.map(
-          (s: RequiredSwitch): OptionDefinition => ({
-            name: s.longname || '\b\b\b\b', // because name is required
-            description: s.description,
-            alias: s.shortname || undefined,
-            // because name is required and typeLabel needs to be aligned
-            typeLabel: `{underline value}${!s.longname ? '    ' : ''}`,
-          })
-        )
-      )
+    const usageContent: any[] = []
+    for (let childNodeName in this.children) {
+      const childNode = this.children[childNodeName]
+      const childCommand = childNode.getCommand()
 
-      optionalOptionList = optionalOptionList.concat(
-        booleanSwitches.map(
-          (s: BooleanSwitch): OptionDefinition => ({
-            name: s.longname || '\b\b\b\b    ',
-            description: s.description,
-            alias: s.shortname || '',
-            type: Boolean,
-          })
-        )
-      )
-
-      optionalOptionList = optionalOptionList.concat(
-        valuedSwitches.map(
-          (s: ValuedSwitch): OptionDefinition => ({
-            name: s.longname || '\b\b\b\b', // because name is required
-            description: s.description,
-            alias: s.shortname || '',
-            // because name is required and typeLabel needs to be aligned
-            typeLabel: `{underline value}${!s.longname ? '    ' : ''}`,
-          })
-        )
-      )
-
-      const commandLineUsageOptions: Section[] = [
-        {
-          header: 'Usage',
-          content: pathNames.join(' '),
-        },
-        {
-          header: 'Command List',
-          content: usageContent,
-        },
-      ]
-
-      if (requiredOptionList.length > 0) {
-        commandLineUsageOptions.push({
-          header: 'Required Options',
-          optionList: requiredOptionList,
-        })
-      }
-
-      if (optionalOptionList.length > 0) {
-        commandLineUsageOptions.push({
-          header: 'Optional Options',
-          optionList: optionalOptionList,
-        })
-      }
-
-      const usage = commandLineUsage(commandLineUsageOptions)
-
-      console.log(usage)
+      usageContent.push({
+        name: childNode.name,
+        summary: childCommand ? childCommand.getDescription() : '',
+      })
     }
+
+    let requiredOptionList: OptionDefinition[] = []
+    let optionalOptionList: OptionDefinition[] = []
+
+    const booleanSwitches: BooleanSwitch[] = command.getBooleanSwitches()
+    const requiredSwitches: RequiredSwitch[] = command.getRequiredSwitches()
+    const valuedSwitches: ValuedSwitch[] = command.getValuedSwitches()
+
+    requiredOptionList = requiredOptionList.concat(
+      requiredSwitches.map(
+        (s: RequiredSwitch): OptionDefinition => ({
+          name: s.longname || '\b\b\b\b', // because name is required
+          description: s.description,
+          alias: s.shortname || undefined,
+          // because name is required and typeLabel needs to be aligned
+          typeLabel: `{underline value}${!s.longname ? '    ' : ''}`,
+        })
+      )
+    )
+
+    optionalOptionList = optionalOptionList.concat(
+      booleanSwitches.map(
+        (s: BooleanSwitch): OptionDefinition => ({
+          name: s.longname || '\b\b\b\b    ',
+          description: s.description,
+          alias: s.shortname || '',
+          type: Boolean,
+        })
+      )
+    )
+
+    optionalOptionList = optionalOptionList.concat(
+      valuedSwitches.map(
+        (s: ValuedSwitch): OptionDefinition => ({
+          name: s.longname || '\b\b\b\b', // because name is required
+          description: s.description,
+          alias: s.shortname || '',
+          // because name is required and typeLabel needs to be aligned
+          typeLabel: `{underline value}${!s.longname ? '    ' : ''}`,
+        })
+      )
+    )
+
+    const commandLineUsageOptions: Section[] = [
+      {
+        header: 'Usage',
+        content: pathNames.join(' '),
+      },
+      {
+        header: 'Command List',
+        content: usageContent,
+      },
+    ]
+
+    if (requiredOptionList.length > 0) {
+      commandLineUsageOptions.push({
+        header: 'Required Options',
+        optionList: requiredOptionList,
+      })
+    }
+
+    if (optionalOptionList.length > 0) {
+      commandLineUsageOptions.push({
+        header: 'Optional Options',
+        optionList: optionalOptionList,
+      })
+    }
+
+    return commandLineUsageOptions
   }
 }
