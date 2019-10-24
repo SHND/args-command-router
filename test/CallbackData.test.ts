@@ -47,7 +47,7 @@ describe('Application class', () => {
     const longSwitches = { long: 'val2', longer: 'val3' }
 
     const data = new CallbackData(command, params, shortSwitches, longSwitches)
-    expect(data['_switches'].short).eql(shortSwitches)
+    expect(data.shortSwitches).eql(shortSwitches)
   })
 
   it('get longSwitches()', () => {
@@ -57,7 +57,7 @@ describe('Application class', () => {
     const longSwitches = { long: 'val2', longer: 'val3' }
 
     const data = new CallbackData(command, params, shortSwitches, longSwitches)
-    expect(data['_switches'].long).eql(longSwitches)
+    expect(data.longSwitches).eql(longSwitches)
   })
 
   it('get switches()', () => {

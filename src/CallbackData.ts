@@ -36,7 +36,7 @@ export default class CallbackData {
   }
 
   get longSwitches() {
-    return this._switches.short
+    return this._switches.long
   }
 
   get switches() {
