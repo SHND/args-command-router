@@ -4,6 +4,7 @@ import { PARAMETER_PREFIX } from '../../src/constants'
 import ParameterCommandNode from '../../src/CommandTree/ParameterCommandNode'
 import Command from '../../src/Command'
 import Condition from '../../src/Condition'
+import CommandNode from '../../src/CommandTree/CommandNode'
 
 describe('FixedCommandNode class', () => {
   it('create for name="node1"', () => {
@@ -268,5 +269,42 @@ describe('FixedCommandNode class', () => {
     const path2 = node2.getCommandPathForHelp()
     expect(path2.length).equals(4)
     expect(path2).eql(['<APP>', 'node1', 'node2', '[COMMAND]'])
+  })
+
+  it('_createHelpByNodes() for only one node', () => {
+    const node1 = new FixedCommandNode('node1')
+    const _createHelpByNodes = CommandNode.prototype['_createHelpByNodes']
+    expect(_createHelpByNodes.call(node1)).eql([
+      {
+        header: 'Usage',
+        content: '<APP> <COMMAND>',
+      },
+      {
+        header: 'Command List',
+        content: [],
+      },
+    ])
+  })
+
+  it('_createHelpByNodes() for two node chain', () => {
+    const node1 = new FixedCommandNode('node1')
+    const node2 = new FixedCommandNode('node2')
+    node1.addNode(node2)
+    const _createHelpByNodes = CommandNode.prototype['_createHelpByNodes']
+    expect(_createHelpByNodes.call(node1)).eql([
+      {
+        header: 'Usage',
+        content: '<APP> <COMMAND>',
+      },
+      {
+        header: 'Command List',
+        content: [
+          {
+            name: 'node2',
+            summary: '',
+          },
+        ],
+      },
+    ])
   })
 })
