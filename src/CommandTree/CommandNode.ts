@@ -15,6 +15,18 @@ export default abstract class CommandNode {
 
   constructor(private _name: string) {
     this.printHelp = this.printHelp.bind(this)
+
+    this.hasNode = this.hasNode.bind(this)
+    this.addNode = this.addNode.bind(this)
+    this.hasCommand = this.hasCommand.bind(this)
+    this.setCommand = this.setCommand.bind(this)
+    this.getCommand = this.getCommand.bind(this)
+    this.addCallableRule = this.addCallableRule.bind(this)
+    this.firstMatchedCallable = this.firstMatchedCallable.bind(this)
+    this.commandNodePath = this.commandNodePath.bind(this)
+    this.commandNodePathString = this.commandNodePathString.bind(this)
+    this.getCommandPathForHelp = this.getCommandPathForHelp.bind(this)
+    this.printHelp = this.printHelp.bind(this)
   }
 
   get name(): string {

@@ -20,7 +20,7 @@ export default class CommandTree {
       this._rootNode = rootNode
     } else {
       this._rootNode = new FixedCommandNode(ROOT_COMMAND_NAME)
-      this._rootNode.addNode(this.createHelpNode(this._rootNode))
+      this._rootNode.addNode(CommandTree._createHelpNode(this._rootNode))
     }
   }
 
@@ -106,7 +106,7 @@ export default class CommandTree {
     )
   }
 
-  private createHelpNode(parentNode: CommandNode): CommandNode {
+  static _createHelpNode(parentNode: CommandNode): CommandNode {
     const helpNode = CommandTree.createNode({
       name: HELP_COMMAND_NODE_NAME,
       type: CommandItemType.FIXED,
@@ -122,7 +122,7 @@ export default class CommandTree {
 
     helpNode.addCallableRule({
       condition: new Condition(),
-      callback: parentNode.printHelp.bind(this),
+      callback: parentNode.printHelp,
     })
 
     return helpNode
@@ -136,7 +136,7 @@ export default class CommandTree {
       const node = CommandTree.createNode(commandItem)
       currentNode.addNode(node)
 
-      const helpNode = this.createHelpNode(node)
+      const helpNode = CommandTree._createHelpNode(node)
       node.addNode(helpNode)
 
       return node
