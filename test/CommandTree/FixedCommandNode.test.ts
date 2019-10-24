@@ -273,7 +273,8 @@ describe('FixedCommandNode class', () => {
 
   it('_createHelpByNodes() for only one node', () => {
     const node1 = new FixedCommandNode('node1')
-    const _createHelpByNodes = CommandNode.prototype['_createHelpByNodes']
+    let _createHelpByNodes = CommandNode.prototype['_createHelpByNodes']
+    _createHelpByNodes = _createHelpByNodes.bind(node1)
     expect(_createHelpByNodes.call(node1)).eql([
       {
         header: 'Usage',
@@ -290,7 +291,8 @@ describe('FixedCommandNode class', () => {
     const node1 = new FixedCommandNode('node1')
     const node2 = new FixedCommandNode('node2')
     node1.addNode(node2)
-    const _createHelpByNodes = CommandNode.prototype['_createHelpByNodes']
+    let _createHelpByNodes = CommandNode.prototype['_createHelpByNodes']
+    _createHelpByNodes = _createHelpByNodes.bind(node1)
     expect(_createHelpByNodes.call(node1)).eql([
       {
         header: 'Usage',
@@ -302,6 +304,94 @@ describe('FixedCommandNode class', () => {
           {
             name: 'node2',
             summary: '',
+          },
+        ],
+      },
+    ])
+  })
+
+  it('_createHelpByCommand() when command not exist', () => {
+    const node1 = new FixedCommandNode('node1')
+    let _createHelpByCommand = CommandNode.prototype['_createHelpByCommand']
+    _createHelpByCommand = _createHelpByCommand.bind(node1)
+
+    expect(() => {
+      const helpObject = _createHelpByCommand()
+    }).throws()
+  })
+
+  it('_createHelpByCommand() when command exist and node has no children', () => {
+    const node1 = new FixedCommandNode('node1')
+    let _createHelpByCommand = CommandNode.prototype['_createHelpByCommand']
+    _createHelpByCommand = _createHelpByCommand.bind(node1)
+    const command = new Command('node1')
+    node1.setCommand(command)
+
+    const helpObject = _createHelpByCommand()
+    expect(helpObject).eql([
+      { header: 'Usage', content: '<APP> node1 [COMMAND]' },
+      { header: 'Command List', content: [] },
+    ])
+    // console.log(helpObject)
+  })
+
+  it('_createHelpByCommand() when command exist and node has a child', () => {
+    const node1 = new FixedCommandNode('node1')
+    const node2 = new FixedCommandNode('node2')
+    node1.addNode(node2)
+    let _createHelpByCommand = CommandNode.prototype['_createHelpByCommand']
+    _createHelpByCommand = _createHelpByCommand.bind(node1)
+    const command = new Command('node1')
+    node1.setCommand(command)
+
+    const helpObject = _createHelpByCommand()
+    expect(helpObject).eql([
+      { header: 'Usage', content: '<APP> node1 [COMMAND]' },
+      { header: 'Command List', content: [{ name: 'node2', summary: '' }] },
+    ])
+    // console.log(helpObject)
+  })
+
+  it('_createHelpByCommand() when command exist and switches exist', () => {
+    const node1 = new FixedCommandNode('node1')
+    let _createHelpByCommand = CommandNode.prototype['_createHelpByCommand']
+    _createHelpByCommand = _createHelpByCommand.bind(node1)
+    const command = new Command('node1')
+    command.booleanSwitch('b', 'boolean', 'description1')
+    command.requiredSwitch('r', 'required', 'description2')
+    command.valuedSwitch('v', 'valued', 'description3')
+    node1.setCommand(command)
+
+    const helpObject = _createHelpByCommand()
+    // console.log(helpObject)
+    expect(helpObject).eql([
+      { header: 'Usage', content: '<APP> node1 [COMMAND]' },
+      { header: 'Command List', content: [] },
+      {
+        header: 'Required Options',
+        optionList: [
+          {
+            alias: 'r',
+            description: 'description2',
+            name: 'required',
+            typeLabel: '{underline value}',
+          },
+        ],
+      },
+      {
+        header: 'Optional Options',
+        optionList: [
+          {
+            alias: 'b',
+            description: 'description1',
+            name: 'boolean',
+            type: Boolean,
+          },
+          {
+            alias: 'v',
+            description: '',
+            name: 'valued',
+            typeLabel: '{underline value}',
           },
         ],
       },

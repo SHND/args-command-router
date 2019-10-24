@@ -4,6 +4,7 @@ import ParameterCommandNode from '../../src/CommandTree/ParameterCommandNode'
 import { PARAMETER_PREFIX } from '../../src/constants'
 import Command from '../../src/Command'
 import Condition from '../../src/Condition'
+import CommandNode from '../../src/CommandTree/CommandNode'
 
 describe('ParameterCommandNode class', () => {
   it('create for name="node1"', () => {
@@ -261,5 +262,132 @@ describe('ParameterCommandNode class', () => {
     const path2 = node2.getCommandPathForHelp()
     expect(path2.length).equals(4)
     expect(path2).eql(['<APP>', 'node1', ':param1', '[COMMAND]'])
+  })
+
+  it('_createHelpByNodes() for only one node', () => {
+    const node1 = new ParameterCommandNode()
+    let _createHelpByNodes = CommandNode.prototype['_createHelpByNodes']
+    _createHelpByNodes = _createHelpByNodes.bind(node1)
+    expect(_createHelpByNodes.call(node1)).eql([
+      {
+        header: 'Usage',
+        content: '<APP> <COMMAND>',
+      },
+      {
+        header: 'Command List',
+        content: [],
+      },
+    ])
+  })
+
+  it('_createHelpByNodes() for two node chain', () => {
+    const node1 = new ParameterCommandNode()
+    const node2 = new ParameterCommandNode()
+    node1.addNode(node2)
+    let _createHelpByNodes = CommandNode.prototype['_createHelpByNodes']
+    _createHelpByNodes = _createHelpByNodes.bind(node1)
+    expect(_createHelpByNodes.call(node1)).eql([
+      {
+        header: 'Usage',
+        content: '<APP> <COMMAND>',
+      },
+      {
+        header: 'Command List',
+        content: [
+          {
+            name: PARAMETER_PREFIX,
+            summary: '',
+          },
+        ],
+      },
+    ])
+  })
+
+  it('_createHelpByCommand() when command not exist', () => {
+    const node1 = new ParameterCommandNode()
+    let _createHelpByCommand = CommandNode.prototype['_createHelpByCommand']
+    _createHelpByCommand = _createHelpByCommand.bind(node1)
+
+    expect(() => {
+      const helpObject = _createHelpByCommand()
+    }).throws()
+  })
+
+  it('_createHelpByCommand() when command exist and node has no children', () => {
+    const node1 = new ParameterCommandNode()
+    let _createHelpByCommand = CommandNode.prototype['_createHelpByCommand']
+    _createHelpByCommand = _createHelpByCommand.bind(node1)
+    const command = new Command(':param1')
+    node1.setCommand(command)
+
+    const helpObject = _createHelpByCommand()
+    expect(helpObject).eql([
+      { header: 'Usage', content: '<APP> :param1 [COMMAND]' },
+      { header: 'Command List', content: [] },
+    ])
+  })
+
+  it('_createHelpByCommand() when command exist and node has a child', () => {
+    const node1 = new ParameterCommandNode()
+    const node2 = new ParameterCommandNode()
+    node1.addNode(node2)
+    let _createHelpByCommand = CommandNode.prototype['_createHelpByCommand']
+    _createHelpByCommand = _createHelpByCommand.bind(node1)
+    const command = new Command(':param1')
+    node1.setCommand(command)
+
+    const helpObject = _createHelpByCommand()
+    expect(helpObject).eql([
+      { header: 'Usage', content: '<APP> :param1 [COMMAND]' },
+      {
+        header: 'Command List',
+        content: [{ name: PARAMETER_PREFIX, summary: '' }],
+      },
+    ])
+  })
+
+  it('_createHelpByCommand() when command exist and switches exist', () => {
+    const node1 = new ParameterCommandNode()
+    let _createHelpByCommand = CommandNode.prototype['_createHelpByCommand']
+    _createHelpByCommand = _createHelpByCommand.bind(node1)
+    const command = new Command(':param1')
+    command.booleanSwitch('b', 'boolean', 'description1')
+    command.requiredSwitch('r', 'required', 'description2')
+    command.valuedSwitch('v', 'valued', 'description3')
+    node1.setCommand(command)
+
+    const helpObject = _createHelpByCommand()
+    expect(helpObject).eql([
+      { header: 'Usage', content: '<APP> :param1 [COMMAND]' },
+      { header: 'Command List', content: [] },
+      {
+        header: 'Required Options',
+        optionList: [
+          {
+            alias: 'r',
+            description: 'description2',
+            name: 'required',
+            typeLabel: '{underline value}',
+          },
+        ],
+      },
+      {
+        header: 'Optional Options',
+        optionList: [
+          {
+            alias: 'b',
+            description: 'description1',
+            name: 'boolean',
+            type: Boolean,
+          },
+          {
+            alias: 'v',
+            description: '',
+            name: 'valued',
+            typeLabel: '{underline value}',
+          },
+        ],
+      },
+    ])
   })
 })
