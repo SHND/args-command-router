@@ -1,4 +1,4 @@
-# args-command-parser
+# args-command-router
 
 Nodejs opinionated command-line argument router
 
