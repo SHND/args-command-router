@@ -1,10 +1,6 @@
 import { expect } from 'chai'
 import FixedCommandNode from '../../src/CommandTree/FixedCommandNode'
-import {
-  PARAMETER_PREFIX,
-  ROOT_COMMAND_NAME,
-  COMMAND_DELIMITER,
-} from '../../src/constants'
+import { PARAMETER_PREFIX } from '../../src/constants'
 import ParameterCommandNode from '../../src/CommandTree/ParameterCommandNode'
 import Command from '../../src/Command'
 import Condition from '../../src/Condition'
