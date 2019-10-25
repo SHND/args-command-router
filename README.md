@@ -224,7 +224,7 @@ const downloadFile = require('./downloadFile.js')
 const app = argsCommandRouter()
 
 const downloadFileCommand = new Command('download/folder/:folder_url')
-const downloadFileDepthOneCondition = new Condition('depth==1')
+const downloadFileDepthOneCondition = new Condition('depth=="1"')
 app.route(downloadFileCommand, downloadFileDepthOneCondition, downloadFile)
 ```
 
@@ -232,25 +232,25 @@ Or you can specify each of them in the route separately by route string path:
 
 ```
 app.route('download/folder/:folder_url', downloadFileDepthOneCondition, downloadFile)
-app.route(downloadFileCommand, 'depth==1', downloadFile)
-app.route('download/folder/:folder_url', 'depth==1', downloadFile)
-app.route('download/folder/:folder_url[depth==1]', downloadFile)
+app.route(downloadFileCommand, 'depth=="1"', downloadFile)
+app.route('download/folder/:folder_url', 'depth=="1"', downloadFile)
+app.route('download/folder/:folder_url[depth=="1"]', downloadFile)
 ```
 
 The condition string follows the extended [expr-eval](https://www.npmjs.com/package/expr-eval) conditional syntax and doesn't follow the JavaScript syntax.
 
-| Operator | Description         | Example                            | Example explained                           |
-| -------- | :------------------ | :--------------------------------- | :------------------------------------------ |
-| ==       | equal               | a == "2"                           | a is equal to 2                             |
-| !=       | not equal           | a != "2"                           | a is not equal to 2                         |
-| >=       | greater or equal    | a >= "2"                           | a is greater or equal 2                     |
-| <=       | lesser or equal     | a <= "2"                           | a is lesser or equal 2                      |
-| >        | greater             | a > "2"                            | a is greater 2                              |
-| <        | lesser              | a < "2"                            | a is lesser 2                               |
-| and      | logical AND         | b and a == "2"                     | b is present and a is equal to 2            |
-| or       | logical OR          | b or a == "2"                      | b is present or a is equal to 2             |
-| not      | logical Not         | not a                              | a is not present                            |
-| (...)    | Grouping conditions | (a and b) or ((not a) and (not b)) | both a and b is present or both not present |
+| Operator | Description         | Example                            | Example explained                            |
+| -------- | :------------------ | :--------------------------------- | :------------------------------------------- |
+| ==       | equal               | a == "2"                           | a is equal to 2                              |
+| !=       | not equal           | a != "2"                           | a is not equal to 2                          |
+| >=       | greater or equal    | a >= "2"                           | a is greater or equal 2                      |
+| <=       | lesser or equal     | a <= "2"                           | a is lesser or equal 2                       |
+| >        | greater             | a > "2"                            | a is greater 2                               |
+| <        | lesser              | a < "2"                            | a is lesser 2                                |
+| and      | logical AND         | b and a == "2"                     | b is present and a is equal to 2             |
+| or       | logical OR          | b or a == "2"                      | b is present or a is equal to 2              |
+| not      | logical Not         | not a                              | a is not present                             |
+| (...)    | Grouping conditions | (a and b) or ((not a) and (not b)) | both a and b are present or both not present |
 
 ## License
 
