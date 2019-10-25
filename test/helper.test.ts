@@ -111,7 +111,7 @@ describe('helper methods', () => {
     }).throws()
   })
 
-  it('validateAllRequiredSwitchesPresent() when required switches does not exist', () => {
+  it('validateAllRequiredSwitchesPresent() when short required switches does not exist', () => {
     const command = new Command('/cmd1/:param1')
     command.requiredSwitch('a', 'long')
 
@@ -125,7 +125,7 @@ describe('helper methods', () => {
     }).throws()
   })
 
-  it('validateAllRequiredSwitchesPresent() when required switches exist', () => {
+  it('validateAllRequiredSwitchesPresent() when short required switches exist', () => {
     const command = new Command('/cmd1/:param1')
     command.requiredSwitch('a', 'long')
 
@@ -140,7 +140,36 @@ describe('helper methods', () => {
     }).not.throws()
   })
 
-  it('validateInputRequiredSwitchesHaveValue() when required switches does not have a value', () => {
+  it('validateAllRequiredSwitchesPresent() when long required switches does not exist', () => {
+    const command = new Command('/cmd1/:param1')
+    command.requiredSwitch('a', 'long')
+
+    const acpSwitches = {
+      longer: true,
+      longest: 'f',
+    }
+
+    expect(() => {
+      validateAllRequiredSwitchesPresent(command, acpSwitches)
+    }).throws()
+  })
+
+  it('validateAllRequiredSwitchesPresent() when long required switches exist', () => {
+    const command = new Command('/cmd1/:param1')
+    command.requiredSwitch('a', 'long')
+
+    const acpSwitches = {
+      long: '',
+      longer: true,
+      longest: 'f',
+    }
+
+    expect(() => {
+      validateAllRequiredSwitchesPresent(command, acpSwitches)
+    }).not.throws()
+  })
+
+  it('validateInputRequiredSwitchesHaveValue() when required short switches does not have a value', () => {
     const command = new Command('/cmd1/:param1')
     command.requiredSwitch('e', 'long')
 
@@ -155,7 +184,7 @@ describe('helper methods', () => {
     }).throws()
   })
 
-  it('validateInputRequiredSwitchesHaveValue() when required switches are not present', () => {
+  it('validateInputRequiredSwitchesHaveValue() when required short switches are not present', () => {
     const command = new Command('/cmd1/:param1')
     command.requiredSwitch('z', 'long')
 
@@ -171,7 +200,7 @@ describe('helper methods', () => {
     }).not.throws()
   })
 
-  it('validateInputRequiredSwitchesHaveValue() when required switches are empty string', () => {
+  it('validateInputRequiredSwitchesHaveValue() when required short switches are empty string', () => {
     const command = new Command('/cmd1/:param1')
     command.requiredSwitch('a', 'long')
 
@@ -187,7 +216,7 @@ describe('helper methods', () => {
     }).not.throws()
   })
 
-  it('validateInputRequiredSwitchesHaveValue() when required switches are boolean', () => {
+  it('validateInputRequiredSwitchesHaveValue() when required short switches are boolean', () => {
     const command = new Command('/cmd1/:param1')
     command.requiredSwitch('e', 'long')
 
@@ -203,7 +232,7 @@ describe('helper methods', () => {
     }).throws()
   })
 
-  it('validateInputRequiredSwitchesHaveValue() when required switches have a value', () => {
+  it('validateInputRequiredSwitchesHaveValue() when required short switches have a value', () => {
     const command = new Command('/cmd1/:param1')
     command.requiredSwitch('f', 'long')
 
@@ -219,7 +248,86 @@ describe('helper methods', () => {
     }).not.throws()
   })
 
-  it('validateInputValuedSwitchesWithNoDefaultHaveValue() when value exist', () => {
+  it('validateInputRequiredSwitchesHaveValue() when required long switches does not have a value', () => {
+    const command = new Command('/cmd1/:param1')
+    command.requiredSwitch('e', 'longer')
+
+    const acpSwitches = {
+      long: '',
+      longer: true,
+      longest: 'f',
+    }
+
+    expect(() => {
+      validateInputRequiredSwitchesHaveValue(command, acpSwitches)
+    }).throws()
+  })
+
+  it('validateInputRequiredSwitchesHaveValue() when required long switches are not present', () => {
+    const command = new Command('/cmd1/:param1')
+    command.requiredSwitch('z', 'longy')
+
+    const acpSwitches = {
+      long: '',
+      longer: true,
+      longest: 'f',
+    }
+
+    // because 'z' is not present in the switches
+    expect(() => {
+      validateInputRequiredSwitchesHaveValue(command, acpSwitches)
+    }).not.throws()
+  })
+
+  it('validateInputRequiredSwitchesHaveValue() when required long switches are empty string', () => {
+    const command = new Command('/cmd1/:param1')
+    command.requiredSwitch('a', 'long')
+
+    const acpSwitches = {
+      long: '',
+      longer: true,
+      longest: 'f',
+    }
+
+    // because 'a' has a empty string value
+    expect(() => {
+      validateInputRequiredSwitchesHaveValue(command, acpSwitches)
+    }).not.throws()
+  })
+
+  it('validateInputRequiredSwitchesHaveValue() when required long switches are boolean', () => {
+    const command = new Command('/cmd1/:param1')
+    command.requiredSwitch('e', 'longer')
+
+    const acpSwitches = {
+      long: '',
+      longer: true,
+      longest: 'f',
+    }
+
+    // because 'e' doesn't a value
+    expect(() => {
+      validateInputRequiredSwitchesHaveValue(command, acpSwitches)
+    }).throws()
+  })
+
+  it('validateInputRequiredSwitchesHaveValue() when required long switches have a value', () => {
+    const command = new Command('/cmd1/:param1')
+    command.requiredSwitch('f', 'longest')
+
+    const acpSwitches = {
+      long: '',
+      longer: true,
+      longest: 'f',
+    }
+
+    // because 'f' has value it doens't throw error
+    expect(() => {
+      validateInputRequiredSwitchesHaveValue(command, acpSwitches)
+    }).not.throws()
+  })
+
+  it('validateInputValuedSwitchesWithNoDefaultHaveValue() when short switch value exist', () => {
     const command = new Command('/cmd1/:param1')
     command.valuedSwitch('f', 'long', null)
 
@@ -234,7 +342,7 @@ describe('helper methods', () => {
     }).not.throws()
   })
 
-  it('validateInputValuedSwitchesWithNoDefaultHaveValue() when value not exist', () => {
+  it('validateInputValuedSwitchesWithNoDefaultHaveValue() when short switch value not exist', () => {
     const command = new Command('/cmd1/:param1')
     command.valuedSwitch('e', 'long', null)
 
@@ -249,7 +357,37 @@ describe('helper methods', () => {
     }).throws()
   })
 
-  it('validateInputBooleanSwitchesDontHaveValues() when value exist', () => {
+  it('validateInputValuedSwitchesWithNoDefaultHaveValue() when long switch value exist', () => {
+    const command = new Command('/cmd1/:param1')
+    command.valuedSwitch('f', 'longest', null)
+
+    const acpSwitches = {
+      long: '',
+      longer: true,
+      longest: 'f',
+    }
+
+    expect(() => {
+      validateInputValuedSwitchesWithNoDefaultHaveValue(command, acpSwitches)
+    }).not.throws()
+  })
+
+  it('validateInputValuedSwitchesWithNoDefaultHaveValue() when long switch value not exist', () => {
+    const command = new Command('/cmd1/:param1')
+    command.valuedSwitch('e', 'longer', null)
+
+    const acpSwitches = {
+      long: '',
+      longer: true,
+      longest: 'f',
+    }
+
+    expect(() => {
+      validateInputValuedSwitchesWithNoDefaultHaveValue(command, acpSwitches)
+    }).throws()
+  })
+
+  it('validateInputBooleanSwitchesDontHaveValues() when short switch value exist', () => {
     const command = new Command('/cmd1/:param1')
     command.booleanSwitch('e', 'long')
 
@@ -264,7 +402,7 @@ describe('helper methods', () => {
     }).not.throws()
   })
 
-  it('validateInputBooleanSwitchesDontHaveValues() when value not exist', () => {
+  it('validateInputBooleanSwitchesDontHaveValues() when short switch value not exist', () => {
     const command = new Command('/cmd1/:param1')
     command.booleanSwitch('f', 'long')
 
@@ -272,6 +410,36 @@ describe('helper methods', () => {
       a: '',
       e: true,
       f: 'f',
+    }
+
+    expect(() => {
+      validateInputBooleanSwitchesDontHaveValues(command, acpSwitches)
+    }).throws()
+  })
+
+  it('validateInputBooleanSwitchesDontHaveValues() when long switch value exist', () => {
+    const command = new Command('/cmd1/:param1')
+    command.booleanSwitch('e', 'longer')
+
+    const acpSwitches = {
+      long: '',
+      longer: true,
+      longest: 'f',
+    }
+
+    expect(() => {
+      validateInputBooleanSwitchesDontHaveValues(command, acpSwitches)
+    }).not.throws()
+  })
+
+  it('validateInputBooleanSwitchesDontHaveValues() when long switch value not exist', () => {
+    const command = new Command('/cmd1/:param1')
+    command.booleanSwitch('f', 'longest')
+
+    const acpSwitches = {
+      long: '',
+      longer: true,
+      longest: 'f',
     }
 
     expect(() => {
@@ -297,7 +465,7 @@ describe('helper methods', () => {
     expect(switches).eql({})
   })
 
-  it('defaultShortValuedSwitchesThatNeedsToBeAdded() switch exist but doen not have value', () => {
+  it('defaultShortValuedSwitchesThatNeedsToBeAdded() switch exist but does not have value', () => {
     const command = new Command('/cmd1/:param1')
     command.valuedSwitch('e', 'long', 'defaultValue')
 
@@ -372,7 +540,7 @@ describe('helper methods', () => {
     expect(switches).eql({})
   })
 
-  it('defaultLongValuedSwitchesThatNeedsToBeAdded() switch exist but doen not have value', () => {
+  it('defaultLongValuedSwitchesThatNeedsToBeAdded() switch exist but does not have value', () => {
     const command = new Command('/cmd1/:param1')
     command.valuedSwitch('e', 'longer', 'defaultValue')
 
