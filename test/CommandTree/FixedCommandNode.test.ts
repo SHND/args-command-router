@@ -144,39 +144,112 @@ describe('FixedCommandNode class', () => {
     expect(parentNode.matchChild('node1')).eqls(node1)
   })
 
-  it('addCallableRule() for condition string', () => {
+  it('prependCallableRule() for condition string', () => {
     const condition = 'true'
     const func = () => {}
 
     const node1 = new FixedCommandNode('node1')
-    node1.addCallableRule(condition, func)
+    node1.prependCallableRule(condition, func)
     expect(node1['_callbackRules'].length).to.be.equal(1)
     expect(node1['_callbackRules'][0].condition).to.be.instanceof(Condition)
     expect(node1['_callbackRules'][0].callback).to.be.eql(func)
   })
 
-  it('addCallableRule() for condition object', () => {
+  it('prependCallableRule() for condition object', () => {
     const condition = new Condition('true')
     const func = () => {}
 
     const node1 = new FixedCommandNode('node1')
-    node1.addCallableRule(condition, func)
+    node1.prependCallableRule(condition, func)
     expect(node1['_callbackRules'].length).to.be.equal(1)
     expect(node1['_callbackRules'][0].condition).to.be.eql(condition)
     expect(node1['_callbackRules'][0].callback).to.be.eql(func)
   })
 
-  it('addCallableRule() for CallableRule object', () => {
+  it('prependCallableRule() for CallableRule object', () => {
     const callableRule = {
       condition: new Condition('true'),
       callback: () => {},
     }
 
     const node1 = new FixedCommandNode('node1')
-    node1.addCallableRule(callableRule)
+    node1.prependCallableRule(callableRule)
 
     expect(node1['_callbackRules'].length).to.be.equal(1)
     expect(node1['_callbackRules'][0]).to.be.eql(callableRule)
+  })
+
+  it('prependCallableRule() for multiple callableRule', () => {
+    const callableRule1 = {
+      condition: new Condition('true'),
+      callback: () => {},
+    }
+    const callableRule2 = {
+      condition: new Condition('true'),
+      callback: () => {},
+    }
+
+    const node1 = new FixedCommandNode('node1')
+    node1.prependCallableRule(callableRule1)
+    node1.prependCallableRule(callableRule2)
+
+    expect(node1['_callbackRules'].length).to.be.equal(2)
+    expect(node1['_callbackRules'][0]).to.be.eql(callableRule2)
+    expect(node1['_callbackRules'][1]).to.be.eql(callableRule1)
+  })
+
+  it('appendCallableRule() for condition string', () => {
+    const condition = 'true'
+    const func = () => {}
+
+    const node1 = new FixedCommandNode('node1')
+    node1.appendCallableRule(condition, func)
+    expect(node1['_callbackRules'].length).to.be.equal(1)
+    expect(node1['_callbackRules'][0].condition).to.be.instanceof(Condition)
+    expect(node1['_callbackRules'][0].callback).to.be.eql(func)
+  })
+
+  it('appendCallableRule() for condition object', () => {
+    const condition = new Condition('true')
+    const func = () => {}
+
+    const node1 = new FixedCommandNode('node1')
+    node1.appendCallableRule(condition, func)
+    expect(node1['_callbackRules'].length).to.be.equal(1)
+    expect(node1['_callbackRules'][0].condition).to.be.eql(condition)
+    expect(node1['_callbackRules'][0].callback).to.be.eql(func)
+  })
+
+  it('appendCallableRule() for CallableRule object', () => {
+    const callableRule = {
+      condition: new Condition('true'),
+      callback: () => {},
+    }
+
+    const node1 = new FixedCommandNode('node1')
+    node1.appendCallableRule(callableRule)
+
+    expect(node1['_callbackRules'].length).to.be.equal(1)
+    expect(node1['_callbackRules'][0]).to.be.eql(callableRule)
+  })
+
+  it('appendCallableRule() for multiple callableRule', () => {
+    const callableRule1 = {
+      condition: new Condition('true'),
+      callback: () => {},
+    }
+    const callableRule2 = {
+      condition: new Condition('true'),
+      callback: () => {},
+    }
+
+    const node1 = new FixedCommandNode('node1')
+    node1.appendCallableRule(callableRule1)
+    node1.appendCallableRule(callableRule2)
+
+    expect(node1['_callbackRules'].length).to.be.equal(2)
+    expect(node1['_callbackRules'][0]).to.be.eql(callableRule1)
+    expect(node1['_callbackRules'][1]).to.be.eql(callableRule2)
   })
 
   it('firstMatchedCallable() when match exist', () => {
@@ -184,14 +257,24 @@ describe('FixedCommandNode class', () => {
     const falseFunc = () => true
 
     const node1 = new FixedCommandNode('node1')
-    node1.addCallableRule('false', falseFunc)
-    node1.addCallableRule('true', trueFunc)
+    node1.appendCallableRule('false', falseFunc)
+    node1.appendCallableRule('true', trueFunc)
     expect(node1.firstMatchedCallable({})).to.eql(trueFunc)
 
     const node2 = new FixedCommandNode('node1')
-    node1.addCallableRule('true', trueFunc)
-    node1.addCallableRule('false', falseFunc)
+    node1.appendCallableRule('true', trueFunc)
+    node1.appendCallableRule('false', falseFunc)
     expect(node1.firstMatchedCallable({})).to.eql(trueFunc)
+  })
+
+  it('firstMatchedCallable() when multimatch exist', () => {
+    const func1 = () => true
+    const func2 = () => true
+
+    const node1 = new FixedCommandNode('node1')
+    node1.appendCallableRule('true', func1)
+    node1.appendCallableRule('true', func2)
+    expect(node1.firstMatchedCallable({})).to.eql(func1)
   })
 
   it('firstMatchedCallable() when match does not exist', () => {

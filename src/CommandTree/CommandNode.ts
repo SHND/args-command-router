@@ -21,7 +21,7 @@ export default abstract class CommandNode {
     this.hasCommand = this.hasCommand.bind(this)
     this.setCommand = this.setCommand.bind(this)
     this.getCommand = this.getCommand.bind(this)
-    this.addCallableRule = this.addCallableRule.bind(this)
+    this.appendCallableRule = this.appendCallableRule.bind(this)
     this.firstMatchedCallable = this.firstMatchedCallable.bind(this)
     this.commandNodePath = this.commandNodePath.bind(this)
     this.commandNodePathString = this.commandNodePathString.bind(this)
@@ -89,10 +89,10 @@ export default abstract class CommandNode {
       : this._children[PARAMETER_PREFIX]
   }
 
-  addCallableRule(callableRule: CallbackRule): CommandNode
-  addCallableRule(condition: Condition, callback: Function): CommandNode
-  addCallableRule(condition: string, callback: Function): CommandNode
-  addCallableRule(
+  prependCallableRule(callableRule: CallbackRule): CommandNode
+  prependCallableRule(condition: Condition, callback: Function): CommandNode
+  prependCallableRule(condition: string, callback: Function): CommandNode
+  prependCallableRule(
     policyOrCondition: CallbackRule | Condition | string,
     callback: Function = () => {}
   ): CommandNode {
@@ -108,6 +108,29 @@ export default abstract class CommandNode {
       policy = policyOrCondition
     }
     this._callbackRules = [policy, ...this._callbackRules]
+
+    return this
+  }
+
+  appendCallableRule(callableRule: CallbackRule): CommandNode
+  appendCallableRule(condition: Condition, callback: Function): CommandNode
+  appendCallableRule(condition: string, callback: Function): CommandNode
+  appendCallableRule(
+    policyOrCondition: CallbackRule | Condition | string,
+    callback: Function = () => {}
+  ): CommandNode {
+    let policy: CallbackRule
+    if (policyOrCondition instanceof Condition) {
+      policy = { condition: policyOrCondition, callback }
+    } else if (typeof policyOrCondition === 'string') {
+      policy = {
+        condition: new Condition(policyOrCondition),
+        callback,
+      }
+    } else {
+      policy = policyOrCondition
+    }
+    this._callbackRules.push(policy)
 
     return this
   }

@@ -94,7 +94,7 @@ export default class CommandTree {
       }
 
       currentNode.setCommand(routeOrCommandOrString)
-      currentNode.addCallableRule(conditionOrStringOrCallback, callback)
+      currentNode.appendCallableRule(conditionOrStringOrCallback, callback)
 
       return routeOrCommandOrString
     }
@@ -120,7 +120,7 @@ export default class CommandTree {
     command.description('Print help')
     helpNode.setCommand(command)
 
-    helpNode.addCallableRule({
+    helpNode.appendCallableRule({
       condition: new Condition(),
       callback: parentNode.printHelp,
     })
