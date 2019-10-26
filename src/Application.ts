@@ -23,23 +23,33 @@ import {
 export default class Application {
   private _config: { [key: string]: any }
   private _commandTree: CommandTree
-  private _middlewareCallbacks: Function[] = []
-  private _norouteCallback: Function = () => {}
+  private _beforeHooks: Function[] = []
+  private _afterHooks: Function[] = []
+  private _norouteHooks: Function[] = []
 
   constructor(config = {}) {
     this._config = config
     this._commandTree = new CommandTree()
 
-    this.middleware = this.middleware.bind(this)
+    this.before = this.before.bind(this)
     this.route = this.route.bind(this)
     this.noroute = this.noroute.bind(this)
     this.findCommandNode = this.findCommandNode.bind(this)
     this.getCommandParamsArray = this.getCommandParamsArray.bind(this)
+    this._runBeforeHooks = this._runBeforeHooks.bind(this)
+    this._runAfterHooks = this._runAfterHooks.bind(this)
+    this._runCommandCallbacks = this._runCommandCallbacks.bind(this)
     this.run = this.run.bind(this)
   }
 
-  middleware(callback: Function): Application {
-    this._middlewareCallbacks.push(callback)
+  before(callback: Function): Application {
+    this._beforeHooks.push(callback)
+
+    return this
+  }
+
+  after(callback: Function): Application {
+    this._afterHooks.push(callback)
 
     return this
   }
@@ -120,8 +130,10 @@ export default class Application {
     )
   }
 
-  noroute(callback: Function) {
-    this._norouteCallback = callback
+  noroute(callback: Function): Application {
+    this._norouteHooks.push(callback)
+
+    return this
   }
 
   private findCommandNode(commandNames: string[]): CommandNode | null {
@@ -158,26 +170,41 @@ export default class Application {
     return commandParamValues
   }
 
-  private _runMiddlewares(callbackData: CallbackData): boolean {
+  private _runBeforeHooks(callbackData: CallbackData) {
     let processNextMiddleware: boolean
-    for (let i = 0; i < this._middlewareCallbacks.length; i++) {
+    for (let i = 0; i < this._beforeHooks.length; i++) {
       const next = () => {
         processNextMiddleware = true
       }
 
-      const callback = this._middlewareCallbacks[i]
+      const callback = this._beforeHooks[i]
       processNextMiddleware = false
       callback.call({}, callbackData, next)
-      if (!processNextMiddleware) return false
+      if (!processNextMiddleware) return
     }
-    return true
+    return
   }
 
-  private _runCallbacks(
-    command: Command,
+  private _runAfterHooks(callbackData: CallbackData) {
+    let processNextMiddleware: boolean
+    for (let i = 0; i < this._afterHooks.length; i++) {
+      const next = () => {
+        processNextMiddleware = true
+      }
+
+      const callback = this._afterHooks[i]
+      processNextMiddleware = false
+      callback.call({}, callbackData, next)
+      if (!processNextMiddleware) return
+    }
+    return
+  }
+
+  private _runCommandCallbacks(
+    callbackData: CallbackData,
     callbacks: Function[],
-    callbackData: CallbackData
-  ): boolean {
+    command: Command
+  ) {
     let processNextCallback: boolean
     for (let i = 0; i < callbacks.length; i++) {
       const next = () => {
@@ -187,9 +214,24 @@ export default class Application {
       const callback = callbacks[i]
       processNextCallback = false
       callback.call(command, callbackData, next)
-      if (!processNextCallback) return false
+      if (!processNextCallback) return
     }
-    return true
+    return
+  }
+
+  private _runNoRouteHooks(callbackData: CallbackData) {
+    let processNextMiddleware: boolean
+    for (let i = 0; i < this._norouteHooks.length; i++) {
+      const next = () => {
+        processNextMiddleware = true
+      }
+
+      const callback = this._norouteHooks[i]
+      processNextMiddleware = false
+      callback.call({}, callbackData, next)
+      if (!processNextMiddleware) return
+    }
+    return
   }
 
   run(argv?: string[]) {
@@ -219,13 +261,13 @@ export default class Application {
       cleanedLongSwitches
     )
 
-    const continueAfterMiddlewares = this._runMiddlewares(callbackData)
-    if (!continueAfterMiddlewares) return
+    this._runBeforeHooks(callbackData)
 
     let currentNode: CommandNode | null = this.findCommandNode(commandItems)
 
     if (!currentNode) {
-      this._norouteCallback.call(new Command(''), callbackData)
+      this._runNoRouteHooks(callbackData)
+      this._runAfterHooks(callbackData)
       return
     }
 
@@ -302,10 +344,11 @@ export default class Application {
     })
 
     if (callbacks.length === 0) {
-      this._norouteCallback.call(command, callbackData)
-      return
+      this._runNoRouteHooks(callbackData)
+    } else {
+      this._runCommandCallbacks(callbackData, callbacks, command)
     }
 
-    this._runCallbacks(command, callbacks, callbackData)
+    this._runAfterHooks(callbackData)
   }
 }

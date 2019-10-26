@@ -126,7 +126,8 @@ describe('Application class', () => {
     const commandTree = app['_commandTree']
     const func = () => {}
     app.noroute(func)
-    expect(app['_norouteCallback']).is.equal(func)
+    expect(app['_norouteHooks'].length).is.equal(1)
+    expect(app['_norouteHooks'][0]).is.equal(func)
   })
 
   it('findCommandNode() when node exist', () => {
