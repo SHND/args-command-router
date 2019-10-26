@@ -44,6 +44,10 @@ app.route('version', () => {
 app.run()
 ```
 
+---
+
+## Routes
+
 For the next one, let's do the `check file <file_url>` and `download file <file_url>`:
 
 ```js
@@ -108,6 +112,48 @@ app.route('download/folder/:folder_url', inputs => {
 })
 ```
 
+### Route Arguments
+
+When a Route callback is called, some data will be passed to it through parameters.
+
+The first parameter is **input**. it contains couple of properties and methods about the input to the app:
+
+- `command` property returns the Command for the current route.
+- `params` property returns the parameters passed inside the command arguments passed to the app.
+- `shortSwitches` property returns all short switches.
+- `longSwitches` property return all long swtiches.
+- `switches` property returns an aggregate of short and long switches
+- `all` property returns aggegate of params, shortSwitches and longSwitches.
+
+The second parameter is **next()** method. By default, whenever a route is matched, no further routes will be checked. by calling `next()` in your routes, you are specifying that after finishing executing the current route, go for the next matched route and run that.
+
+```js
+app.route('check/file/:file_url', (inputs, next) => {
+  const fileUrl = inputs.params.file_url
+
+  console.log('Check whether the file ' + fileURL + 'exists.')
+  next()
+})
+```
+
+---
+
+## Middlewares
+
+Middlewares are functions that are getting executed everytime, no matter of the command route or route condition.
+
+In order for the next Middleware or Route to gets run you need to call the `next()` method which is passed to it through the Middleware paramters:
+
+```js
+app.middleware((inputs, next) => {
+  console.log('Welcome to my app')
+
+  next()
+})
+```
+
+---
+
 ## More Details on the Format
 
 **args-command-router** is opinionated command-line router based on the package [args-command-parser](https://www.npmjs.com/package/args-command-parser). The idea is that the commands are in the format below:
@@ -132,11 +178,13 @@ Short Switches are prefixed with `-` followed by one or more single-character sw
 
 Long Switches are prefixed with `--` followed by the switch name. Long Switches can be followed by zero to any number of values.
 
+---
+
 ## More Details on Routes
 
-**Becareful about order of the routes you're defining.**
+**Becareful about order of the routes you're defining. The routes that are defined sooner will be matched and run sooner**
 
-If there are multiple matches, the latest matched route callback will be triggered.
+~~If there are multiple matches, the latest matched route callback will be triggered.~~
 
 The `noroute()` method can be used for when no routes are matched:
 
@@ -153,6 +201,8 @@ app.run()
 ```
 
 The `run()` method use currently passed arguments to find the route match, but you can pass an array of strings to `run()`, and args-command-router will use those instead of the currently passed arguments.
+
+---
 
 ## More Details on Commands and Switches
 
