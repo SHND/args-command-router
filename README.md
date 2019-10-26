@@ -116,16 +116,16 @@ app.route('download/folder/:folder_url', inputs => {
 
 When a Route callback is called, some data will be passed to it through parameters.
 
-The first parameter is **input**. it contains couple of properties and methods about the input to the app:
+The first parameter is **input**. It contains a couple of properties and methods about the input to the app:
 
 - `command` property returns the Command for the current route.
 - `params` property returns the parameters passed inside the command arguments passed to the app.
 - `shortSwitches` property returns all short switches.
-- `longSwitches` property return all long swtiches.
+- `longSwitches` property return all long switches.
 - `switches` property returns an aggregate of short and long switches
-- `all` property returns aggegate of params, shortSwitches and longSwitches.
+- `all` property returns aggregate of params, shortSwitches, and longSwitches.
 
-The second parameter is **next()** method. By default, whenever a route is matched, no further routes will be checked. by calling `next()` in your routes, you are specifying that after finishing executing the current route, go for the next matched route and run that.
+The second parameter is **next()** method. By default, whenever a route is matched, no further routes will be checked. By calling `next()` in your routes, you are specifying that after finishing executing the current route, go for the next matched route and run that.
 
 ```js
 app.route('check/file/:file_url', (inputs, next) => {
@@ -140,9 +140,13 @@ app.route('check/file/:file_url', (inputs, next) => {
 
 ## Middlewares
 
-Middlewares are functions that are getting executed everytime, no matter of the command route or route condition.
+Middlewares are functions that are getting executed every time, no matter of the command route or route condition.
 
-In order for the next Middleware or Route to gets run you need to call the `next()` method which is passed to it through the Middleware paramters:
+Middlewares are executed before any route checking.
+
+In order for the next Middleware or Route to gets run, you need to call the `next()` method, which is passed to it through the Middleware parameters.
+
+By default, whenever a middleware is run, no further middlewares or routes will be checked and run. By calling `next()` in your middleware, you are specifying that after finishing executing the current route, go for the next middleware or route and run that.
 
 ```js
 app.middleware((inputs, next) => {
@@ -182,7 +186,7 @@ Long Switches are prefixed with `--` followed by the switch name. Long Switches 
 
 ## More Details on Routes
 
-**Becareful about order of the routes you're defining. The routes that are defined sooner will be matched and run sooner**
+**Be careful about the order of the routes you're defining. The routes that are defined sooner will be matched and run sooner.**
 
 ~~If there are multiple matches, the latest matched route callback will be triggered.~~
 
