@@ -275,6 +275,18 @@ describe('ParameterCommandNode class', () => {
     expect(node1.firstMatchedCallable({})).to.be.null
   })
 
+  it('allMatchedCallable()', () => {
+    const func1 = () => true
+    const func2 = () => false
+    const func3 = () => true
+    const node1 = new ParameterCommandNode()
+    node1.appendCallableRule('true', func1)
+    node1.appendCallableRule('false', func2)
+    node1.appendCallableRule('true', func3)
+
+    expect(node1.allMatchedCallables({})).deep.equals([func1, func3])
+  })
+
   it('commandNodePath()', () => {
     const node1 = new ParameterCommandNode()
 

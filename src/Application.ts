@@ -23,17 +23,25 @@ import {
 export default class Application {
   private _config: { [key: string]: any }
   private _commandTree: CommandTree
+  private _middlewareCallbacks: Function[] = []
   private _norouteCallback: Function = () => {}
 
   constructor(config = {}) {
     this._config = config
     this._commandTree = new CommandTree()
 
+    this.middleware = this.middleware.bind(this)
     this.route = this.route.bind(this)
     this.noroute = this.noroute.bind(this)
     this.findCommandNode = this.findCommandNode.bind(this)
     this.getCommandParamsArray = this.getCommandParamsArray.bind(this)
     this.run = this.run.bind(this)
+  }
+
+  middleware(callback: Function): Application {
+    this._middlewareCallbacks.push(callback)
+
+    return this
   }
 
   route(route: Route, callback: Function): Command
@@ -150,6 +158,40 @@ export default class Application {
     return commandParamValues
   }
 
+  private _runMiddlewares(callbackData: CallbackData): boolean {
+    let processNextMiddleware: boolean
+    for (let i = 0; i < this._middlewareCallbacks.length; i++) {
+      const next = () => {
+        processNextMiddleware = true
+      }
+
+      const callback = this._middlewareCallbacks[i]
+      processNextMiddleware = false
+      callback.call({}, callbackData, next)
+      if (!processNextMiddleware) return false
+    }
+    return true
+  }
+
+  private _runCallbacks(
+    command: Command,
+    callbacks: Function[],
+    callbackData: CallbackData
+  ): boolean {
+    let processNextCallback: boolean
+    for (let i = 0; i < callbacks.length; i++) {
+      const next = () => {
+        processNextCallback = true
+      }
+
+      const callback = callbacks[i]
+      processNextCallback = false
+      callback.call(command, callbackData, next)
+      if (!processNextCallback) return false
+    }
+    return true
+  }
+
   run(argv?: string[]) {
     const acpData: Data = parser(argv).data
     const { commands: commandItems, shortSwitches, longSwitches } = acpData
@@ -170,15 +212,19 @@ export default class Application {
       [key: string]: string | boolean
     } = cleanSwitchValues(longSwitches)
 
+    const callbackData = new CallbackData(
+      null,
+      {},
+      cleanedShortSwitches,
+      cleanedLongSwitches
+    )
+
+    const continueAfterMiddlewares = this._runMiddlewares(callbackData)
+    if (!continueAfterMiddlewares) return
+
     let currentNode: CommandNode | null = this.findCommandNode(commandItems)
 
     if (!currentNode) {
-      const callbackData = new CallbackData(
-        null,
-        {},
-        cleanedShortSwitches,
-        cleanedLongSwitches
-      )
       this._norouteCallback.call(new Command(''), callbackData)
       return
     }
@@ -238,24 +284,28 @@ export default class Application {
       }
     )
 
-    const callback: Function | null = currentNode.firstMatchedCallable({
+    const callbacks: Function[] = currentNode.allMatchedCallables({
       ...cleanedShortSwitches,
       ...cleanedLongSwitches,
       ...parameters,
     })
 
-    const callbackData: CallbackData = new CallbackData(
-      command,
-      parameters,
-      { ...shortDefaultValuesNeedsInjected, ...cleanedShortSwitches },
-      { ...longDefaultValuesNeedsInjected, ...cleanedLongSwitches }
-    )
+    callbackData.setCommand(command)
+    callbackData.setParams(parameters)
+    callbackData.setShortSwitches({
+      ...shortDefaultValuesNeedsInjected,
+      ...cleanedShortSwitches,
+    })
+    callbackData.setLongSwitches({
+      ...longDefaultValuesNeedsInjected,
+      ...cleanedLongSwitches,
+    })
 
-    if (!callback) {
+    if (callbacks.length === 0) {
       this._norouteCallback.call(command, callbackData)
       return
     }
 
-    callback.call(command, callbackData)
+    this._runCallbacks(command, callbacks, callbackData)
   }
 }

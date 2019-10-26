@@ -152,6 +152,19 @@ export default abstract class CommandNode {
     return null
   }
 
+  allMatchedCallables(args: { [key: string]: string | boolean }): Function[] {
+    const output: Function[] = []
+    for (let i = 0; i < this._callbackRules.length; i++) {
+      const rule = this._callbackRules[i]
+
+      if (rule.condition.evaluate(args)) {
+        output.push(rule.callback)
+      }
+    }
+
+    return output
+  }
+
   commandNodePath(): CommandNode[] {
     const commandNodes: CommandNode[] = []
     let currentNode: CommandNode | null = this
