@@ -6,6 +6,7 @@ import RequiredSwitch from '../Switch/RequiredSwitch'
 import ValuedSwitch from '../Switch/ValuedSwitch'
 import { PARAMETER_PREFIX, COMMAND_DELIMITER } from '../constants'
 import { NodeChildrenType, CallbackRule } from './models'
+import { StringOrBooleanMap } from '../models'
 
 export default abstract class CommandNode {
   protected _parentNode: CommandNode | null = null
@@ -140,9 +141,7 @@ export default abstract class CommandNode {
    * @param values these are values passed in run-time. it can be parameter or switch values without ':', '-' or '--'
    * @returns first match callableRule function or null
    */
-  firstMatchedCallable(args: {
-    [key: string]: string | boolean
-  }): Function | null {
+  firstMatchedCallable(args: StringOrBooleanMap): Function | null {
     for (let i = 0; i < this._callbackRules.length; i++) {
       const rule = this._callbackRules[i]
 
@@ -152,7 +151,7 @@ export default abstract class CommandNode {
     return null
   }
 
-  allMatchedCallables(args: { [key: string]: string | boolean }): Function[] {
+  allMatchedCallables(args: StringOrBooleanMap): Function[] {
     const output: Function[] = []
     for (let i = 0; i < this._callbackRules.length; i++) {
       const rule = this._callbackRules[i]

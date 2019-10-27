@@ -19,6 +19,7 @@ import {
   defaultShortValuedSwitchesThatNeedsToBeAdded,
   defaultLongValuedSwitchesThatNeedsToBeAdded,
 } from './helpers'
+import { StringOrBooleanMap, StringMap } from './models'
 
 export default class Application {
   private _config: { [key: string]: any }
@@ -246,13 +247,13 @@ export default class Application {
       process.exit(1)
     }
 
-    const cleanedShortSwitches: {
-      [key: string]: string | boolean
-    } = cleanSwitchValues(shortSwitches)
+    const cleanedShortSwitches: StringOrBooleanMap = cleanSwitchValues(
+      shortSwitches
+    )
 
-    const cleanedLongSwitches: {
-      [key: string]: string | boolean
-    } = cleanSwitchValues(longSwitches)
+    const cleanedLongSwitches: StringOrBooleanMap = cleanSwitchValues(
+      longSwitches
+    )
 
     const callbackData = new CallbackData(
       null,
@@ -279,9 +280,10 @@ export default class Application {
 
     const commandParamNames = command.getParameters()
 
-    const parameters: {
-      [key: string]: string
-    } = mapCommandParamNamesAndValues(commandParamNames, commandParamValues)
+    const parameters: StringMap = mapCommandParamNamesAndValues(
+      commandParamNames,
+      commandParamValues
+    )
 
     validateNonConflictSwitches(shortSwitches, longSwitches)
     validateNonConflictParamsAndSwitches(parameters, cleanedShortSwitches)

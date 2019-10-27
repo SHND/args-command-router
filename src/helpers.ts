@@ -2,10 +2,11 @@ import Command from './Command'
 import RequiredSwitch from './Switch/RequiredSwitch'
 import ValuedSwitch from './Switch/ValuedSwitch'
 import BooleanSwitch from './Switch/BooleanSwitch'
+import { StringOrBooleanMap, StringMap, StringArrayMap } from './models'
 
-export function validateOneValueMostForEachSwitch(acpSwitches: {
-  [key: string]: string[]
-}): void {
+export function validateOneValueMostForEachSwitch(
+  acpSwitches: StringArrayMap
+): void {
   const message = 'Only one value for each switch is supported.'
 
   for (let key in acpSwitches) {
@@ -18,12 +19,8 @@ export function validateOneValueMostForEachSwitch(acpSwitches: {
 }
 
 export function validateNonConflictSwitches(
-  acpSwitches1: {
-    [key: string]: string[]
-  },
-  acpSwitches2: {
-    [key: string]: string[]
-  }
+  acpSwitches1: StringArrayMap,
+  acpSwitches2: StringArrayMap
 ): void {
   const message = 'There are conflicts between short and long switch names.'
 
@@ -40,9 +37,7 @@ export function validateNonConflictParamsAndSwitches(
   parameters: {
     [key: string]: string
   },
-  acpSwitches: {
-    [key: string]: string | boolean
-  }
+  acpSwitches: StringOrBooleanMap
 ): void {
   const message =
     'There are conflicts between Switches and Command parameters name.'
@@ -58,7 +53,7 @@ export function validateNonConflictParamsAndSwitches(
 
 export function validateAllRequiredSwitchesPresent(
   command: Command,
-  switches: { [key: string]: string | boolean }
+  switches: StringOrBooleanMap
 ): void {
   const missingSwitches: RequiredSwitch[] = []
   const requiredSwitches: RequiredSwitch[] = command.getRequiredSwitches()
@@ -93,7 +88,7 @@ export function validateAllRequiredSwitchesPresent(
 
 export function validateInputRequiredSwitchesHaveValue(
   command: Command,
-  switches: { [key: string]: string | boolean }
+  switches: StringOrBooleanMap
 ): void {
   const requiredSwitches: RequiredSwitch[] = command.getRequiredSwitches()
 
@@ -118,7 +113,7 @@ export function validateInputRequiredSwitchesHaveValue(
 
 export function validateInputValuedSwitchesWithNoDefaultHaveValue(
   command: Command,
-  switches: { [key: string]: string | boolean }
+  switches: StringOrBooleanMap
 ): void {
   const valuedSwitches: ValuedSwitch[] = command.getValuedSwitches()
 
@@ -145,7 +140,7 @@ export function validateInputValuedSwitchesWithNoDefaultHaveValue(
 
 export function validateInputBooleanSwitchesDontHaveValues(
   command: Command,
-  switches: { [key: string]: string | boolean }
+  switches: StringOrBooleanMap
 ): void {
   const booleanSwitches: BooleanSwitch[] = command.getBooleanSwitches()
 
@@ -170,9 +165,9 @@ export function validateInputBooleanSwitchesDontHaveValues(
 
 export function defaultShortValuedSwitchesThatNeedsToBeAdded(
   command: Command,
-  switches: { [key: string]: string | boolean }
-): { [key: string]: string | boolean } {
-  const output: { [key: string]: string | boolean } = {}
+  switches: StringOrBooleanMap
+): StringOrBooleanMap {
+  const output: StringOrBooleanMap = {}
   const valuedSwitches: ValuedSwitch[] = command.getValuedSwitches()
 
   for (let s of valuedSwitches) {
@@ -195,9 +190,9 @@ export function defaultShortValuedSwitchesThatNeedsToBeAdded(
 
 export function defaultLongValuedSwitchesThatNeedsToBeAdded(
   command: Command,
-  switches: { [key: string]: string | boolean }
-): { [key: string]: string | boolean } {
-  const output: { [key: string]: string | boolean } = {}
+  switches: StringOrBooleanMap
+): StringOrBooleanMap {
+  const output: StringOrBooleanMap = {}
   const valuedSwitches: ValuedSwitch[] = command.getValuedSwitches()
 
   for (let s of valuedSwitches) {
@@ -218,10 +213,10 @@ export function defaultLongValuedSwitchesThatNeedsToBeAdded(
   return output
 }
 
-export function cleanSwitchValues(acpSwitches: {
-  [key: string]: string[]
-}): { [key: string]: string | boolean } {
-  const output: { [key: string]: string | boolean } = {}
+export function cleanSwitchValues(
+  acpSwitches: StringArrayMap
+): StringOrBooleanMap {
+  const output: StringOrBooleanMap = {}
 
   for (let key in acpSwitches)
     output[key] = acpSwitches[key].length > 0 ? acpSwitches[key][0] : true
@@ -232,8 +227,8 @@ export function cleanSwitchValues(acpSwitches: {
 export function mapCommandParamNamesAndValues(
   commandParamNames: string[],
   commandParamValues: string[]
-): { [key: string]: string } {
-  const parameters: { [key: string]: string } = {}
+): StringMap {
+  const parameters: StringMap = {}
 
   if (commandParamValues.length !== commandParamNames.length)
     throw Error(

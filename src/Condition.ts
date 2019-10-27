@@ -1,4 +1,5 @@
 import { Parser, Expression } from 'expr-eval'
+import { StringOrBooleanMap } from './models'
 
 const exprEvalOptions = {
   operators: {
@@ -48,7 +49,7 @@ export default class Condition {
     else return []
   }
 
-  evaluate(values: { [key: string]: string | boolean }): boolean {
+  evaluate(values: StringOrBooleanMap): boolean {
     if (!this._expression) return true
 
     // Creating function out of expression to be abale to evaluate expression with undefined variables

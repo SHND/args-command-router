@@ -1,11 +1,12 @@
 import Command from './Command'
+import { StringOrBooleanMap, StringMap } from './models'
 
 export default class CallbackData {
   private _command: Command | null
-  private _params: { [key: string]: string } = {}
+  private _params: StringMap = {}
   private _switches: {
-    short: { [key: string]: string | boolean }
-    long: { [key: string]: string | boolean }
+    short: StringOrBooleanMap
+    long: StringOrBooleanMap
   } = {
     short: {},
     long: {},
@@ -13,9 +14,9 @@ export default class CallbackData {
 
   constructor(
     command: Command | null,
-    params: { [key: string]: string },
-    shortSwitches: { [key: string]: string | boolean },
-    longSwitches: { [key: string]: string | boolean }
+    params: StringMap,
+    shortSwitches: StringOrBooleanMap,
+    longSwitches: StringOrBooleanMap
   ) {
     this._command = command
     this._params = params
@@ -40,7 +41,7 @@ export default class CallbackData {
     return this._params
   }
 
-  setParams(obj: { [key: string]: string }) {
+  setParams(obj: StringMap) {
     this._params = obj
   }
 
