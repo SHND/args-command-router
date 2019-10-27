@@ -186,9 +186,7 @@ app.after((input, next) => {
 })
 ```
 
-By default, whenever a hook is run, no further middlewares or routes will be checked and run. The `next()` method tells **Args Command Router** to execute the next hook of the same type. Without calling `next()`, **Args Command Router** will stop executing hooks of that type and move to the next stage.
-
-Route callbacks also have the `next()` method if you want **Args Command Router** to continue executing the next matching routes.
+By default, whenever a hook is run, no further hooks of the same type will be checked and run. The `next()` method tells **Args Command Router** to execute the next hook of the same type. Without calling `next()`, **Args Command Router** will stop executing hooks of that type and move to the next stage.
 
 ```js
 app.route('check/file/:file_url', (inputs, next) => {
