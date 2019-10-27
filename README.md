@@ -1,6 +1,8 @@
 # args-command-router
 
-Nodejs opinionated command-line argument router
+Nodejs opinionated command-line argument router.
+
+The idea behind **Args Command Router** is from the **ExpressJS** package, in which you can define different routes for different routines and functions based on the request.
 
 ![GitHub](https://img.shields.io/github/license/SHND/args-command-router)
 [![Build Status](https://travis-ci.org/SHND/args-command-router.svg?branch=master)](https://travis-ci.org/SHND/args-command-router)
@@ -44,11 +46,15 @@ app.route('version', () => {
 app.run()
 ```
 
+Here we are importing _args-command-parser_ and create an _app_ object from it. Then we are defining a route for _version_ and specify a callback to be run whenever the application receives _version_ first thing in its arguments.
+
+In the end, we need to call the `run()` method to tell **Args Command Parser** that we are done with our route definitions, and we are ready to analyze CLI arguments and route them to the correct callback.
+
 ---
 
 ## Routes
 
-For the next one, let's do the `check file <file_url>` and `download file <file_url>`:
+For the next one, let's do the `check file <file_url>` and `download file <file_url>` in our Scenario on the top:
 
 ```js
 // initializing app constant like above...
@@ -68,6 +74,8 @@ app.route('download/file/:file_url', inputs => {
 })
 ```
 
+Here `check` and `file` are fixed values, and `file_url` is a parameter, meaning that the user of our application can put any value in `file_url` position, and we're going to capture that. Parameters in CLI arguments are prefixed with a colon (`:`) in the route string.
+
 Now let's add a condition that if the `download file <file_url>` has an `--output` switch route to another implementation:
 
 ```js
@@ -79,6 +87,8 @@ app.route('download/file/:file_url[output]', inputs => {
   console.log('Download the file ' + fileURL + ' to ' + outputDir)
 })
 ```
+
+As you see here, you can have extra conditions in your route strings inside brackets (`[]`).
 
 Now let's try to route `download folder <folder_url>` with switch `--depth`. Let's say for different depths, we want to have different implementations:
 
@@ -114,9 +124,9 @@ app.route('download/folder/:folder_url', inputs => {
 
 ### Route Arguments
 
-When a Route callback is called, some data will be passed to it through parameters.
+When a Route callback is called, some data will be passed to it through its parameters.
 
-The first parameter is **input**. It contains a couple of properties and methods about the input to the app:
+The first parameter is **input** object. It contains properties and methods about the input to the application:
 
 - `command` property returns the Command for the current route.
 - `params` property returns the parameters passed inside the command arguments passed to the app.
@@ -136,27 +146,70 @@ app.route('check/file/:file_url', (inputs, next) => {
 })
 ```
 
+Remember that routes that are defined sooner have a higher priority to get matched.
+
 ---
 
-## Middlewares
+## Hooks
 
-Middlewares are functions that are getting executed every time, no matter of the command route or route condition.
+Hooks are functions that are getting executed at different stages of the execution of the application.
 
-Middlewares are executed before any route checking.
+Currently, there are three different hooks:
 
-In order for the next Middleware or Route to gets run, you need to call the `next()` method, which is passed to it through the Middleware parameters.
-
-By default, whenever a middleware is run, no further middlewares or routes will be checked and run. By calling `next()` in your middleware, you are specifying that after finishing executing the current route, go for the next middleware or route and run that.
+- **NoRoute Hooks**: These hooks are executed when no matches found in the routes.
 
 ```js
-app.middleware((inputs, next) => {
-  console.log('Welcome to my app')
+app.noroute((input, next) => {
+  // do some stuff
 
   next()
 })
 ```
 
+- **Before Hook**: These hooks are executed before executing route callbacks.
+
+```js
+app.before((input, next) => {
+  // do some stuff
+
+  next()
+})
+```
+
+- **After Hook**: These hooks are executed after executing route callbacks.
+
+```js
+app.after((input, next) => {
+  // do some stuff
+
+  next()
+})
+```
+
+By default, whenever a hook is run, no further middlewares or routes will be checked and run. The `next()` method tells **Args Command Router** to execute the next hook of the same type. Without calling `next()`, **Args Command Router** will stop executing hooks of that type and move to the next stage.
+
+Route callbacks also have the `next()` method if you want **Args Command Router** to continue executing the next matching routes.
+
+```js
+app.route('check/file/:file_url', (inputs, next) => {
+  const fileUrl = inputs.params.file_url
+
+  console.log('Check whether the file ' + fileURL + 'exists.')
+  next()
+})
+```
+
 ---
+
+## Help (Usage)
+
+**Args Command Router** generates help (usage) output out of the box. **Helps** are commands same as other commands in the application.
+
+```sh
+node fetcher.js download help
+```
+
+In order to get better help output, you can set descriptions and define switches for commands. This will be discussed more in the **Command** section.
 
 ## More Details on the Format
 
