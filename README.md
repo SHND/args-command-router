@@ -50,8 +50,6 @@ Here we are importing _args-command-parser_ and create an _app_ object from it. 
 
 In the end, we need to call the `run()` method to tell **Args Command Parser** that we are done with our route definitions, and we are ready to analyze CLI arguments and route them to the correct callback.
 
----
-
 ## Routes
 
 For the next one, let's do the `check file <file_url>` and `download file <file_url>` in our Scenario on the top:
@@ -148,8 +146,6 @@ app.route('check/file/:file_url', (inputs, next) => {
 
 Remember that routes that are defined sooner have a higher priority to get matched.
 
----
-
 ## Hooks
 
 Hooks are functions that are getting executed at different stages of the execution of the application.
@@ -197,8 +193,6 @@ app.route('check/file/:file_url', (inputs, next) => {
 })
 ```
 
----
-
 ## Help (Usage)
 
 **Args Command Router** generates help (usage) output out of the box. **Helps** are commands same as other commands in the application.
@@ -233,8 +227,6 @@ Short Switches are prefixed with `-` followed by one or more single-character sw
 
 Long Switches are prefixed with `--` followed by the switch name. Long Switches can be followed by zero to any number of values.
 
----
-
 ## More Details on Routes
 
 **Be careful about the order of the routes you're defining. The routes that are defined sooner will be matched and run sooner.**
@@ -256,8 +248,6 @@ app.run()
 ```
 
 The `run()` method use currently passed arguments to find the route match, but you can pass an array of strings to `run()`, and args-command-router will use those instead of the currently passed arguments.
-
----
 
 ## More Details on Commands and Switches
 
