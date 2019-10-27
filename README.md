@@ -61,7 +61,7 @@ For the next one, let's do the `check file <file_url>` and `download file <file_
 app.route('check/file/:file_url', inputs => {
   const fileUrl = inputs.params.file_url
 
-  console.log('Check whether the file ' + fileURL + 'exists.')
+  console.log('Check whether the file ' + fileURL + ' exists.')
 })
 
 // node fetcher.js download file https://nodejs.org/dist/v10.16.3/node-v10.16.3.pkg
@@ -139,7 +139,7 @@ The second parameter is **next()** method. By default, whenever a route is match
 app.route('check/file/:file_url', (inputs, next) => {
   const fileUrl = inputs.params.file_url
 
-  console.log('Check whether the file ' + fileURL + 'exists.')
+  console.log('Check whether the file ' + fileURL + ' exists.')
   next()
 })
 ```
@@ -188,7 +188,7 @@ By default, whenever a hook is run, no further hooks of the same type will be ch
 app.route('check/file/:file_url', (inputs, next) => {
   const fileUrl = inputs.params.file_url
 
-  console.log('Check whether the file ' + fileURL + 'exists.')
+  console.log('Check whether the file ' + fileURL + ' exists.')
   next()
 })
 ```
@@ -221,11 +221,11 @@ Switches can be in short or long format.
 
 #### Short Switch
 
-Short Switches are prefixed with `-` followed by one or more single-character switch. If more than one character is specified, each character is considered a Short Switch. Short Switches can be followed by zero to any number of values.
+Short Switches are prefixed with `-` followed by one or more single-character switch. If more than one character is specified, each character is considered a Short Switch. Short Switches may have zero or one value.
 
 #### Long Switch
 
-Long Switches are prefixed with `--` followed by the switch name. Long Switches can be followed by zero to any number of values.
+Long Switches are prefixed with `--` followed by the switch name. Long Switches may have zero or one value.
 
 ## More Details on Routes
 
@@ -283,7 +283,7 @@ downloadFileCommand
   .description('Downloads a specific file given by its url')
   .valuedSwitch('o', 'output', null, 'Destination file local path')
   .booleanSwitch('p', 'progress', 'Show download progress bar')
-  .requiredSwitch('f', 'force', 'This is just to a show required switch feature')
+  .requiredSwitch('f', 'force', 'Force download for http endpoints')
 ```
 
 The other thing is, each Command item comes with a fixed Command child `help` to display a help message for that command. So you can do:
