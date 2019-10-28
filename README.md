@@ -297,14 +297,6 @@ node fetcher.js download file help
 
 I'm generating help outputs using the [command-line-usage](https://www.npmjs.com/package/command-line-usage) package.
 
-You can override the `help` command in the same way that you defined a new route:
-
-```js
-app.route('download/file/:file_url/help', inputs => {
-  console.log('I want my own help message')
-})
-```
-
 ### Condition
 
 Conditions add extra control over routing the command arguments. They can be specified inside the route path or by creating a `Condition` object.
