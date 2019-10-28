@@ -197,8 +197,13 @@ app.route('check/file/:file_url', (inputs, next) => {
 
 **Args Command Router** generates help (usage) output out of the box. **Helps** are commands same as other commands in the application.
 
-```sh
+Each Command item comes with a fixed Command child `help` to display a help message for that command. So you can do:
+
+```bash
+node fetcher.js help
 node fetcher.js download help
+node fetcher.js download file help
+...
 ```
 
 In order to get better help output, you can set descriptions and define switches for commands. This will be discussed more in the **Command** section.
@@ -285,17 +290,6 @@ downloadFileCommand
   .booleanSwitch('p', 'progress', 'Show download progress bar')
   .requiredSwitch('f', 'force', 'Force download for http endpoints')
 ```
-
-The other thing is, each Command item comes with a fixed Command child `help` to display a help message for that command. So you can do:
-
-```bash
-node fetcher.js help
-node fetcher.js download help
-node fetcher.js download file help
-...
-```
-
-I'm generating help outputs using the [command-line-usage](https://www.npmjs.com/package/command-line-usage) package.
 
 ### Condition
 
