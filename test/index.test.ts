@@ -4,7 +4,7 @@ import { argsCommandRouter } from '../src/index'
 describe('index method', () => {
   it('create', () => {
     expect(() => {
-      const app = argsCommandRouter()
+      const app = argsCommandRouter();
     }).not.throws()
   })
 })

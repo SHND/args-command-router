@@ -1,5 +1,4 @@
 import Application from './Application'
-import _Command from './Command'
 
 export const argsCommandRouter = function(config = {}) {
   return (function(config) {
@@ -7,4 +6,6 @@ export const argsCommandRouter = function(config = {}) {
   })(config)
 }
 
-export const Command = _Command
+// const app = argsCommandRouter();
+
+// app.debug()

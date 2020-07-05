@@ -8,7 +8,9 @@
     "sourceMap": true,
     "declaration": true,
     "strict": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "strictPropertyInitialization": false
+    // "strictNullChecks": false
   },
   "files": ["src/index.ts"],
   "include": ["src/**/*.ts"],
