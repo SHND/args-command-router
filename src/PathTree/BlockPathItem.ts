@@ -10,13 +10,8 @@ export abstract class BlockPathItem extends PathItem {
   protected staticPathItems: Record<string, StaticPathItem> = {};
   protected dynamicPathItem: DynamicPathItem;
   protected switchPathItems: Array<SwitchPathItem> = [];
-  protected commonSwitches: {
-    requiredSwitches: Switch[],
-    optionalSwitches: Switch[]
-  } = {
-    requiredSwitches: [],
-    optionalSwitches: []
-  }
+  protected commonRequiredSwitches: Switch[] = [];
+  protected commonOptionalSwitches: Switch[] = [];
 
   /**
    * name getter
@@ -124,7 +119,7 @@ export abstract class BlockPathItem extends PathItem {
    * @param {Switch} switch to be added to required common switches
    */
   public addCommonRequiredSwitch = (swich: Switch) => {
-    this.commonSwitches.requiredSwitches.push(swich);
+    this.commonRequiredSwitches.push(swich);
   }
 
   /**
@@ -132,13 +127,13 @@ export abstract class BlockPathItem extends PathItem {
    * @param {Switch} switch to be removed from required common switches
    */
   public removeCommonRequiredSwitch = (swich: Switch) => {
-    const index = this.commonSwitches.requiredSwitches.indexOf(swich);
+    const index = this.commonRequiredSwitches.indexOf(swich);
 
     if (index < 0) {
       return;
     }
 
-    this.commonSwitches.requiredSwitches.splice(index, 1);
+    this.commonRequiredSwitches.splice(index, 1);
   }
 
   /**
@@ -146,7 +141,7 @@ export abstract class BlockPathItem extends PathItem {
    * @param {Switch} switch to be added to optional common switches
    */
   public addCommonOptionalSwitch = (swich: Switch) => {
-    this.commonSwitches.optionalSwitches.push(swich);
+    this.commonOptionalSwitches.push(swich);
   }
 
   /**
@@ -154,13 +149,13 @@ export abstract class BlockPathItem extends PathItem {
    * @param {Switch} switch to be removed from optional common switches
    */
   public removeCommonOptionalSwitch = (swich: Switch) => {
-    const index = this.commonSwitches.optionalSwitches.indexOf(swich);
+    const index = this.commonOptionalSwitches.indexOf(swich);
 
     if (index < 0) {
       return;
     }
 
-    this.commonSwitches.optionalSwitches.splice(index, 1);
+    this.commonOptionalSwitches.splice(index, 1);
   }
 
 }

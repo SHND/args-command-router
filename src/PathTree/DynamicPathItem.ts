@@ -18,10 +18,8 @@ export class DynamicPathItem extends BlockPathItem {
     this.staticPathItems = {};
     this.dynamicPathItem;
     this.switchPathItems = [];
-    this.commonSwitches = {
-      requiredSwitches: [],
-      optionalSwitches: []
-    }
+    this.commonRequiredSwitches = [];
+    this.commonOptionalSwitches = [];
   }
   
   /**
