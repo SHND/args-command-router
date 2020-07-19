@@ -27,7 +27,7 @@ export function pathParser(path: string) {
 
     // Dynamic PathItem
     if (pathItemStr.startsWith(DYNAMIC_PATH_PREFIX)) {
-      pathItem = new DynamicPathItem(pathItemStr.substring(1), parent);
+      pathItem = new DynamicPathItem(pathItemStr.substring(DYNAMIC_PATH_PREFIX.length), parent);
       parent.setDynamicPathItem(pathItem);
     } 
     // Static PathItem
@@ -60,7 +60,7 @@ export function pathParser(path: string) {
 
   // Dynamic PathItem
   if (lastPathItemStr.startsWith(DYNAMIC_PATH_PREFIX)) {
-    lastPathItem = new DynamicPathItem(lastPathItemStr.substring(1), parent);
+    lastPathItem = new DynamicPathItem(lastPathItemStr.substring(DYNAMIC_PATH_PREFIX.length), parent);
     parent.setDynamicPathItem(lastPathItem);
   } 
   // Static PathItem
