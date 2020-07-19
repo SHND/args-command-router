@@ -39,6 +39,10 @@ export abstract class BlockPathItem extends PathItem {
    * staticPathItems getter
    */
   public getStaticPathItem = (name: string) => {
+    if (!this.hasStaticPathItem(name)) {
+      throw Error(`StaticPathItem with name "${name}" does not exist.`);
+    }
+
     return this.staticPathItems[name];
   }
 
@@ -47,7 +51,7 @@ export abstract class BlockPathItem extends PathItem {
    * @param name staticPathItem name
    */
   public hasStaticPathItem = (name: string) => {
-    return this.staticPathItems[name] !== undefined;
+    return this.staticPathItems.hasOwnProperty(name);
   }
 
   /**
@@ -93,6 +97,13 @@ export abstract class BlockPathItem extends PathItem {
   }
 
   /**
+   * Get switchPathItems
+   */
+  public getSwitchPathItems = () => {
+    return this.switchPathItems;
+  }
+
+  /**
    * Add switchPathItem
    * @param {SwitchPathItem} switchPathItem to be added
    */
@@ -115,6 +126,13 @@ export abstract class BlockPathItem extends PathItem {
   }
 
   /**
+   * Get common required switch
+   */
+  public getCommonRequiredSwitches = () => {
+    return this.commonRequiredSwitches;
+  }
+
+  /**
    * Add required switch
    * @param {Switch} switch to be added to required common switches
    */
@@ -134,6 +152,13 @@ export abstract class BlockPathItem extends PathItem {
     }
 
     this.commonRequiredSwitches.splice(index, 1);
+  }
+
+  /**
+   * Get common optional switch
+   */
+  public getCommonOptionalSwitches = () => {
+    return this.commonOptionalSwitches;
   }
 
   /**
