@@ -42,13 +42,19 @@ export class RootPathItem extends BlockPathItem {
     
     function _listPathItems(pathItem: BlockPathItem, indent = 0, output: {value: string}) {
       for (let staticChild of Object.values(pathItem.getStaticPathItems())) {
-        output.value += Array(indent*2).fill('. ').join('') + staticChild.getUniqueName(shortForm) + '\n';
+        if (indent > 0) {
+          output.value += '├';
+        }
+        output.value += Array(indent*2).fill('─').join('') + staticChild.getUniqueName(shortForm) + '\n';
         _listPathItems(staticChild, indent+1, output);
       }
 
       const dynamicChild = pathItem.getDynamicPathItem();
       if (dynamicChild) {
-        output.value += Array(indent*2).fill('. ').join('') + dynamicChild.getUniqueName(shortForm) + '\n';
+        if (indent > 0) {
+          output.value += '├';
+        }
+        output.value += Array(indent*2).fill('─').join('') + dynamicChild.getUniqueName(shortForm) + '\n';
         _listPathItems(dynamicChild, indent+1, output);
       }
     }

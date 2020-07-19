@@ -2,6 +2,7 @@ import { PATH_ITEM_DELIMITER, DYNAMIC_PATH_PREFIX, OPEN_SWITCH_EXPR_SYMBOL } fro
 import { RootPathItem } from "./PathTree/RootPathItem";
 import { DynamicPathItem } from "./PathTree/DynamicPathItem";
 import { StaticPathItem } from "./PathTree/StaticPathItem";
+import { BlockPathItem } from "./PathTree/BlockPathItem";
 
 export function objectKeys(obj: Object) {
   return Object.keys(obj);
@@ -16,7 +17,7 @@ export function pathParser(path: string) {
     pathItemsStr = pathItemsStr.splice(1);
   }
 
-  const newRoot: any = new RootPathItem();
+  const newRoot: BlockPathItem = new RootPathItem();
   let parent = newRoot;
 
   // iterate over all pathItems except the last
