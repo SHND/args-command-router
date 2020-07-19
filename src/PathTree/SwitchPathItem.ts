@@ -22,7 +22,7 @@ export class SwitchPathItem extends PathItem {
    * e.g. TODO
    * @param shortForm 
    */
-  public getUniqueName = (shortForm: boolean) => {
+  public getUniqueName = (shortForm: boolean = false) => {
     return "TODO";
   };
   
