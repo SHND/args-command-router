@@ -24,7 +24,12 @@ export class StaticPathItem extends BlockPathItem {
     }
   }
   
-  public getUniqueName = () => {
+  /**
+   * returns a unique name for this level
+   * e.g. "something"
+   * @param shortForm 
+   */
+  public getUniqueName = (shortForm: boolean) => {
     return this.name;
   };
 

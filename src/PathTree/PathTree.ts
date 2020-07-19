@@ -14,4 +14,8 @@ export class PathTree {
     return this._root
   }
 
+  public printPathItems = (shortForm: boolean = false) => {
+    console.log(this.getRoot().listPathItems(shortForm))
+  }
+
 }

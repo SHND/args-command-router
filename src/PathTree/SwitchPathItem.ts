@@ -17,6 +17,11 @@ export class SwitchPathItem extends PathItem {
 
   }
   
+  /**
+   * returns a unique name for this level
+   * e.g. TODO
+   * @param shortForm 
+   */
   public getUniqueName = (shortForm: boolean) => {
     return "TODO";
   };

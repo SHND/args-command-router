@@ -48,11 +48,19 @@ export abstract class BlockPathItem extends PathItem {
   }
 
   /**
+   * check if the staticPathItem with the specified name exist
+   * @param name staticPathItem name
+   */
+  public hasStaticPathItem = (name: string) => {
+    return this.staticPathItems[name] !== undefined;
+  }
+
+  /**
    * Add staticPathItem
    * @param {StaticPathItem} staticPathItem to be added
    */
   public addStaticPathItem = (staticPathItem: StaticPathItem) => {
-    this.staticPathItems[staticPathItem.getUniqueName()] = staticPathItem;
+    this.staticPathItems[staticPathItem.getUniqueName(false)] = staticPathItem;
   }
 
   /**
@@ -60,7 +68,7 @@ export abstract class BlockPathItem extends PathItem {
    * @param {StaticPathItem} staticPathItem
    */
   public removeStaticPathItem = (staticPathItem: StaticPathItem) => {
-    const name = staticPathItem.getUniqueName();
+    const name = staticPathItem.getUniqueName(false);
 
     if (this.staticPathItems[name]) {
       delete this.staticPathItems[name];
@@ -80,6 +88,13 @@ export abstract class BlockPathItem extends PathItem {
    */
   public setDynamicPathItem = (dynamicPathItem: DynamicPathItem) => {
     this.dynamicPathItem = dynamicPathItem;
+  }
+
+  /**
+   * check if the dynamicPathItem is set
+   */
+  public hasDynamicPathItem = () => {
+    return this.dynamicPathItem !== undefined
   }
 
   /**

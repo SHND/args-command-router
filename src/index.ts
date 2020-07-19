@@ -5,7 +5,3 @@ export const argsCommandRouter = function(config = {}) {
     return new Application(config)
   })(config)
 }
-
-// const app = argsCommandRouter();
-
-// app.debug()

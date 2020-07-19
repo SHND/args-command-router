@@ -24,27 +24,34 @@ export class RootPathItem extends BlockPathItem {
 
   }
 
+  /**
+   * returns a unique name for this level
+   * e.g. "/"
+   * @param shortForm 
+   */
   public getUniqueName = () => {
     return this.name;
   }
 
-  public getTreeString = () => {
-    let output = '';
+  public listPathItems = (shortForm: boolean = false) => {
+    let output = {value: ''};
+    
+    _listPathItems(this, 0, output);
 
-    function _getTreeString(pathItem: BlockPathItem, indent: number) {
-      for (let childPathItem of Object.values(pathItem.getStaticPathItems())) {
-        output += (new Array(indent)).fill(' ') + childPathItem.getUniqueName();
-        
-        _getTreeString(childPathItem, indent + 1);
+    return output.value;
+    
+    function _listPathItems(pathItem: BlockPathItem, indent = 0, output: {value: string}) {
+      for (let staticChild of Object.values(pathItem.getStaticPathItems())) {
+        output.value += Array(indent*2).fill('. ').join('') + staticChild.getUniqueName(shortForm) + '\n';
+        _listPathItems(staticChild, indent+1, output);
       }
 
-      if (pathItem.getDynamicPathItem()) {
-        output += (new Array(indent)).fill(' ') + pathItem.getDynamicPathItem().getUniqueName(false);
-        _getTreeString(pathItem.getDynamicPathItem(), indent + 1);          
+      const dynamicChild = pathItem.getDynamicPathItem();
+      if (dynamicChild) {
+        output.value += Array(indent*2).fill('. ').join('') + dynamicChild.getUniqueName(shortForm) + '\n';
+        _listPathItems(dynamicChild, indent+1, output);
       }
     }
-
-    return _getTreeString(this, 0);
   }
 
 }

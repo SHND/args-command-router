@@ -5,6 +5,15 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Launch Program",
+      "program": "${workspaceFolder}/dist/index.js",
+      "request": "launch",
+      "skipFiles": ["<node_internals>/**"],
+      "type": "pwa-node",
+      "preLaunchTask": "task: start",
+      "console": "internalConsole"
+    },
+    {
       "type": "node",
       "request": "launch",
       "name": "Mocha All",

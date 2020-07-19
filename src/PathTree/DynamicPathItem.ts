@@ -24,6 +24,11 @@ export class DynamicPathItem extends BlockPathItem {
     }
   }
   
+  /**
+   * returns a unique name for this level
+   * e.g. ":something"
+   * @param shortForm 
+   */
   public getUniqueName = (shortForm: boolean) => {
     if (shortForm) {
       return this.name;

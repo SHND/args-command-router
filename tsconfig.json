@@ -9,8 +9,9 @@
     "declaration": true,
     "strict": true,
     "esModuleInterop": true,
-    "strictPropertyInitialization": false
-    // "strictNullChecks": false
+    "strictPropertyInitialization": false,
+    "experimentalDecorators": true,
+    "strictNullChecks": false
   },
   "files": ["src/index.ts"],
   "include": ["src/**/*.ts"],

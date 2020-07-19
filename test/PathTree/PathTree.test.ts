@@ -6,7 +6,5 @@ describe('index method', () => {
 
     const tree = new PathTree();
 
-    console.log(tree.getTreeString())
-
   })
 })
