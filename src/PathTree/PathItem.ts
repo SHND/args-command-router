@@ -29,6 +29,13 @@ export abstract class PathItem {
   }
 
   /**
+   * Get callbacks
+   */
+  public getCallbacks = () => {
+    return this.callbacks;
+  }
+
+  /**
    * Add callback
    * @param {Function} callback to be added
    */
@@ -38,7 +45,7 @@ export abstract class PathItem {
 
   /**
    * Remove callback
-   * @param {Funciton} callback to be removed
+   * @param {Function} callback to be removed
    */
   public removeCallback = (callback: Function) => {
     const index = this.callbacks.indexOf(callback);
@@ -66,18 +73,33 @@ export abstract class PathItem {
   }
 
   /**
+   * Get requiredSwitches
+   */
+  public getRequiredSwitches = () => {
+    return this.requiredSwitches;
+  }
+
+  /**
    * Add requiredSwitch
    * @param {Switch} swich to be added
    */
-  public addRequireSwitch = (swich: Switch) => {
+  public addRequiredSwitch = (swich: Switch) => {
     this.requiredSwitches.push(swich);
   }
 
   /**
    * Remove requireSwitch
-   * TODO: implement this
+   * @param {Switch} swich to be removed
    */
-  public removeRequireSwitch = () => {}
+  public removeRequiredSwitch = (swich: Switch) => {
+    const index = this.requiredSwitches.indexOf(swich);
+
+    if (index < 0) {
+      return;
+    }
+
+    this.requiredSwitches.splice(index, 1);
+  }
 
   /**
    * Add optionalSwitch
@@ -89,9 +111,24 @@ export abstract class PathItem {
 
   /**
    * Remove optionalSwitch
-   * TODO: implement this
+   * @param {Switch} swich to be removed
    */
-  public removeOptionalSwitch = () => {}
+  public removeOptionalSwitch = (swich: Switch) => {
+    const index = this.optionalSwitches.indexOf(swich);
+
+    if (index < 0) {
+      return;
+    }
+
+    this.optionalSwitches.splice(index, 1);
+  }
+
+  /**
+   * Get optionalSwitches
+   */
+  public getOptionalSwitches = () => {
+    return this.optionalSwitches;
+  }
 
   /**
    * Get the path for the current PathItem
