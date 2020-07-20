@@ -36,11 +36,21 @@ export abstract class PathItem {
   }
 
   /**
+   * check if the callback exists
+   * @param callback 
+   */
+  public hasCallback = (callback: Function) => {
+    return this.callbacks.findIndex(cb => cb === callback) >= 0;
+  }
+
+  /**
    * Add callback
    * @param {Function} callback to be added
    */
   public addCallback = (callback: Function) => {
-    this.callbacks.push(callback);
+    if (!this.hasCallback(callback)) {
+      this.callbacks.push(callback);
+    }
   }
 
   /**

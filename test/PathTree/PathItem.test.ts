@@ -21,18 +21,21 @@ describe('PathItem', () => {
     expect(pathItem.getDescription()).to.equal('description 1');
   });
 
-  it('callbacks property, callback addCallback, removeCallback methods', () => {
+  it('callbacks property, callback addCallback, hasCallback, removeCallback methods', () => {
     const pathItem = new TestPathItem();
     const callback = () => {};
 
     expect(pathItem.getCallbacks()).have.lengthOf(0);
+    expect(pathItem.hasCallback(callback)).to.equal(false);
 
     pathItem.addCallback(callback);
     expect(pathItem.getCallbacks()).have.lengthOf(1);
     expect(pathItem.getCallbacks()[0]).to.equal(callback);
+    expect(pathItem.hasCallback(callback)).to.equal(true);
 
     pathItem.removeCallback(callback);
     expect(pathItem.getCallbacks()).have.lengthOf(0);
+    expect(pathItem.hasCallback(callback)).to.equal(false);
   });
 
   it('helpCallback property, getHelpCallback, setHelpCallback methods', () => {
