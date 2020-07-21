@@ -3,12 +3,18 @@ import { RootPathItem } from "./PathTree/RootPathItem";
 import { DynamicPathItem } from "./PathTree/DynamicPathItem";
 import { StaticPathItem } from "./PathTree/StaticPathItem";
 import { BlockPathItem } from "./PathTree/BlockPathItem";
+import { PathItem } from "./PathTree/PathItem";
 
 export function objectKeys(obj: Object) {
   return Object.keys(obj);
 }
 
-export function pathParser(path: string) {
+/**
+ * Parse an string and return an array of PathItems
+ * TODO: Add Expression Routes
+ * @param {string} path to be parsed
+ */
+export function parsePath(path: string): PathItem[] {
   const output = [];
   let pathItemsStr = path.trim().split(PATH_ITEM_DELIMITER);
 
