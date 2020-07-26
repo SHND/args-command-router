@@ -10,24 +10,53 @@ export function objectKeys(obj: Object) {
 }
 
 /**
+ * Split the path string to BlockPathItem part and SwitchExpressions part
+ * @param pathStr route to be splitted
+ */
+export function splitFromSwitchExpressions(pathStr: string): [string, string] {
+
+  const indexOfOpenSwitchSymbol = pathStr.indexOf(OPEN_SWITCH_EXPR_SYMBOL);
+
+  if (indexOfOpenSwitchSymbol < 0) {
+    return [pathStr, ''];
+  }
+
+  return [pathStr.substring(0, indexOfOpenSwitchSymbol), pathStr.substring(indexOfOpenSwitchSymbol)];
+}
+
+/**
  * Parse an string and return an array of PathItems
  * TODO: Add Expression Routes
  * @param {string} path to be parsed
  */
-export function parsePath(path: string): PathItem[] {
+export function parsePath(pathStr: string): PathItem[] {
   const output = [];
-  let pathItemsStr = path.trim().split(PATH_ITEM_DELIMITER);
+  let path = pathStr;
 
-  // if path starts with '/'
-  if (pathItemsStr[0] === '') {
-    pathItemsStr = pathItemsStr.splice(1);
+  // if path starts with '/' remove it
+  if (path.startsWith(PATH_ITEM_DELIMITER)) {
+    path = path.substring(1);
+  }
+
+  // if after removing the first '/' we get empty string we want the root PathItem
+  if (path === '') {
+    return [];
+  }
+
+  let [pathItemsPart, switchExpressionPart] = splitFromSwitchExpressions(path);
+  let pathItemsStr = pathItemsPart.split(PATH_ITEM_DELIMITER);
+
+  // check if any of the pathItem strings has whitespace or is empty string
+  const hasWhiteSpace = pathItemsStr.reduce((hasWhiteSpace, pathItem) => hasWhiteSpace || (/\s|^$/).test(pathItem), false);
+  if (hasWhiteSpace) {
+    throw Error(`The path "${pathStr}" contains whitespace.`);
   }
 
   const newRoot: BlockPathItem = new RootPathItem();
   let parent = newRoot;
 
-  // iterate over all pathItems except the last
-  for (let i=0; i<pathItemsStr.length - 1; i++) {
+  // iterate over all pathItems before switchExpression
+  for (let i=0; i<pathItemsStr.length; i++) {
     const pathItemStr = pathItemsStr[i];
     let pathItem;
 
@@ -49,38 +78,7 @@ export function parsePath(path: string): PathItem[] {
     parent = pathItem;
   }
 
-  const lastPathItemRaw = pathItemsStr[pathItemsStr.length - 1];
-  const lastPathItemLastIndex = lastPathItemRaw.indexOf(OPEN_SWITCH_EXPR_SYMBOL);
-  let lastPathItemStr;
-
-  // No Switch Expressions
-  if (lastPathItemLastIndex < 0) {
-    lastPathItemStr = lastPathItemRaw;
-  }
-  // Switch Expressions Present
-  else {
-    lastPathItemStr = lastPathItemRaw.substring(0, lastPathItemLastIndex);
-  }
-
-  let lastPathItem;
-
-  // Dynamic PathItem
-  if (lastPathItemStr.startsWith(DYNAMIC_PATH_PREFIX)) {
-    lastPathItem = new DynamicPathItem(lastPathItemStr.substring(DYNAMIC_PATH_PREFIX.length), parent);
-    parent.setDynamicPathItem(lastPathItem);
-  } 
-  // Static PathItem
-  else {
-    lastPathItem = new StaticPathItem(lastPathItemStr, parent);
-    parent.addStaticPathItem(lastPathItem);
-  }
-
-  // Add to output
-  output.push(lastPathItem);
-
-  if (lastPathItemLastIndex >= 0) {
-    console.log('parse expressions routes')
-  }
+  //TODO: now that pathItems before switchExpression is parse it's time for switchExpreesion
 
   return output;
 }
