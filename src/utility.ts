@@ -1,4 +1,4 @@
-import { PATH_ITEM_DELIMITER, DYNAMIC_PATH_PREFIX, OPEN_SWITCH_EXPR_SYMBOL } from "./constants";
+import { PATH_ITEM_DELIMITER, DYNAMIC_PATH_PREFIX, OPEN_SWITCH_EXPR_SYMBOL, CLOSE_SWITCH_EXPR_SYMBOL, SINGLE_QUOTE_LITERAL, DOUBLE_QUOTE_LITERAL } from "./constants";
 import { RootPathItem } from "./PathTree/RootPathItem";
 import { DynamicPathItem } from "./PathTree/DynamicPathItem";
 import { StaticPathItem } from "./PathTree/StaticPathItem";
@@ -10,10 +10,11 @@ export function objectKeys(obj: Object) {
 }
 
 /**
- * Split the path string to BlockPathItem part and SwitchExpressions part
+ * Split the path string to BlockPathItem part and SwitchPathItem part
  * @param pathStr route to be splitted
+ * @returns {[string, string]} tuple with first pathItems without pathItemSwitch, second pathItemSwitch
  */
-export function splitFromSwitchExpressions(pathStr: string): [string, string] {
+export function splitFromSwitchPathItem(pathStr: string): [string, string] {
 
   const indexOfOpenSwitchSymbol = pathStr.indexOf(OPEN_SWITCH_EXPR_SYMBOL);
 
@@ -24,10 +25,55 @@ export function splitFromSwitchExpressions(pathStr: string): [string, string] {
   return [pathStr.substring(0, indexOfOpenSwitchSymbol), pathStr.substring(indexOfOpenSwitchSymbol)];
 }
 
+export function splitSwitchExpressions(expressions: string) {
+  const expressionsArr = [];
+  let isSingleQuoteLiteral = false;
+  let isDoubleQuoteLiteral = false;
+  let isInBrackets = false;
+  let currentExpression = '';
+  for (let c of expressions) {
+
+    if (c === SINGLE_QUOTE_LITERAL) {
+      isSingleQuoteLiteral = !isSingleQuoteLiteral;
+    } else if (c === DOUBLE_QUOTE_LITERAL) {
+      isDoubleQuoteLiteral = !isDoubleQuoteLiteral;
+    } else if (isSingleQuoteLiteral || isDoubleQuoteLiteral) {
+      currentExpression += c;
+      continue;
+    } else if (c === OPEN_SWITCH_EXPR_SYMBOL) {
+      if (!isInBrackets) {
+        currentExpression = '';
+        isInBrackets = true;
+      } else {
+        currentExpression += c;
+      }
+    } else if (c === CLOSE_SWITCH_EXPR_SYMBOL) {
+      expressionsArr.push(currentExpression);
+
+      if (isInBrackets) {
+        currentExpression = '';
+        isInBrackets = false;
+      } else {
+        throw Error(`Invalid Switch Expression "${expressions}".`);
+      }
+    } else {
+      if (isInBrackets) {
+        currentExpression += c;
+      } else {
+        throw Error(`Invalid Switch Expression "${expressions}".`)
+      }
+    }
+
+  }
+
+  return expressionsArr;
+}
+
 /**
  * Parse an string and return an array of PathItems
  * TODO: Add Expression Routes
- * @param {string} path to be parsed
+ * @param {string} pathStr to be parsed (route string)
+ * @returns {PathItem[]} pathItems objects from pathStr
  */
 export function parsePath(pathStr: string): PathItem[] {
   const output = [];
@@ -43,7 +89,7 @@ export function parsePath(pathStr: string): PathItem[] {
     return [];
   }
 
-  let [pathItemsPart, switchExpressionPart] = splitFromSwitchExpressions(path);
+  let [pathItemsPart, switchPathItemPart] = splitFromSwitchPathItem(path);
   let pathItemsStr = pathItemsPart.split(PATH_ITEM_DELIMITER);
 
   // check if any of the pathItem strings has whitespace or is empty string

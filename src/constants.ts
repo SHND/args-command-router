@@ -17,3 +17,13 @@ export const OPEN_SWITCH_EXPR_SYMBOL = '[';
  * Close symbol for switchRouter pathItem expressions.
  */
 export const CLOSE_SWITCH_EXPR_SYMBOL = ']';
+
+/**
+ * Symbol to wrap a literal values in Switch Expression
+ */
+export const SINGLE_QUOTE_LITERAL = `'`;
+
+/**
+ * Symbol to wrap a literal values in Switch Expression
+ */
+export const DOUBLE_QUOTE_LITERAL = `"`;
