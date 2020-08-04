@@ -10,6 +10,14 @@ export function objectKeys(obj: Object) {
 }
 
 /**
+ * Check if passed string has whitespaces like space, tab, ...
+ * @param str string to check
+ */
+export function hasWhiteSpace(str: string) {
+  return /\s/g.test(str);
+}
+
+/**
  * Split the path string to BlockPathItem part and SwitchPathItem part
  * @param pathStr route to be splitted
  * @returns {[string, string]} tuple with first pathItems without pathItemSwitch, second pathItemSwitch

@@ -1,9 +1,57 @@
 import { expect } from 'chai'
-import { parsePath, splitFromSwitchPathItem, splitSwitchExpressions } from '../src/utility';
+import { parsePath, splitFromSwitchPathItem, splitSwitchExpressions, hasWhiteSpace } from '../src/utility';
 import { StaticPathItem } from '../src/PathTree/StaticPathItem';
 import { DynamicPathItem } from '../src/PathTree/DynamicPathItem';
 
 describe('utility', () => {
+
+  it('hasWhiteSpace for ""', () => {
+    const str = "";
+
+    const output = hasWhiteSpace(str);
+
+    expect(output).to.be.false;
+  });
+
+  it('hasWhiteSpace for "a"', () => {
+    const str = "a";
+
+    const output = hasWhiteSpace(str);
+
+    expect(output).to.be.false;
+  });
+
+  it('hasWhiteSpace for "ab"', () => {
+    const str = "ab";
+
+    const output = hasWhiteSpace(str);
+
+    expect(output).to.be.false;
+  });
+
+  it('hasWhiteSpace for " "', () => {
+    const str = " ";
+
+    const output = hasWhiteSpace(str);
+
+    expect(output).to.be.true;
+  });
+
+  it('hasWhiteSpace for "<TAB>"', () => {
+    const str = "\t";
+
+    const output = hasWhiteSpace(str);
+
+    expect(output).to.be.true;
+  });
+
+  it('hasWhiteSpace for "<NEWLINE>"', () => {
+    const str = "\n";
+
+    const output = hasWhiteSpace(str);
+
+    expect(output).to.be.true;
+  });
 
   it('splitFromSwitchPathItem for ""', () => {
     const path = "";
@@ -95,7 +143,7 @@ describe('utility', () => {
     expect(strs).to.deep.equal([]);
   });
 
-  it('splitSwitchExpressions for " "', () => {
+  it('splitSwitchExpressions for " " throws Error', () => {
     const expressions = " ";
 
     expect(() => {
@@ -121,7 +169,7 @@ describe('utility', () => {
     expect(strs).to.deep.equal(['', '']);
   });
 
-  it('splitSwitchExpressions for "[] []"', () => {
+  it('splitSwitchExpressions for "[] []" throws Error', () => {
     const expressions = "[] []";
 
     expect(() => {
@@ -129,7 +177,7 @@ describe('utility', () => {
     }).throws();
   });
 
-  it('splitSwitchExpressions for "[abc]xx[def]"', () => {
+  it('splitSwitchExpressions for "[abc]xx[def]" throws Error', () => {
     const expressions = "[abc]xx[def]";
 
     expect(() => {
@@ -146,7 +194,7 @@ describe('utility', () => {
     expect(strs).to.deep.equal(['[']);
   });
 
-  it('splitSwitchExpressions for "[]]"', () => {
+  it('splitSwitchExpressions for "[]]" throws Error', () => {
     const expressions = "[]]";
 
     expect(() => {
@@ -154,7 +202,7 @@ describe('utility', () => {
     }).throws();
   });
 
-  it('splitSwitchExpressions for " [abc]"', () => {
+  it('splitSwitchExpressions for " [abc]" throws Error', () => {
     const expressions = " [abc]";
 
     expect(() => {
@@ -162,7 +210,7 @@ describe('utility', () => {
     }).throws();
   });
 
-  it('splitSwitchExpressions for "[abc] "', () => {
+  it('splitSwitchExpressions for "[abc] " throws Error', () => {
     const expressions = "[abc] ";
 
     expect(() => {
@@ -187,7 +235,7 @@ describe('utility', () => {
     expect(pathItems).have.lengthOf(0);
   });
 
-  it('parsePath for " " throws', () => {
+  it('parsePath for " " throws Error', () => {
     const path = " ";
 
     expect(() => {
@@ -195,7 +243,7 @@ describe('utility', () => {
     }).throws();
   });
 
-  it('parsePath for "/ " throws', () => {
+  it('parsePath for "/ " throws Error', () => {
     const path = "/ ";
 
     expect(() => {
@@ -203,7 +251,7 @@ describe('utility', () => {
     }).throws();
   });
 
-  it('parsePath for " /" throws', () => {
+  it('parsePath for " /" throws Error', () => {
     const path = " /";
 
     expect(() => {
@@ -211,7 +259,7 @@ describe('utility', () => {
     }).throws();
   });
 
-  it('parsePath for "//" throws', () => {
+  it('parsePath for "//" throws Error', () => {
     const path = "//";
 
     expect(() => {
@@ -227,7 +275,7 @@ describe('utility', () => {
     expect(pathItems).have.lengthOf(0);
   });
 
-  it('parsePath for "item1/" throws', () => {
+  it('parsePath for "item1/" throws Error', () => {
     const path = "item1/";
 
     expect(() => {
@@ -235,7 +283,7 @@ describe('utility', () => {
     }).throws();
   });
 
-  it('parsePath for "/item1/" throws', () => {
+  it('parsePath for "/item1/" throws Error', () => {
     const path = "/item1/";
 
     expect(() => {
