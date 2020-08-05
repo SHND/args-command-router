@@ -166,4 +166,143 @@ describe('SwitchExpression', () => {
     });
   });
 
+
+  it('getSwitchId() for ""', () => {
+    const switchString = '';
+
+    const switchExpr = new SwitchExpression(switchString);
+
+    expect(switchExpr.getSwitchId()).equals('');
+  });
+
+  it('getSwitchId() for "="', () => {
+    const switchString = '=';
+
+    const switchExpr = new SwitchExpression(switchString);
+
+    expect(switchExpr.getSwitchId()).equals('');
+  });
+
+  it('getSwitchId() for "=12"', () => {
+    const switchString = '=12';
+
+    const switchExpr = new SwitchExpression(switchString);
+
+    expect(switchExpr.getSwitchId()).equals('');
+  });
+
+  it('getSwitchId() for "ab="', () => {
+    const switchString = 'ab=';
+
+    const switchExpr = new SwitchExpression(switchString);
+
+    expect(switchExpr.getSwitchId()).equals('ab');
+  });
+
+  it('getSwitchId() for "ab"', () => {
+    const switchString = 'ab';
+
+    const switchExpr = new SwitchExpression(switchString);
+
+    expect(switchExpr.getSwitchId()).equals('ab');
+  });
+
+
+  it('getSwitchValue() for ""', () => {
+    const switchString = '';
+
+    const switchExpr = new SwitchExpression(switchString);
+
+    expect(switchExpr.getSwitchValue()).equals(null);
+  });
+
+  it('getSwitchValue() for "="', () => {
+    const switchString = '=';
+
+    const switchExpr = new SwitchExpression(switchString);
+
+    expect(switchExpr.getSwitchValue()).equals('');
+  });
+
+  it('getSwitchValue() for "=12"', () => {
+    const switchString = '=12';
+
+    const switchExpr = new SwitchExpression(switchString);
+
+    expect(switchExpr.getSwitchValue()).equals('12');
+  });
+
+  it('getSwitchValue() for "ab="', () => {
+    const switchString = 'ab=';
+
+    const switchExpr = new SwitchExpression(switchString);
+
+    expect(switchExpr.getSwitchValue()).equals('');
+  });
+
+  it('getSwitchValue() for "ab"', () => {
+    const switchString = 'ab';
+
+    const switchExpr = new SwitchExpression(switchString);
+
+    expect(switchExpr.getSwitchValue()).equals(null);
+  });
+
+  it('getSwitchValue() for "ab=12"', () => {
+    const switchString = 'ab=12';
+
+    const switchExpr = new SwitchExpression(switchString);
+
+    expect(switchExpr.getSwitchValue()).equals('12');
+  });
+
+
+  it('isValuedSwitch() for ""', () => {
+    const switchString = '';
+
+    const switchExpr = new SwitchExpression(switchString);
+
+    expect(switchExpr.isValuedSwitch()).to.be.false;
+  });
+
+  it('isValuedSwitch() for "="', () => {
+    const switchString = '=';
+
+    const switchExpr = new SwitchExpression(switchString);
+
+    expect(switchExpr.isValuedSwitch()).to.be.true;
+  });
+
+  it('isValuedSwitch() for "=12"', () => {
+    const switchString = '=12';
+
+    const switchExpr = new SwitchExpression(switchString);
+
+    expect(switchExpr.isValuedSwitch()).to.be.true;;
+  });
+
+  it('isValuedSwitch() for "ab="', () => {
+    const switchString = 'ab=';
+
+    const switchExpr = new SwitchExpression(switchString);
+
+    expect(switchExpr.isValuedSwitch()).to.be.true;
+  });
+
+  it('isValuedSwitch() for "ab"', () => {
+    const switchString = 'ab';
+
+    const switchExpr = new SwitchExpression(switchString);
+
+    expect(switchExpr.isValuedSwitch()).to.be.false;;
+  });
+
+  it('isValuedSwitch() for "ab=12"', () => {
+    const switchString = 'ab=12';
+
+    const switchExpr = new SwitchExpression(switchString);
+
+    expect(switchExpr.isValuedSwitch()).to.be.true;;
+  });
+
 });

@@ -3,10 +3,60 @@ import { hasWhiteSpace } from "../utility";
 
 export class SwitchExpression {
   
-  constructor(expressionsStr: string) {
+  /**
+   * Switch Identifier e.g. "ab" in "ab" or "ab=12"
+   */
+  private _switchId: string;
 
+  /**
+   * Switch Value e.g. "12" in ab=12"
+   * Null for Switch Value means value does is not specified e.g. "ab".
+   */
+  private _switchValue?: string;
+
+  /**
+   * @param expressionsStr SwitchExpression string to be parsed
+   */
+  constructor(expressionsStr: string) {
+    const {
+      variable,
+      value
+    } = SwitchExpression.parse(expressionsStr);
+
+    this._switchId = variable;
+    this._switchValue = value;
   }
 
+  /**
+   * Getter for Switch Identifier e.g. "ab" in "ab" or "ab=1"
+   * If the expressionsStr is empty or starts with equal, Switch Id will be empty e.g. "" or "=1"
+   * @returns {string}
+   */
+  getSwitchId = () => {
+    return this._switchId;
+  }
+
+  /**
+   * Getter for SwitchValue.
+   * if value is not specified in the SwitchExpression returns null.
+   * @returns {string | null} 
+   */
+  getSwitchValue = () => {
+    return this._switchValue;
+  }
+
+  /**
+   * Check if the SwitchExpression contains value
+   * @returns {boolean} true if value specified in the SwitchExpression
+   */
+  isValuedSwitch = () => {
+    return this._switchValue !== null;
+  }
+
+  /**
+   * Parse SwitchExpression strings like "ab" or "ab=1"
+   * @param expressionsStr to be parsed 
+   */
   static parse(expressionsStr: string) {
     const output: {
       variable: string,
