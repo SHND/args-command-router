@@ -60,7 +60,7 @@ describe('BlockPathItem', () => {
 
     expect(blockPathItem.getSwitchPathItems()).to.lengthOf(0);
 
-    const switchPathItem = new SwitchPathItem(null);
+    const switchPathItem = new SwitchPathItem('', null);
     blockPathItem.addSwitchPathItem(switchPathItem);
     expect(blockPathItem.getSwitchPathItems()).to.lengthOf(1);
 

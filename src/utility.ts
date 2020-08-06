@@ -33,7 +33,8 @@ export function splitFromSwitchPathItem(pathStr: string): [string, string] {
   return [pathStr.substring(0, indexOfOpenSwitchSymbol), pathStr.substring(indexOfOpenSwitchSymbol)];
 }
 
-export function splitSwitchExpressions(expressions: string) {
+export function splitSwitchExpressions(switchExpressions: string) {
+  const expressions = switchExpressions.trim();
   const expressionsArr = [];
   let isSingleQuoteLiteral = false;
   let isDoubleQuoteLiteral = false;
@@ -68,7 +69,9 @@ export function splitSwitchExpressions(expressions: string) {
       if (isInBrackets) {
         currentExpression += c;
       } else {
-        throw Error(`Invalid Switch Expression "${expressions}".`)
+        if (!hasWhiteSpace(c)) {
+          throw Error(`Invalid Switch Expression "${expressions}".`)
+        }
       }
     }
 

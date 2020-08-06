@@ -143,12 +143,13 @@ describe('utility', () => {
     expect(strs).to.deep.equal([]);
   });
 
-  it('splitSwitchExpressions for " " throws Error', () => {
+  it('splitSwitchExpressions for " "', () => {
     const expressions = " ";
 
-    expect(() => {
-      splitSwitchExpressions(expressions);
-    }).throws();
+    const strs = splitSwitchExpressions(expressions);
+
+    expect(strs.length).to.equal(0);
+    expect(strs).to.deep.equal([]);
   });
 
   it('splitSwitchExpressions for "[]"', () => {
@@ -169,12 +170,22 @@ describe('utility', () => {
     expect(strs).to.deep.equal(['', '']);
   });
 
-  it('splitSwitchExpressions for "[] []" throws Error', () => {
+  it('splitSwitchExpressions for "[] []"', () => {
     const expressions = "[] []";
 
-    expect(() => {
-      splitSwitchExpressions(expressions);
-    }).throws();
+    const strs = splitSwitchExpressions(expressions);
+
+    expect(strs.length).to.equal(2);
+    expect(strs).to.deep.equal(['', '']);
+  });
+
+  it('splitSwitchExpressions for "[abc] <TAB><NEWLINE>[def]"', () => {
+    const expressions = "[abc] \t\n[def]";
+
+    const strs = splitSwitchExpressions(expressions);
+
+    expect(strs.length).to.equal(2);
+    expect(strs).to.deep.equal(['abc', 'def']);
   });
 
   it('splitSwitchExpressions for "[abc]xx[def]" throws Error', () => {
@@ -202,20 +213,22 @@ describe('utility', () => {
     }).throws();
   });
 
-  it('splitSwitchExpressions for " [abc]" throws Error', () => {
+  it('splitSwitchExpressions for " [abc]"', () => {
     const expressions = " [abc]";
 
-    expect(() => {
-      splitSwitchExpressions(expressions);
-    }).throws();
+    const strs = splitSwitchExpressions(expressions);
+
+    expect(strs.length).to.equal(1);
+    expect(strs).to.deep.equal(['abc']);
   });
 
-  it('splitSwitchExpressions for "[abc] " throws Error', () => {
+  it('splitSwitchExpressions for "[abc] "', () => {
     const expressions = "[abc] ";
 
-    expect(() => {
-      splitSwitchExpressions(expressions);
-    }).throws();
+    const strs = splitSwitchExpressions(expressions);
+
+    expect(strs.length).to.equal(1);
+    expect(strs).to.deep.equal(['abc']);
   });
 
   it('splitSwitchExpressions for "[abc]"', () => {
