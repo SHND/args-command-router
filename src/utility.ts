@@ -4,6 +4,7 @@ import { DynamicPathItem } from "./PathTree/DynamicPathItem";
 import { StaticPathItem } from "./PathTree/StaticPathItem";
 import { BlockPathItem } from "./PathTree/BlockPathItem";
 import { PathItem } from "./PathTree/PathItem";
+import { SwitchPathItem } from "./PathTree/SwitchPathItem";
 
 export function objectKeys(obj: Object) {
   return Object.keys(obj);
@@ -15,6 +16,30 @@ export function objectKeys(obj: Object) {
  */
 export function hasWhiteSpace(str: string) {
   return /\s/g.test(str);
+}
+
+/**
+ * Check if any of the characters specified exist in the string
+ * @param str to check
+ * @param chars Array of characters to check
+ */
+export function hasAnyOfChars(str: string, chars: string[]) {
+  let hashTable: Record<string, boolean> = chars.reduce((table: Record<string, boolean>, c: string) => {
+    if (c.length !== 1) {
+      throw Error('hasAnyOfChars only accepts array of strings of length 1 (Characters).')
+    }
+
+    table[c] = true;
+    return table;
+  }, {})
+
+  for (let c of str) {
+    if (hashTable[c]) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -88,54 +113,59 @@ export function splitSwitchExpressions(switchExpressions: string) {
  */
 export function parsePath(pathStr: string): PathItem[] {
   const output = [];
-  let path = pathStr;
+  let path = pathStr.trim();
 
   // if path starts with '/' remove it
   if (path.startsWith(PATH_ITEM_DELIMITER)) {
     path = path.substring(1);
   }
 
-  // if after removing the first '/' we get empty string we want the root PathItem
-  if (path === '') {
-    return [];
-  }
-
   let [pathItemsPart, switchPathItemPart] = splitFromSwitchPathItem(path);
   let pathItemsStr = pathItemsPart.split(PATH_ITEM_DELIMITER);
-
-  // check if any of the pathItem strings has whitespace or is empty string
-  const hasWhiteSpace = pathItemsStr.reduce((hasWhiteSpace, pathItem) => hasWhiteSpace || (/\s|^$/).test(pathItem), false);
-  if (hasWhiteSpace) {
-    throw Error(`The path "${pathStr}" contains whitespace.`);
-  }
 
   const newRoot: BlockPathItem = new RootPathItem();
   let parent = newRoot;
 
-  // iterate over all pathItems before switchExpression
-  for (let i=0; i<pathItemsStr.length; i++) {
-    const pathItemStr = pathItemsStr[i];
-    let pathItem;
+  if (
+    (pathItemsStr.length > 1) || 
+    (pathItemsStr.length === 1 && pathItemsStr[0].trim() !== '')) 
+  {
 
-    // Dynamic PathItem
-    if (pathItemStr.startsWith(DYNAMIC_PATH_PREFIX)) {
-      pathItem = new DynamicPathItem(pathItemStr.substring(DYNAMIC_PATH_PREFIX.length), parent);
-      parent.setDynamicPathItem(pathItem);
-    } 
-    // Static PathItem
-    else {
-      pathItem = new StaticPathItem(pathItemStr, parent);
-      parent.addStaticPathItem(pathItem);
+    // iterate over all pathItems before switchExpression
+    for (let i=0; i<pathItemsStr.length; i++) {
+      const pathItemStr = pathItemsStr[i].trim();
+
+      if (pathItemStr === '' || hasWhiteSpace(pathItemStr)) {
+        throw Error(`The path "${pathStr}" contains whitespace in pathItem(${pathItemsStr[i]}).`);
+      }
+
+      let pathItem;
+
+      // Dynamic PathItem
+      if (pathItemStr.startsWith(DYNAMIC_PATH_PREFIX)) {
+        pathItem = new DynamicPathItem(pathItemStr.substring(DYNAMIC_PATH_PREFIX.length), parent);
+        parent.setDynamicPathItem(pathItem);
+      } 
+      // Static PathItem
+      else {
+        pathItem = new StaticPathItem(pathItemStr, parent);
+        parent.addStaticPathItem(pathItem);
+      }
+
+      // Add to output
+      output.push(pathItem);
+
+      // parent is the created pathItem
+      parent = pathItem;
     }
 
-    // Add to output
-    output.push(pathItem);
-
-    // parent is the created pathItem
-    parent = pathItem;
   }
 
-  //TODO: now that pathItems before switchExpression is parse it's time for switchExpreesion
+  // now that pathItems before switchExpression is parse it's time for switchExpreesion
+  if (switchPathItemPart.trim() !== '') {
+    const switchPathItem = new SwitchPathItem(switchPathItemPart, parent);
+    output.push(switchPathItem);
+  }
 
   return output;
 }

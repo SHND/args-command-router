@@ -103,8 +103,8 @@ describe('SwitchPathItem', () => {
     expect(expressions[1].getSwitchValue()).equals('1');
   });
 
-  it('parse for " [ a ] [ b = 1 ] "', () => {
-    const switchExprString = ' [ a ] [ b = 1 ] ';
+  it('parse for "<TAB><NEWLINE> [<TAB><NEWLINE> a<TAB><NEWLINE> ]<TAB><NEWLINE> [<TAB><NEWLINE> b<TAB><NEWLINE> =<TAB><NEWLINE> 1<TAB><NEWLINE> ]<TAB><NEWLINE> "', () => {
+    const switchExprString = '\t\n [\t\n a\t\n ]\t\n [\t\n b\t\n =\t\n 1\t\n ]\t\n ';
 
     const switchPathItem = new SwitchPathItem(switchExprString, null);
 

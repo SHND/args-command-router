@@ -1,5 +1,5 @@
-import { EQUAL_SWITCH_EXPR_SYMBOL, SINGLE_QUOTE_LITERAL, DOUBLE_QUOTE_LITERAL } from "../constants";
-import { hasWhiteSpace } from "../utility";
+import { hasWhiteSpace, hasAnyOfChars } from "../utility";
+import { EQUAL_SWITCH_EXPR_SYMBOL, SINGLE_QUOTE_LITERAL, DOUBLE_QUOTE_LITERAL, OPEN_SWITCH_EXPR_SYMBOL, CLOSE_SWITCH_EXPR_SYMBOL } from "../constants";
 
 export class SwitchExpression {
   
@@ -51,6 +51,34 @@ export class SwitchExpression {
    */
   isValuedSwitch = () => {
     return this._switchValue !== null;
+  }
+  
+  /**
+   * Convert to string
+   * @return {string} string representation of the SwitchExpression
+   */
+  toString = () => {
+    let output = this.getSwitchId();
+
+    if (this.isValuedSwitch()) {
+      const value = this.getSwitchValue();
+
+      const whiteSpaceExist = hasWhiteSpace(value);
+      const specialCharExist = hasAnyOfChars(value, [OPEN_SWITCH_EXPR_SYMBOL, CLOSE_SWITCH_EXPR_SYMBOL, EQUAL_SWITCH_EXPR_SYMBOL, SINGLE_QUOTE_LITERAL, DOUBLE_QUOTE_LITERAL]);
+      const singleQuoteExist = hasAnyOfChars(value, [SINGLE_QUOTE_LITERAL])
+
+      if (whiteSpaceExist || specialCharExist) {
+        if (singleQuoteExist) {
+          output += `${EQUAL_SWITCH_EXPR_SYMBOL}${DOUBLE_QUOTE_LITERAL}${value}${DOUBLE_QUOTE_LITERAL}`;
+        } else {
+          output += `${EQUAL_SWITCH_EXPR_SYMBOL}${SINGLE_QUOTE_LITERAL}${value}${SINGLE_QUOTE_LITERAL}`;
+        }
+      } else {
+        output += `${EQUAL_SWITCH_EXPR_SYMBOL}${value}`;
+      }
+    }
+
+    return output;
   }
 
   /**

@@ -4,305 +4,376 @@ import { SwitchExpression } from '../../src/PathTree/SwitchExpression';
 
 describe('SwitchExpression', () => {
 
-  it('parse for ""', () => {
-    const switchString = '';
-
-    const parsed = SwitchExpression.parse(switchString);
-
-    expect(parsed).deep.equal({
-      variable: '',
-      value: null
+  describe('getSwitchId()', () => {
+    it('getSwitchId() for ""', () => {
+      const switchString = '';
+  
+      const switchExpr = new SwitchExpression(switchString);
+  
+      expect(switchExpr.getSwitchId()).equals('');
+    });
+  
+    it('getSwitchId() for "="', () => {
+      const switchString = '=';
+  
+      const switchExpr = new SwitchExpression(switchString);
+  
+      expect(switchExpr.getSwitchId()).equals('');
+    });
+  
+    it('getSwitchId() for "=12"', () => {
+      const switchString = '=12';
+  
+      const switchExpr = new SwitchExpression(switchString);
+  
+      expect(switchExpr.getSwitchId()).equals('');
+    });
+  
+    it('getSwitchId() for "ab="', () => {
+      const switchString = 'ab=';
+  
+      const switchExpr = new SwitchExpression(switchString);
+  
+      expect(switchExpr.getSwitchId()).equals('ab');
+    });
+  
+    it('getSwitchId() for "ab"', () => {
+      const switchString = 'ab';
+  
+      const switchExpr = new SwitchExpression(switchString);
+  
+      expect(switchExpr.getSwitchId()).equals('ab');
     });
   });
 
-  it('parse for "a"', () => {
-    const switchString = 'a';
+  describe('getSwitchValue()', () => {
 
-    const parsed = SwitchExpression.parse(switchString);
-
-    expect(parsed).deep.equal({
-      variable: 'a',
-      value: null
+    it('getSwitchValue() for ""', () => {
+      const switchString = '';
+  
+      const switchExpr = new SwitchExpression(switchString);
+  
+      expect(switchExpr.getSwitchValue()).equals(null);
     });
-  });
-
-  it('parse for "ab"', () => {
-    const switchString = 'ab';
-
-    const parsed = SwitchExpression.parse(switchString);
-
-    expect(parsed).deep.equal({
-      variable: 'ab',
-      value: null
+  
+    it('getSwitchValue() for "="', () => {
+      const switchString = '=';
+  
+      const switchExpr = new SwitchExpression(switchString);
+  
+      expect(switchExpr.getSwitchValue()).equals('');
     });
-  });
-
-  it('parse for " a "', () => {
-    const switchString = ' a ';
-
-    const parsed = SwitchExpression.parse(switchString);
-
-    expect(parsed).deep.equal({
-      variable: 'a',
-      value: null
+  
+    it('getSwitchValue() for "=12"', () => {
+      const switchString = '=12';
+  
+      const switchExpr = new SwitchExpression(switchString);
+  
+      expect(switchExpr.getSwitchValue()).equals('12');
     });
-  });
-
-  it('parse for "a a" throws Error', () => {
-    const switchString = 'a a';
-
-    expect(() => {
-      SwitchExpression.parse(switchString);
-    }).throws();
-  });
-
-  it('parse for "ab="', () => {
-    const switchString = 'ab=';
-
-    const parsed = SwitchExpression.parse(switchString);
-
-    expect(parsed).deep.equal({
-      variable: 'ab',
-      value: ''
+  
+    it('getSwitchValue() for "ab="', () => {
+      const switchString = 'ab=';
+  
+      const switchExpr = new SwitchExpression(switchString);
+  
+      expect(switchExpr.getSwitchValue()).equals('');
     });
-  });
-
-  it('parse for "ab=="', () => {
-    const switchString = 'ab==';
-
-    const parsed = SwitchExpression.parse(switchString);
-
-    expect(parsed).deep.equal({
-      variable: 'ab',
-      value: '='
+  
+    it('getSwitchValue() for "ab"', () => {
+      const switchString = 'ab';
+  
+      const switchExpr = new SwitchExpression(switchString);
+  
+      expect(switchExpr.getSwitchValue()).equals(null);
     });
-  });
-
-  it('parse for "ab=1"', () => {
-    const switchString = 'ab=1';
-
-    const parsed = SwitchExpression.parse(switchString);
-
-    expect(parsed).deep.equal({
-      variable: 'ab',
-      value: '1'
+  
+    it('getSwitchValue() for "ab=12"', () => {
+      const switchString = 'ab=12';
+  
+      const switchExpr = new SwitchExpression(switchString);
+  
+      expect(switchExpr.getSwitchValue()).equals('12');
     });
+
   });
 
-  it('parse for "ab=12"', () => {
-    const switchString = 'ab=12';
+  describe('isValuedSwitch()', () => {
 
-    const parsed = SwitchExpression.parse(switchString);
-
-    expect(parsed).deep.equal({
-      variable: 'ab',
-      value: '12'
+    it('isValuedSwitch() for ""', () => {
+      const switchString = '';
+  
+      const switchExpr = new SwitchExpression(switchString);
+  
+      expect(switchExpr.isValuedSwitch()).to.be.false;
     });
-  });
-
-  it('parse for " ab = 12 "', () => {
-    const switchString = ' ab = 12 ';
-
-    const parsed = SwitchExpression.parse(switchString);
-
-    expect(parsed).deep.equal({
-      variable: 'ab',
-      value: '12'
+  
+    it('isValuedSwitch() for "="', () => {
+      const switchString = '=';
+  
+      const switchExpr = new SwitchExpression(switchString);
+  
+      expect(switchExpr.isValuedSwitch()).to.be.true;
     });
-  });
-
-  it('parse for "ab=1 2"', () => {
-    const switchString = 'ab=1 2';
-
-    const parsed = SwitchExpression.parse(switchString);
-
-    expect(parsed).deep.equal({
-      variable: 'ab',
-      value: '1 2'
+  
+    it('isValuedSwitch() for "=12"', () => {
+      const switchString = '=12';
+  
+      const switchExpr = new SwitchExpression(switchString);
+  
+      expect(switchExpr.isValuedSwitch()).to.be.true;;
     });
-  });
-
-  it('parse for "ab="12""', () => {
-    const switchString = 'ab="12"';
-
-    const parsed = SwitchExpression.parse(switchString);
-
-    expect(parsed).deep.equal({
-      variable: 'ab',
-      value: '12'
+  
+    it('isValuedSwitch() for "ab="', () => {
+      const switchString = 'ab=';
+  
+      const switchExpr = new SwitchExpression(switchString);
+  
+      expect(switchExpr.isValuedSwitch()).to.be.true;
     });
-  });
-
-  it(`parse for \`ab="'1'2[3]4=5/6\\"\``, () => {
-    const switchString = `ab="'1'2[3]4=5/6\\"`;
-
-    const parsed = SwitchExpression.parse(switchString);
-
-    expect(parsed).deep.equal({
-      variable: 'ab',
-      value: `'1'2[3]4=5/6\\`
+  
+    it('isValuedSwitch() for "ab"', () => {
+      const switchString = 'ab';
+  
+      const switchExpr = new SwitchExpression(switchString);
+  
+      expect(switchExpr.isValuedSwitch()).to.be.false;;
     });
-  });
-
-  it(`parse for "ab='12'"`, () => {
-    const switchString = `ab='12'`;
-
-    const parsed = SwitchExpression.parse(switchString);
-
-    expect(parsed).deep.equal({
-      variable: 'ab',
-      value: '12'
+  
+    it('isValuedSwitch() for "ab=12"', () => {
+      const switchString = 'ab=12';
+  
+      const switchExpr = new SwitchExpression(switchString);
+  
+      expect(switchExpr.isValuedSwitch()).to.be.true;;
     });
+
   });
 
-  it(`parse for "ab='"1"2[3]4=5/6\\'"`, () => {
-    const switchString = `ab='"1"2[3]4=5/6\\'`;
+  describe('toString()', () => {
 
-    const parsed = SwitchExpression.parse(switchString);
+    it('toString() for "a"', () => {
+      const switchString = 'a';
 
-    expect(parsed).deep.equal({
-      variable: 'ab',
-      value: `"1"2[3]4=5/6\\`
+      const switchExpr = new SwitchExpression(switchString);
+
+      expect(switchExpr.toString()).equal('a');
     });
-  });
 
+    it('toString() for "ab"', () => {
+      const switchString = 'ab';
 
-  it('getSwitchId() for ""', () => {
-    const switchString = '';
+      const switchExpr = new SwitchExpression(switchString);
 
-    const switchExpr = new SwitchExpression(switchString);
+      expect(switchExpr.toString()).equal('ab');
+    });
 
-    expect(switchExpr.getSwitchId()).equals('');
-  });
+    it('toString() for "a b" throws Error', () => {
+      const switchString = 'a b';
 
-  it('getSwitchId() for "="', () => {
-    const switchString = '=';
+      expect(() => {
+        new SwitchExpression(switchString);
+      }).throws();
+    });
 
-    const switchExpr = new SwitchExpression(switchString);
+    it('toString() for "a=1"', () => {
+      const switchString = 'a=1';
 
-    expect(switchExpr.getSwitchId()).equals('');
-  });
+      const switchExpr = new SwitchExpression(switchString);
 
-  it('getSwitchId() for "=12"', () => {
-    const switchString = '=12';
+      expect(switchExpr.toString()).equal('a=1');
+    });
 
-    const switchExpr = new SwitchExpression(switchString);
+    it(`toString() for "a='1'"`, () => {
+      const switchString = `a='1'`;
 
-    expect(switchExpr.getSwitchId()).equals('');
-  });
+      const switchExpr = new SwitchExpression(switchString);
 
-  it('getSwitchId() for "ab="', () => {
-    const switchString = 'ab=';
+      expect(switchExpr.toString()).equal('a=1');
+    });
 
-    const switchExpr = new SwitchExpression(switchString);
+    it(`toString() for 'a="1"'`, () => {
+      const switchString = `a="1"`;
 
-    expect(switchExpr.getSwitchId()).equals('ab');
-  });
+      const switchExpr = new SwitchExpression(switchString);
 
-  it('getSwitchId() for "ab"', () => {
-    const switchString = 'ab';
+      expect(switchExpr.toString()).equal('a=1');
+    });
 
-    const switchExpr = new SwitchExpression(switchString);
+    it('toString() for "a=1 2"', () => {
+      const switchString = 'a=1 2';
 
-    expect(switchExpr.getSwitchId()).equals('ab');
-  });
+      const switchExpr = new SwitchExpression(switchString);
 
+      expect(switchExpr.toString()).equal(`a='1 2'`);
+    });
 
-  it('getSwitchValue() for ""', () => {
-    const switchString = '';
+  })
 
-    const switchExpr = new SwitchExpression(switchString);
+  describe('parse()', () => {
 
-    expect(switchExpr.getSwitchValue()).equals(null);
-  });
+    it('parse() for ""', () => {
+      const switchString = '';
+  
+      const parsed = SwitchExpression.parse(switchString);
+  
+      expect(parsed).deep.equal({
+        variable: '',
+        value: null
+      });
+    });
+  
+    it('parse() for "a"', () => {
+      const switchString = 'a';
+  
+      const parsed = SwitchExpression.parse(switchString);
+  
+      expect(parsed).deep.equal({
+        variable: 'a',
+        value: null
+      });
+    });
+  
+    it('parse() for "ab"', () => {
+      const switchString = 'ab';
+  
+      const parsed = SwitchExpression.parse(switchString);
+  
+      expect(parsed).deep.equal({
+        variable: 'ab',
+        value: null
+      });
+    });
+  
+    it('parse() for " a "', () => {
+      const switchString = ' a ';
+  
+      const parsed = SwitchExpression.parse(switchString);
+  
+      expect(parsed).deep.equal({
+        variable: 'a',
+        value: null
+      });
+    });
+  
+    it('parse() for "a a" throws Error', () => {
+      const switchString = 'a a';
+  
+      expect(() => {
+        SwitchExpression.parse(switchString);
+      }).throws();
+    });
+  
+    it('parse() for "ab="', () => {
+      const switchString = 'ab=';
+  
+      const parsed = SwitchExpression.parse(switchString);
+  
+      expect(parsed).deep.equal({
+        variable: 'ab',
+        value: ''
+      });
+    });
+  
+    it('parse() for "ab=="', () => {
+      const switchString = 'ab==';
+  
+      const parsed = SwitchExpression.parse(switchString);
+  
+      expect(parsed).deep.equal({
+        variable: 'ab',
+        value: '='
+      });
+    });
+  
+    it('parse() for "ab=1"', () => {
+      const switchString = 'ab=1';
+  
+      const parsed = SwitchExpression.parse(switchString);
+  
+      expect(parsed).deep.equal({
+        variable: 'ab',
+        value: '1'
+      });
+    });
+  
+    it('parse() for "ab=12"', () => {
+      const switchString = 'ab=12';
+  
+      const parsed = SwitchExpression.parse(switchString);
+  
+      expect(parsed).deep.equal({
+        variable: 'ab',
+        value: '12'
+      });
+    });
+  
+    it('parse() for " ab = 12 "', () => {
+      const switchString = ' ab = 12 ';
+  
+      const parsed = SwitchExpression.parse(switchString);
+  
+      expect(parsed).deep.equal({
+        variable: 'ab',
+        value: '12'
+      });
+    });
+  
+    it('parse() for "ab=1 2"', () => {
+      const switchString = 'ab=1 2';
+  
+      const parsed = SwitchExpression.parse(switchString);
+  
+      expect(parsed).deep.equal({
+        variable: 'ab',
+        value: '1 2'
+      });
+    });
+  
+    it('parse() for "ab="12""', () => {
+      const switchString = 'ab="12"';
+  
+      const parsed = SwitchExpression.parse(switchString);
+  
+      expect(parsed).deep.equal({
+        variable: 'ab',
+        value: '12'
+      });
+    });
+  
+    it(`parse() for \`ab="'1'2[3]4=5/6\\"\``, () => {
+      const switchString = `ab="'1'2[3]4=5/6\\"`;
+  
+      const parsed = SwitchExpression.parse(switchString);
+  
+      expect(parsed).deep.equal({
+        variable: 'ab',
+        value: `'1'2[3]4=5/6\\`
+      });
+    });
+  
+    it(`parse() for "ab='12'"`, () => {
+      const switchString = `ab='12'`;
+  
+      const parsed = SwitchExpression.parse(switchString);
+  
+      expect(parsed).deep.equal({
+        variable: 'ab',
+        value: '12'
+      });
+    });
+  
+    it(`parse() for "ab='"1"2[3]4=5/6\\'"`, () => {
+      const switchString = `ab='"1"2[3]4=5/6\\'`;
+  
+      const parsed = SwitchExpression.parse(switchString);
+  
+      expect(parsed).deep.equal({
+        variable: 'ab',
+        value: `"1"2[3]4=5/6\\`
+      });
+    });
 
-  it('getSwitchValue() for "="', () => {
-    const switchString = '=';
-
-    const switchExpr = new SwitchExpression(switchString);
-
-    expect(switchExpr.getSwitchValue()).equals('');
-  });
-
-  it('getSwitchValue() for "=12"', () => {
-    const switchString = '=12';
-
-    const switchExpr = new SwitchExpression(switchString);
-
-    expect(switchExpr.getSwitchValue()).equals('12');
-  });
-
-  it('getSwitchValue() for "ab="', () => {
-    const switchString = 'ab=';
-
-    const switchExpr = new SwitchExpression(switchString);
-
-    expect(switchExpr.getSwitchValue()).equals('');
-  });
-
-  it('getSwitchValue() for "ab"', () => {
-    const switchString = 'ab';
-
-    const switchExpr = new SwitchExpression(switchString);
-
-    expect(switchExpr.getSwitchValue()).equals(null);
-  });
-
-  it('getSwitchValue() for "ab=12"', () => {
-    const switchString = 'ab=12';
-
-    const switchExpr = new SwitchExpression(switchString);
-
-    expect(switchExpr.getSwitchValue()).equals('12');
-  });
-
-
-  it('isValuedSwitch() for ""', () => {
-    const switchString = '';
-
-    const switchExpr = new SwitchExpression(switchString);
-
-    expect(switchExpr.isValuedSwitch()).to.be.false;
-  });
-
-  it('isValuedSwitch() for "="', () => {
-    const switchString = '=';
-
-    const switchExpr = new SwitchExpression(switchString);
-
-    expect(switchExpr.isValuedSwitch()).to.be.true;
-  });
-
-  it('isValuedSwitch() for "=12"', () => {
-    const switchString = '=12';
-
-    const switchExpr = new SwitchExpression(switchString);
-
-    expect(switchExpr.isValuedSwitch()).to.be.true;;
-  });
-
-  it('isValuedSwitch() for "ab="', () => {
-    const switchString = 'ab=';
-
-    const switchExpr = new SwitchExpression(switchString);
-
-    expect(switchExpr.isValuedSwitch()).to.be.true;
-  });
-
-  it('isValuedSwitch() for "ab"', () => {
-    const switchString = 'ab';
-
-    const switchExpr = new SwitchExpression(switchString);
-
-    expect(switchExpr.isValuedSwitch()).to.be.false;;
-  });
-
-  it('isValuedSwitch() for "ab=12"', () => {
-    const switchString = 'ab=12';
-
-    const switchExpr = new SwitchExpression(switchString);
-
-    expect(switchExpr.isValuedSwitch()).to.be.true;;
   });
 
 });

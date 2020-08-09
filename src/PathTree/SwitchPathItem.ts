@@ -1,6 +1,7 @@
 import { PathItem } from "./PathItem";
 import { SwitchExpression } from "./SwitchExpression";
 import { splitSwitchExpressions } from "../utility";
+import { OPEN_SWITCH_EXPR_SYMBOL, CLOSE_SWITCH_EXPR_SYMBOL } from "../constants";
 
 export class SwitchPathItem extends PathItem {
   
@@ -21,11 +22,10 @@ export class SwitchPathItem extends PathItem {
   
   /**
    * returns a unique name for this level
-   * e.g. TODO
    * @param shortForm 
    */
   public getUniqueName = (shortForm: boolean = false) => {
-    return "TODO";
+    return this.switchExpressions.reduce((str, switchExpr) => `${str}${OPEN_SWITCH_EXPR_SYMBOL}${switchExpr.toString()}${CLOSE_SWITCH_EXPR_SYMBOL}`, '');
   };
 
   /**
