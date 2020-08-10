@@ -208,6 +208,22 @@ describe('SwitchExpression', () => {
       expect(switchExpr.toString()).equal(`a='1 2'`);
     });
 
+    it(`toString() for "a='"'"`, () => {
+      const switchString = `a='"'`;
+
+      const switchExpr = new SwitchExpression(switchString);
+
+      expect(switchExpr.toString()).equal(`a='"'`);
+    });
+
+    it(`toString() for "a="'""`, () => {
+      const switchString = `a="'"`;
+
+      const switchExpr = new SwitchExpression(switchString);
+
+      expect(switchExpr.toString()).equal(`a="'"`);
+    });
+
   })
 
   describe('parse()', () => {

@@ -67,10 +67,12 @@ export function splitSwitchExpressions(switchExpressions: string) {
   let currentExpression = '';
   for (let c of expressions) {
 
-    if (c === SINGLE_QUOTE_LITERAL) {
+    if (c === SINGLE_QUOTE_LITERAL && !isDoubleQuoteLiteral) {
       isSingleQuoteLiteral = !isSingleQuoteLiteral;
-    } else if (c === DOUBLE_QUOTE_LITERAL) {
+      currentExpression += c;
+    } else if (c === DOUBLE_QUOTE_LITERAL && !isSingleQuoteLiteral) {
       isDoubleQuoteLiteral = !isDoubleQuoteLiteral;
+      currentExpression += c;
     } else if (isSingleQuoteLiteral || isDoubleQuoteLiteral) {
       currentExpression += c;
       continue;

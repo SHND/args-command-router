@@ -327,6 +327,131 @@ describe('utility', () => {
       expect(strs).to.deep.equal(['abc']);
     });
 
+
+    it('splitSwitchExpressions for "[a][b=1]"', () => {
+      const expressions = "[a][b=1]";
+
+      const strs = splitSwitchExpressions(expressions);
+
+      expect(strs.length).to.equal(2);
+      expect(strs).to.deep.equal(['a', 'b=1']);
+    });
+
+    it(`splitSwitchExpressions for "[a][b='1']"`, () => {
+      const expressions = `[a][b='1']`;
+
+      const strs = splitSwitchExpressions(expressions);
+
+      expect(strs.length).to.equal(2);
+      expect(strs).to.deep.equal(['a', `b='1'`]);
+    });
+
+    it(`splitSwitchExpressions for "[a][b="1"]"`, () => {
+      const expressions = `[a][b="1"]`;
+
+      const strs = splitSwitchExpressions(expressions);
+
+      expect(strs.length).to.equal(2);
+      expect(strs).to.deep.equal(['a', `b="1"`]);
+    });
+
+
+    it('splitSwitchExpressions for "[a][b==]"', () => {
+      const expressions = "[a][b==]";
+
+      const strs = splitSwitchExpressions(expressions);
+
+      expect(strs.length).to.equal(2);
+      expect(strs).to.deep.equal(['a', 'b==']);
+    });
+
+    it(`splitSwitchExpressions for "[a][b==]"`, () => {
+      const expressions = `[a][b==]`;
+
+      const strs = splitSwitchExpressions(expressions);
+
+      expect(strs.length).to.equal(2);
+      expect(strs).to.deep.equal(['a', `b==`]);
+    });
+
+    it(`splitSwitchExpressions for "[a][b==]"`, () => {
+      const expressions = `[a][b==]`;
+
+      const strs = splitSwitchExpressions(expressions);
+
+      expect(strs.length).to.equal(2);
+      expect(strs).to.deep.equal(['a', `b==`]);
+    });
+
+
+    it('splitSwitchExpressions for "[a][b=[]"', () => {
+      const expressions = "[a][b=[]";
+
+      const strs = splitSwitchExpressions(expressions);
+
+      expect(strs.length).to.equal(2);
+      expect(strs).to.deep.equal(['a', 'b=[']);
+    });
+
+    it(`splitSwitchExpressions for "[a][b='[']"`, () => {
+      const expressions = `[a][b='[']`;
+
+      const strs = splitSwitchExpressions(expressions);
+
+      expect(strs.length).to.equal(2);
+      expect(strs).to.deep.equal(['a', `b='['`]);
+    });
+
+    it(`splitSwitchExpressions for "[a][b="["]"`, () => {
+      const expressions = `[a][b="["]`;
+
+      const strs = splitSwitchExpressions(expressions);
+
+      expect(strs.length).to.equal(2);
+      expect(strs).to.deep.equal(['a', `b="["`]);
+    });
+
+
+    it('splitSwitchExpressions for "[a][b=]]" throws Error', () => {
+      const expressions = "[a][b=]]";
+      expect(() => {
+        splitSwitchExpressions(expressions);
+      }).throws();
+    });
+
+    it(`splitSwitchExpressions for "[a][b=]]" throws Error`, () => {
+      const expressions = `[a][b=]]`;
+      expect(() => {
+        splitSwitchExpressions(expressions);
+      }).throws();
+    });
+
+    it(`splitSwitchExpressions for "[a][b=]]" throws Error`, () => {
+      const expressions = `[a][b=]]`;
+      expect(() => {
+        splitSwitchExpressions(expressions);
+      }).throws();
+    });
+
+
+    it(`splitSwitchExpressions for "[a][b='"']"`, () => {
+      const expressions = `[a][b='"']`;
+
+      const strs = splitSwitchExpressions(expressions);
+
+      expect(strs.length).to.equal(2);
+      expect(strs).to.deep.equal(['a', `b='"'`]);
+    });
+
+    it(`splitSwitchExpressions for "[a][b="'"]"`, () => {
+      const expressions = `[a][b="'"]`;
+
+      const strs = splitSwitchExpressions(expressions);
+
+      expect(strs.length).to.equal(2);
+      expect(strs).to.deep.equal(['a', `b="'"`]);
+    });
+
   });
 
   describe('parsePath', () => {
