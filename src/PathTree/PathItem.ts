@@ -90,11 +90,21 @@ export abstract class PathItem {
   }
 
   /**
+   * check if the requiredSwitch exists
+   * @param swich 
+   */
+  public hasRequiredSwitch = (swich: Switch) => {
+    return this.requiredSwitches.findIndex(cb => cb === swich) >= 0;
+  }
+
+  /**
    * Add requiredSwitch
    * @param {Switch} swich to be added
    */
   public addRequiredSwitch = (swich: Switch) => {
-    this.requiredSwitches.push(swich);
+    if (!this.hasRequiredSwitch(swich)) {
+      this.requiredSwitches.push(swich);      
+    }
   }
 
   /**
@@ -116,7 +126,9 @@ export abstract class PathItem {
    * @param {Switch} swich to be added
    */
   public addOptionalSwitch = (swich: Switch) => {
-    this.optionalSwitches.push(swich);
+    if (!this.hasOptionalSwitch(swich)) {
+      this.optionalSwitches.push(swich);
+    }
   }
 
   /**
@@ -138,6 +150,14 @@ export abstract class PathItem {
    */
   public getOptionalSwitches = () => {
     return this.optionalSwitches;
+  }
+
+  /**
+   * check if the optionalSwitch exists
+   * @param swich 
+   */
+  public hasOptionalSwitch = (swich: Switch) => {
+    return this.optionalSwitches.findIndex(cb => cb === swich) >= 0;
   }
 
   /**

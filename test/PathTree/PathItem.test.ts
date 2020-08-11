@@ -42,10 +42,12 @@ describe('PathItem', () => {
     expect(pathItem.hasCallback(callback)).to.equal(false);
 
     pathItem.addCallback(callback);
+    pathItem.addCallback(callback);
     expect(pathItem.getCallbacks()).have.lengthOf(1);
     expect(pathItem.getCallbacks()[0]).to.equal(callback);
     expect(pathItem.hasCallback(callback)).to.equal(true);
 
+    pathItem.removeCallback(callback);
     pathItem.removeCallback(callback);
     expect(pathItem.getCallbacks()).have.lengthOf(0);
     expect(pathItem.hasCallback(callback)).to.equal(false);
@@ -61,32 +63,42 @@ describe('PathItem', () => {
     expect(pathItem.getHelpCallback()).to.equal(callback);
   });
 
-  it('requiredSwitches property, getRequiredSwitches, addRequiredSwitch, removeRequiredSwitch methods', () => {
+  it('requiredSwitches property, getRequiredSwitches, addRequiredSwitch, hasRequiredSwitch, removeRequiredSwitch methods', () => {
     const pathItem = new TestPathItem();
     const swich = new Switch('a', 'aa');
 
     expect(pathItem.getRequiredSwitches()).to.lengthOf(0);
+    expect(pathItem.hasRequiredSwitch(swich)).to.false;
 
+    pathItem.addRequiredSwitch(swich);
     pathItem.addRequiredSwitch(swich);
     expect(pathItem.getRequiredSwitches()).to.lengthOf(1);
     expect(pathItem.getRequiredSwitches()[0]).to.equal(swich);
+    expect(pathItem.hasRequiredSwitch(swich)).to.true;
 
     pathItem.removeRequiredSwitch(swich);
-    expect(pathItem.getRequiredSwitches()).to.length(0)
+    pathItem.removeRequiredSwitch(swich);
+    expect(pathItem.getRequiredSwitches()).to.length(0);
+    expect(pathItem.hasRequiredSwitch(swich)).to.false;
   });
 
-  it('optionalSwitches property, getOptionalSwitches, addOptionalSwitch, removeOptionalSwitch methods', () => {
+  it('optionalSwitches property, getOptionalSwitches, addOptionalSwitch, hasOptionalSwitch, removeOptionalSwitch methods', () => {
     const pathItem = new TestPathItem();
     const swich = new Switch('a', 'aa');
 
     expect(pathItem.getOptionalSwitches()).to.lengthOf(0);
+    expect(pathItem.hasOptionalSwitch(swich)).to.false;
 
+    pathItem.addOptionalSwitch(swich);
     pathItem.addOptionalSwitch(swich);
     expect(pathItem.getOptionalSwitches()).to.lengthOf(1);
     expect(pathItem.getOptionalSwitches()[0]).to.equal(swich);
+    expect(pathItem.hasOptionalSwitch(swich)).to.true;
 
     pathItem.removeOptionalSwitch(swich);
-    expect(pathItem.getOptionalSwitches()).to.length(0)
+    pathItem.removeOptionalSwitch(swich);
+    expect(pathItem.getOptionalSwitches()).to.length(0);
+    expect(pathItem.hasOptionalSwitch(swich)).to.false;
   });
 
   it('path() for no parents', () => {
