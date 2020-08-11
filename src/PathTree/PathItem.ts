@@ -148,7 +148,7 @@ export abstract class PathItem {
     const stack = [];
     
     let current : PathItem = this;
-    while (!(current instanceof RootPathItem)) {
+    while (current && !(current instanceof RootPathItem)) {
       stack.push(current.getUniqueName(shortForm));
       current = current.parentPathItem;
     }

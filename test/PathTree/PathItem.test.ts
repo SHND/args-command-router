@@ -1,11 +1,24 @@
 import { expect } from 'chai'
 import { PathItem } from '../../src/PathTree/PathItem';
 import { Switch } from '../../src/Switch';
+import { RootPathItem } from '../../src/PathTree/RootPathItem';
+import { StaticPathItem } from '../../src/PathTree/StaticPathItem';
+import { DynamicPathItem } from '../../src/PathTree/DynamicPathItem';
+import { SwitchPathItem } from '../../src/PathTree/SwitchPathItem';
 
 
 class TestPathItem extends PathItem {
+
+  public name: string;
+
+  constructor(name = 'uniqueName', parent: PathItem = null) {
+    super();
+    this.name = name;
+    this.parentPathItem = parent;
+  }
+
   public getUniqueName = (shortForm: boolean) => {
-    return 'uniqueName'
+    return `${shortForm ? 'short' : 'long'}_${this.name}`;
   }
 }
 
@@ -48,7 +61,7 @@ describe('PathItem', () => {
     expect(pathItem.getHelpCallback()).to.equal(callback);
   });
 
-  it('requiredSwitches property, addRequiredSwitch, removeRequiredSwitch methods', () => {
+  it('requiredSwitches property, getRequiredSwitches, addRequiredSwitch, removeRequiredSwitch methods', () => {
     const pathItem = new TestPathItem();
     const swich = new Switch('a', 'aa');
 
@@ -62,7 +75,7 @@ describe('PathItem', () => {
     expect(pathItem.getRequiredSwitches()).to.length(0)
   });
 
-  it('optionalSwitches property, addOptionalSwitch, removeOptionalSwitch methods', () => {
+  it('optionalSwitches property, getOptionalSwitches, addOptionalSwitch, removeOptionalSwitch methods', () => {
     const pathItem = new TestPathItem();
     const swich = new Switch('a', 'aa');
 
@@ -74,6 +87,57 @@ describe('PathItem', () => {
 
     pathItem.removeOptionalSwitch(swich);
     expect(pathItem.getOptionalSwitches()).to.length(0)
+  });
+
+  it('path() for no parents', () => {
+    const pathItem = new TestPathItem('name');
+
+    expect(pathItem.path(true)).equal('/short_name');
+    expect(pathItem.path(false)).equal('/long_name');
+  });
+
+  it('path() for with one parent', () => {
+    const pathItem1 = new TestPathItem('p1');
+    const pathItem2 = new TestPathItem('p2', pathItem1);
+
+    expect(pathItem2.path(true)).equal('/short_p1/short_p2');
+    expect(pathItem2.path(false)).equal('/long_p1/long_p2');
+  });
+
+  it('path() for with two parent', () => {
+    const pathItem1 = new TestPathItem('p1');
+    const pathItem2 = new TestPathItem('p2', pathItem1);
+    const pathItem3 = new TestPathItem('p3', pathItem2);
+
+    expect(pathItem3.path(true)).equal('/short_p1/short_p2/short_p3');
+    expect(pathItem3.path(false)).equal('/long_p1/long_p2/long_p3');
+  });
+
+  it('path() for StaticPathItem with RootPathItem parent', () => {
+    const rootPathItem = new RootPathItem();
+    const staticPathItem = new StaticPathItem('static1', rootPathItem);
+    rootPathItem.addStaticPathItem(staticPathItem);
+
+    expect(staticPathItem.path(true)).equal('/static1');
+    expect(staticPathItem.path(false)).equal('/static1');
+  });
+
+  it('path() for DynamicPathItem with RootPathItem parent', () => {
+    const rootPathItem = new RootPathItem();
+    const dynamicPathItem = new DynamicPathItem('dynamic1', rootPathItem);
+    rootPathItem.setDynamicPathItem(dynamicPathItem);
+
+    expect(dynamicPathItem.path(true)).equal('/dynamic1');
+    expect(dynamicPathItem.path(false)).equal('/:dynamic1');
+  });
+
+  it('path() for SwitchPathItem with RootPathItem parent', () => {
+    const rootPathItem = new RootPathItem();
+    const switchPathItem = new SwitchPathItem('[a]', rootPathItem);
+    rootPathItem.addSwitchPathItem(switchPathItem);
+
+    expect(switchPathItem.path(true)).equal('/[a]');
+    expect(switchPathItem.path(false)).equal('/[a]');
   });
 
 })
