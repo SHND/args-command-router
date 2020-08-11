@@ -11,7 +11,7 @@ export abstract class PathItem {
   protected requiredSwitches: Array<Switch> = []
   protected optionalSwitches: Array<Switch> = []
 
-  public abstract getUniqueName: (shortForm: boolean) => string;
+  public abstract getUniqueName: (shortForm?: boolean) => string;
 
   /**
    * description getter

@@ -27,7 +27,7 @@ export class RootPathItem extends BlockPathItem {
    * e.g. "/"
    * @param shortForm 
    */
-  public getUniqueName = () => {
+  public getUniqueName = (shortForm: boolean = false) => {
     return this.name;
   }
 

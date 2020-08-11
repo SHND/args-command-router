@@ -17,7 +17,7 @@ class TestPathItem extends PathItem {
     this.parentPathItem = parent;
   }
 
-  public getUniqueName = (shortForm: boolean) => {
+  public getUniqueName = (shortForm: boolean = false) => {
     return `${shortForm ? 'short' : 'long'}_${this.name}`;
   }
 }
