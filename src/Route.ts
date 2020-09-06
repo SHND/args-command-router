@@ -21,7 +21,7 @@ export class Route {
   /**
    * By walking on the tree using the specified path, this method returns
    * an array of PathItems which is the mix of existing and newly created
-   * PathItems.
+   * PathItems on the tree.
    * 
    * This method is pure and it's not changing the state of tree.
    * 

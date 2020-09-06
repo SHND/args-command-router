@@ -46,7 +46,6 @@
   },
   "dependencies": {
     "args-command-parser": "^1.0.9",
-    "command-line-usage": "^6.0.2",
-    "expr-eval": "^2.0.2"
+    "command-line-usage": "^6.0.2"
   }
 }
