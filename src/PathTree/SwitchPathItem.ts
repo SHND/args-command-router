@@ -29,6 +29,13 @@ export class SwitchPathItem extends PathItem {
   };
 
   /**
+   * Returns false because SwitchPathItem is not a RootPathItem
+   * This is for avoiding circular dependency issue
+   * @returns false
+   */
+  public isRootPathItem = () => false;
+
+  /**
    * Getter for list of switch expressions
    */
   getSwitchExpressions = () => {

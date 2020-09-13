@@ -20,6 +20,8 @@ class TestPathItem extends PathItem {
   public getUniqueName = (shortForm: boolean = false) => {
     return `${shortForm ? 'short' : 'long'}_${this.name}`;
   }
+
+  public isRootPathItem = () => false;
 }
 
 describe('PathItem', () => {

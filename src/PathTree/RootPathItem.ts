@@ -31,6 +31,13 @@ export class RootPathItem extends BlockPathItem {
     return this.name;
   }
 
+  /**
+   * Returns true because this is the RootPathItem
+   * This is for avoiding circular dependency issue
+   * @returns true
+   */
+  public isRootPathItem = () => true;
+
   public listPathItems = (shortForm: boolean = false) => {
     let output = {value: ''};
     

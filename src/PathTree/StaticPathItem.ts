@@ -31,4 +31,10 @@ export class StaticPathItem extends BlockPathItem {
     return this.name;
   };
 
+  /**
+   * Returns false because StaticPathItem is not a RootPathItem
+   * This is for avoiding circular dependency issue
+   * @returns false
+   */
+  public isRootPathItem = () => false;
 }

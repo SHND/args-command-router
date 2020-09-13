@@ -34,5 +34,12 @@ export class DynamicPathItem extends BlockPathItem {
 
     return DYNAMIC_PATH_PREFIX + this.name;
   };
+
+  /**
+   * Returns false because DynamicPathItem is not a RootPathItem
+   * This is for avoiding circular dependency issue
+   * @returns false
+   */
+  public isRootPathItem = () => false;
   
 }

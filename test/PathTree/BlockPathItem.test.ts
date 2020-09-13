@@ -10,6 +10,8 @@ class TestBlockPathItem extends BlockPathItem {
   public getUniqueName = (shortForm: boolean) => {
     return 'uniqueName'
   }
+
+  public isRootPathItem = () => false;
 }
 
 describe('BlockPathItem', () => {

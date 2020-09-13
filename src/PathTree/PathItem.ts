@@ -14,6 +14,12 @@ export abstract class PathItem {
   public abstract getUniqueName: (shortForm?: boolean) => string;
 
   /**
+   * Returns if the PathItem is a RootPathItem
+   * This is for avoiding circular dependency issue
+   */
+  public abstract isRootPathItem: () => boolean;
+
+  /**
    * parentPathItem getter
    */
   public getParentPathItem = () => {
@@ -185,7 +191,7 @@ export abstract class PathItem {
     const stack = [];
     
     let current : PathItem = this;
-    while (current && !(current instanceof RootPathItem)) {
+    while (current && !current.isRootPathItem()) {
       stack.push(current.getUniqueName(shortForm));
       current = current.parentPathItem;
     }
