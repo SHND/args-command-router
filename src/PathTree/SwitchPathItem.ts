@@ -39,7 +39,7 @@ export class SwitchPathItem extends PathItem {
    * Parse Switch Expression string e.g. [ab][cd=1]
    * @param switchExpressionStr to be parsed
    */
-  private static parse(switchExpressionStr: string) {
+  private static parse(switchExpressionStr: string): SwitchExpression[] {
     const str = switchExpressionStr.trim();
 
     const expressionStrings = splitSwitchExpressions(str);
