@@ -14,6 +14,23 @@ export abstract class PathItem {
   public abstract getUniqueName: (shortForm?: boolean) => string;
 
   /**
+   * parentPathItem getter
+   */
+  public getParentPathItem = () => {
+    return this.parentPathItem;
+  }
+
+  /**
+   * parentPathItem setter
+   * NOTE: Unfortunately I need to make this public, but in reality not all PathItems
+   * can be a parent, so be careful when using this.
+   * @param parent PathItem for the current PathItem
+   */
+  public setParentPathItem = (parent: PathItem) => {
+    this.parentPathItem = parent;
+  }
+
+  /**
    * description getter
    */
   public getDescription = () => {

@@ -27,6 +27,14 @@ describe('PathItem', () => {
     const pathItem = new TestPathItem();
   });
 
+  it('parentPathItem property, getParentPathItem, setParentPathItem method', () => {
+    const pathItem = new TestPathItem();
+    const parentPathItem = new TestPathItem();
+    expect(pathItem.getParentPathItem()).to.equal(null);
+    pathItem.setParentPathItem(parentPathItem);
+    expect(pathItem.getParentPathItem()).to.equal(parentPathItem);
+  });
+
   it ('description property, getDescription, setDescription methods', () => {
     const pathItem = new TestPathItem();
     expect(pathItem.getDescription()).to.equal(undefined)
