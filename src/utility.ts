@@ -163,7 +163,7 @@ export function parsePath(pathStr: string): PathItem[] {
 
   }
 
-  // now that pathItems before switchExpression is parse it's time for switchExpreesion
+  // now that pathItems before switchExpression is parse it's time for switchExpression
   if (switchPathItemPart.trim() !== '') {
     const switchPathItem = new SwitchPathItem(switchPathItemPart, parent);
     output.push(switchPathItem);
