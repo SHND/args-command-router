@@ -59,6 +59,8 @@ export abstract class BlockPathItem extends PathItem {
    * @param {StaticPathItem} staticPathItem to be added
    */
   public addStaticPathItem = (staticPathItem: StaticPathItem) => {
+    staticPathItem.setParentPathItem(this);
+
     this.staticPathItems[staticPathItem.getUniqueName(false)] = staticPathItem;
   }
 
@@ -86,6 +88,8 @@ export abstract class BlockPathItem extends PathItem {
    * @param {DynamicPathItem} dynamicPathItem
    */
   public setDynamicPathItem = (dynamicPathItem: DynamicPathItem) => {
+    dynamicPathItem.setParentPathItem(this);
+
     this.dynamicPathItem = dynamicPathItem;
   }
 
@@ -108,6 +112,8 @@ export abstract class BlockPathItem extends PathItem {
    * @param {SwitchPathItem} switchPathItem to be added
    */
   public addSwitchPathItem = (switchPathItem: SwitchPathItem) => {
+    switchPathItem.setParentPathItem(this);
+
     this.switchPathItems.push(switchPathItem);
   }
 
