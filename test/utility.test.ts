@@ -1,7 +1,9 @@
 import { expect } from 'chai'
-import { parsePath, splitFromSwitchPathItem, splitSwitchExpressions, hasWhiteSpace, hasAnyOfChars } from '../src/utility';
+import { parsePath, splitFromSwitchPathItem, splitSwitchExpressions, hasWhiteSpace, hasAnyOfChars, matchCommands, matchSwitches } from '../src/utility';
 import { StaticPathItem } from '../src/PathTree/StaticPathItem';
 import { DynamicPathItem } from '../src/PathTree/DynamicPathItem';
+import { RootPathItem } from '../src/PathTree/RootPathItem';
+import { SwitchPathItem } from '../src/PathTree/SwitchPathItem';
 
 describe('utility', () => {
 
@@ -628,6 +630,2113 @@ describe('utility', () => {
       expect(pathItems).have.lengthOf(2);
       expect(pathItems[0]).to.instanceOf(StaticPathItem);
       expect(pathItems[0].getUniqueName(false)).to.equal('item1');
+    });
+
+  });
+
+  describe('matchCommands', () => {
+    it('matchCommands for [] and empty tree', () => {
+      const root = new RootPathItem();
+
+      const output = matchCommands([], root);
+      expect(output).equal(root);
+    });
+
+    it('matchCommands for [cmd1] and empty tree', () => {
+      const root = new RootPathItem();
+
+      const output = matchCommands(['cmd1'], root);
+      expect(output).be.null;
+    });
+
+    it('matchCommands for [] and tree {cmd1}', () => {
+      const root = new RootPathItem();
+      const pathItem1 = new StaticPathItem('cmd1', null);
+
+      root.addStaticPathItem(pathItem1);
+
+      const output = matchCommands([], root);
+      expect(output).equal(root);
+    });
+
+    it('matchCommands for [cmd1] and tree {cmd1}', () => {
+      const root = new RootPathItem();
+      const pathItem1 = new StaticPathItem('cmd1', null);
+
+      root.addStaticPathItem(pathItem1);
+
+      const output = matchCommands(['cmd1'], root);
+      expect(output).equal(pathItem1);
+    });
+
+    it('matchCommands for [something] and empty tree', () => {
+      const root = new RootPathItem();
+
+      const output = matchCommands(['something'], root);
+      expect(output).be.null;
+    });
+
+    it('matchCommands for [] and tree {dynamic}', () => {
+      const root = new RootPathItem();
+      const pathItem1 = new DynamicPathItem('dynamic', null);
+
+      root.setDynamicPathItem(pathItem1);
+
+      const output = matchCommands([], root);
+      expect(output).equal(root);
+    });
+
+    it('matchCommands for [something] and tree {dynamic}', () => {
+      const root = new RootPathItem();
+      const pathItem1 = new DynamicPathItem('dynamic', null);
+
+      root.setDynamicPathItem(pathItem1);
+
+      const output = matchCommands(['something'], root);
+      expect(output).equal(pathItem1);
+    });
+
+    it('matchCommands for [cmd1, cmd2] and tree {cmd1}', () => {
+      const root = new RootPathItem();
+      const pathItem1 = new StaticPathItem('cmd1', null);
+
+      root.addStaticPathItem(pathItem1);
+
+      const output = matchCommands(['cmd1', 'cmd2'], root);
+      expect(output).be.null;
+    });
+
+    it('matchCommands for [cmd1] and tree {cmd1->cmd2}', () => {
+      const root = new RootPathItem();
+      const pathItem1 = new StaticPathItem('cmd1', null);
+      const pathItem2 = new StaticPathItem('cmd2', null);
+
+      root.addStaticPathItem(pathItem1);
+      pathItem1.addStaticPathItem(pathItem2);
+
+      const output = matchCommands(['cmd1'], root);
+      expect(output).equal(pathItem1);
+    });
+
+    it('matchCommands for [cmd1, something] and tree {cmd1->dynamic}', () => {
+      const root = new RootPathItem();
+      const pathItem1 = new StaticPathItem('cmd1', null);
+      const pathItem2 = new DynamicPathItem('dynamic', null);
+
+      root.addStaticPathItem(pathItem1);
+      pathItem1.setDynamicPathItem(pathItem2);
+
+      const output = matchCommands(['cmd1', 'something'], root);
+      expect(output).equal(pathItem2);
+    });
+
+    it('matchCommands for [something, cmd2] and tree {dynamic->cmd2}', () => {
+      const root = new RootPathItem();
+      const pathItem1 = new DynamicPathItem('dynamic', null);
+      const pathItem2 = new StaticPathItem('cmd2', null);
+
+      root.setDynamicPathItem(pathItem1);
+      pathItem1.addStaticPathItem(pathItem2);
+
+      const output = matchCommands(['something', 'cmd2'], root);
+      expect(output).equal(pathItem2);
+    });
+
+    it('matchCommands for [something, otherthing] and tree {dynamic->dynamic}', () => {
+      const root = new RootPathItem();
+      const pathItem1 = new DynamicPathItem('dynamic1', null);
+      const pathItem2 = new DynamicPathItem('dynamic2', null);
+
+      root.setDynamicPathItem(pathItem1);
+      pathItem1.setDynamicPathItem(pathItem2);
+
+      const output = matchCommands(['something', 'otherthing'], root);
+      expect(output).equal(pathItem2);
+    });
+
+    it('matchCommands for [cmd1, cmd2] and tree {cmd1->cmd2}', () => {
+      const root = new RootPathItem();
+      const pathItem1 = new StaticPathItem('cmd1', null);
+      const pathItem2 = new StaticPathItem('cmd2', null);
+
+      root.addStaticPathItem(pathItem1);
+      pathItem1.addStaticPathItem(pathItem2);
+
+      const output = matchCommands(['cmd1', 'cmd2'], root);
+      expect(output).equal(pathItem2);
+    });
+  });
+
+  describe('matchSwitches', () => {
+
+    it('matchSwitches for expressionPathItems ""', () => {
+      const blockPathItem = new StaticPathItem('cmd1', null);
+      
+      expect(matchSwitches({}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:[], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:[], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1"], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1"], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1", "10"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1", "10"], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+    });
+
+    it('matchSwitches for expressionPathItems "[a]"', () => {
+      const blockPathItem = new StaticPathItem('cmd1', null);
+      const switchPathItemA = new SwitchPathItem('[a]', null);
+      blockPathItem.addSwitchPathItem(switchPathItemA);
+      
+      expect(matchSwitches({}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:[]}, {}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:[], b:[]}, {}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:[], b:["2"]}, {}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1"]}, {}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1"], b:[]}, {}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1"], b:["2"]}, {}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"]}, {}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"], b:[]}, {}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+    });
+
+    it('matchSwitches for expressionPathItems "[a=1]"', () => {
+      const blockPathItem = new StaticPathItem('cmd1', null);
+      const switchPathItemA = new SwitchPathItem('[a=1]', null);
+      blockPathItem.addSwitchPathItem(switchPathItemA);
+      
+      expect(matchSwitches({}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:[], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:[], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1"]}, {}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1"], b:[]}, {}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1"], b:["2"]}, {}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"]}, {}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"], b:[]}, {}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+    });
+    
+    it('matchSwitches for expressionPathItems "[a][b]"', () => {
+      const blockPathItem = new StaticPathItem('cmd1', null);
+      const switchPathItemA = new SwitchPathItem('[a][b]', null);
+      blockPathItem.addSwitchPathItem(switchPathItemA);
+      
+      expect(matchSwitches({}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:[], b:[]}, {}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:[], b:["2"]}, {}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1"], b:[]}, {}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1"], b:["2"]}, {}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1", "10"], b:[]}, {}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+    });
+
+    it('matchSwitches for expressionPathItems "[a=1][b]"', () => {
+      const blockPathItem = new StaticPathItem('cmd1', null);
+      const switchPathItemA = new SwitchPathItem('[a=1][b]', null);
+      blockPathItem.addSwitchPathItem(switchPathItemA);
+      
+      expect(matchSwitches({}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:[], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:[], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1"], b:[]}, {}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1"], b:["2"]}, {}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1", "10"], b:[]}, {}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+    });
+
+    it('matchSwitches for expressionPathItems "[b][a]"', () => {
+      const blockPathItem = new StaticPathItem('cmd1', null);
+      const switchPathItemA = new SwitchPathItem('[b][a]', null);
+      blockPathItem.addSwitchPathItem(switchPathItemA);
+      
+      expect(matchSwitches({}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:[], b:[]}, {}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:[], b:["2"]}, {}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1"], b:[]}, {}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1"], b:["2"]}, {}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1", "10"], b:[]}, {}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+    });
+
+    it('matchSwitches for expressionPathItems "[a][c]"', () => {
+      const blockPathItem = new StaticPathItem('cmd1', null);
+      const switchPathItemA = new SwitchPathItem('[a][c]', null);
+      blockPathItem.addSwitchPathItem(switchPathItemA);
+      
+      expect(matchSwitches({}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:[], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:[], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1"], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1"], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1", "10"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1", "10"], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+    });
+
+    it('matchSwitches for expressionPathItems "[c]"', () => {
+      const blockPathItem = new StaticPathItem('cmd1', null);
+      const switchPathItemA = new SwitchPathItem('[c]', null);
+      blockPathItem.addSwitchPathItem(switchPathItemA);
+      
+      expect(matchSwitches({}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:[], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:[], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1"], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1"], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1", "10"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1", "10"], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+    });
+
+    it('matchSwitches for expressionPathItems "[aa]"', () => {
+      const blockPathItem = new StaticPathItem('cmd1', null);
+      const switchPathItemA = new SwitchPathItem('[aa]', null);
+      blockPathItem.addSwitchPathItem(switchPathItemA);
+      
+      expect(matchSwitches({}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:[], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:[], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1"], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1"], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+    });
+
+    it('matchSwitches for expressionPathItems "[aa=1]"', () => {
+      const blockPathItem = new StaticPathItem('cmd1', null);
+      const switchPathItemA = new SwitchPathItem('[aa=1]', null);
+      blockPathItem.addSwitchPathItem(switchPathItemA);
+      
+      expect(matchSwitches({}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:[], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:[], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1"], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1"], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+    });
+
+    it('matchSwitches for expressionPathItems "[aa][bb]"', () => {
+      const blockPathItem = new StaticPathItem('cmd1', null);
+      const switchPathItemA = new SwitchPathItem('[aa][bb]', null);
+      blockPathItem.addSwitchPathItem(switchPathItemA);
+      
+      expect(matchSwitches({}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:[], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:[], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1"], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1"], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+    });
+
+    it('matchSwitches for expressionPathItems "[aa=1][bb]"', () => {
+      const blockPathItem = new StaticPathItem('cmd1', null);
+      const switchPathItemA = new SwitchPathItem('[aa=1][bb]', null);
+      blockPathItem.addSwitchPathItem(switchPathItemA);
+      
+      expect(matchSwitches({}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:[], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:[], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1"], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1"], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+    });
+
+    it('matchSwitches for expressionPathItems "[bb][aa]"', () => {
+      const blockPathItem = new StaticPathItem('cmd1', null);
+      const switchPathItemA = new SwitchPathItem('[bb][aa]', null);
+      blockPathItem.addSwitchPathItem(switchPathItemA);
+      
+      expect(matchSwitches({}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:[], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:[], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1"], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1"], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+    });
+
+    it('matchSwitches for expressionPathItems "[aa][ac]"', () => {
+      const blockPathItem = new StaticPathItem('cmd1', null);
+      const switchPathItemA = new SwitchPathItem('[aa][ac]', null);
+      blockPathItem.addSwitchPathItem(switchPathItemA);
+      
+      expect(matchSwitches({}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:[], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:[], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1"], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1"], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1", "10"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1", "10"], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+    });
+
+    it('matchSwitches for expressionPathItems "[cc]"', () => {
+      const blockPathItem = new StaticPathItem('cmd1', null);
+      const switchPathItemA = new SwitchPathItem('[cc]', null);
+      blockPathItem.addSwitchPathItem(switchPathItemA);
+      
+      expect(matchSwitches({}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:[], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:[], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1"], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1"], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1", "10"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1", "10"], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+    });
+
+    it('matchSwitches for expressionPathItems "[a][aa]"', () => {
+      const blockPathItem = new StaticPathItem('cmd1', null);
+      const switchPathItemA = new SwitchPathItem('[a][aa]', null);
+      blockPathItem.addSwitchPathItem(switchPathItemA);
+      
+      expect(matchSwitches({}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:[], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:[], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1"], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1"], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+    });
+
+    it('matchSwitches for expressionPathItems "[aa][a]"', () => {
+      const blockPathItem = new StaticPathItem('cmd1', null);
+      const switchPathItemA = new SwitchPathItem('[aa][a]', null);
+      blockPathItem.addSwitchPathItem(switchPathItemA);
+      
+      expect(matchSwitches({}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:[], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1"], bb:["2"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"], bb:[]}, blockPathItem)).be.null;
+      expect(matchSwitches({}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).be.null;
+      
+      expect(matchSwitches({a:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:[], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:[]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:[], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:[], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1"], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1"], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"], b:[]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:[]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {}, blockPathItem)).be.null;
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:[], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
+      expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
     });
 
   });

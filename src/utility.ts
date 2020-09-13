@@ -171,3 +171,79 @@ export function parsePath(pathStr: string): PathItem[] {
 
   return output;
 }
+
+/**
+ * Find the actual passed values (Commands) with the PathItems in the tree
+ * and return the matched BlockPathItem or null.
+ * @param commands which are actual values passed as BlockPathItem in run time
+ * @param node which is a starting point in PathItem as tree to find the match
+ */
+export function matchCommands(commands: string[], node: BlockPathItem): BlockPathItem {
+  let lastBlockPathItem: BlockPathItem = node;
+  if (commands.length > commands.length) {
+    return null;
+  }
+
+  for (let command of commands) {
+    if (lastBlockPathItem.hasStaticPathItem(command)) {
+      lastBlockPathItem = lastBlockPathItem.getStaticPathItem(command);
+    } else if (lastBlockPathItem.hasDynamicPathItem()) {
+      lastBlockPathItem = lastBlockPathItem.getDynamicPathItem();
+    } else {
+      return null;
+    }
+  }
+
+  return lastBlockPathItem;
+}
+
+/**
+ * Find the actual swiches passed with SwitchPathItems on the node 
+ * and return the matched SwitchPathItem or null.
+ * @param shortSwitches passed in runtime
+ * @param longSwitches passed in runtime
+ * @param node which is a starting point in PathItem as tree to find the match
+ */
+export function matchSwitches(
+  shortSwithes: Record<string, string[]>, 
+  longSwitches: Record<string, string[]>, 
+  node: BlockPathItem
+): SwitchPathItem {
+  const switchPathItems = node.getSwitchPathItems();
+
+  if (objectKeys(shortSwithes).length === 0 && objectKeys(longSwitches).length === 0) {
+    return null;
+  }
+
+  outerLoop:
+  for (let switchPathItem of switchPathItems) {
+    const switchExpressions = switchPathItem.getSwitchExpressions();
+
+    if (objectKeys(shortSwithes).length + objectKeys(longSwitches).length < switchExpressions.length) {
+      continue outerLoop;
+    }
+
+    let switches = {...shortSwithes, ...longSwitches};
+
+    for (let switchExpr of switchExpressions) {
+      const switchExprId = switchExpr.getSwitchId()
+      const switchExprValue = switchExpr.getSwitchValue()
+
+      if (!switches.hasOwnProperty(switchExprId)) {
+        continue outerLoop;
+      }
+
+      const passedValues = switches[switchExprId];
+
+      if (switchExpr.isValuedSwitch() && (passedValues.length < 1 || passedValues[0] !== switchExpr.getSwitchValue())) {
+        continue outerLoop;
+      } else {
+        delete switches[switchExprId];
+      }
+    }
+
+    return switchPathItem;
+  }
+  
+  return null;
+}
