@@ -198,6 +198,34 @@ export function matchCommands(commands: string[], node: BlockPathItem): BlockPat
 }
 
 /**
+ * Collect Dynamic PathItems and create a dictionary of DynamicPathItem name and command value
+ * @param commands which are actual values passed as BlockPathItem in run time
+ * @param node which is a starting point in PathItem as tree to find the match
+ * @throws when a match for commands is not found in the node tree
+ */
+export function matchCommandsGetPathParameters(commands: string[], node: BlockPathItem): Record<string, string> {
+  let output: Record<string, string> = {};
+  let lastBlockPathItem: BlockPathItem = node;
+  if (commands.length > commands.length) {
+    throw Error(`Failed to match commands "${commands}" and node tree`)
+  }
+
+  for (let command of commands) {
+    if (lastBlockPathItem.hasStaticPathItem(command)) {
+      lastBlockPathItem = lastBlockPathItem.getStaticPathItem(command);
+    } else if (lastBlockPathItem.hasDynamicPathItem()) {
+      lastBlockPathItem = lastBlockPathItem.getDynamicPathItem();
+
+      output[lastBlockPathItem.getUniqueName(true)] = command;
+    } else {
+      throw Error(`Failed to match commands and node tree on command "${command}" of commands "${commands}"`);
+    }
+  }
+
+  return output;
+}
+
+/**
  * Find the actual swiches passed with SwitchPathItems on the node 
  * and return the matched SwitchPathItem or null.
  * @param shortSwitches passed in runtime

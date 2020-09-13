@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { parsePath, splitFromSwitchPathItem, splitSwitchExpressions, hasWhiteSpace, hasAnyOfChars, matchCommands, matchSwitches } from '../src/utility';
+import { parsePath, splitFromSwitchPathItem, splitSwitchExpressions, hasWhiteSpace, hasAnyOfChars, matchCommands, matchSwitches, matchCommandsGetPathParameters } from '../src/utility';
 import { StaticPathItem } from '../src/PathTree/StaticPathItem';
 import { DynamicPathItem } from '../src/PathTree/DynamicPathItem';
 import { RootPathItem } from '../src/PathTree/RootPathItem';
@@ -765,6 +765,144 @@ describe('utility', () => {
       const output = matchCommands(['cmd1', 'cmd2'], root);
       expect(output).equal(pathItem2);
     });
+  });
+
+  describe('matchCommandsGetPathParameters', () => {
+
+    it('matchCommandsGetPathParameters for [] and empty tree', () => {
+      const root = new RootPathItem();
+
+      const output = matchCommandsGetPathParameters([], root);
+      expect(output).deep.equal({});
+    });
+
+    it('matchCommandsGetPathParameters for [cmd1] and empty tree', () => {
+      const root = new RootPathItem();
+
+      expect(() => {
+        matchCommandsGetPathParameters(['cmd1'], root);
+      }).throws();
+    });
+
+    it('matchCommandsGetPathParameters for [] and tree {cmd1}', () => {
+      const root = new RootPathItem();
+      const pathItem1 = new StaticPathItem('cmd1', null);
+
+      root.addStaticPathItem(pathItem1);
+
+      const output = matchCommandsGetPathParameters([], root);
+      expect(output).deep.equal({});
+    });
+
+    it('matchCommandsGetPathParameters for [cmd1] and tree {cmd1}', () => {
+      const root = new RootPathItem();
+      const pathItem1 = new StaticPathItem('cmd1', null);
+
+      root.addStaticPathItem(pathItem1);
+
+      const output = matchCommandsGetPathParameters(['cmd1'], root);
+      expect(output).deep.equal({});
+    });
+
+    it('matchCommandsGetPathParameters for [something] and empty tree', () => {
+      const root = new RootPathItem();
+
+      expect(() => {
+        matchCommandsGetPathParameters(['something'], root);
+      }).throws();
+    });
+
+    it('matchCommandsGetPathParameters for [] and tree {dynamic}', () => {
+      const root = new RootPathItem();
+      const pathItem1 = new DynamicPathItem('dynamic', null);
+
+      root.setDynamicPathItem(pathItem1);
+
+      const output = matchCommandsGetPathParameters([], root);
+      expect(output).deep.equal({});
+    });
+
+    it('matchCommandsGetPathParameters for [something] and tree {dynamic}', () => {
+      const root = new RootPathItem();
+      const pathItem1 = new DynamicPathItem('dynamic', null);
+
+      root.setDynamicPathItem(pathItem1);
+
+      const output = matchCommandsGetPathParameters(['something'], root);
+      expect(output).deep.equal({ dynamic: 'something' });
+    });
+
+    it('matchCommandsGetPathParameters for [cmd1, cmd2] and tree {cmd1}', () => {
+      const root = new RootPathItem();
+      const pathItem1 = new StaticPathItem('cmd1', null);
+
+      root.addStaticPathItem(pathItem1);
+
+      expect(() => {
+        matchCommandsGetPathParameters(['cmd1', 'cmd2'], root);
+      }).throws();
+    });
+
+    it('matchCommandsGetPathParameters for [cmd1] and tree {cmd1->cmd2}', () => {
+      const root = new RootPathItem();
+      const pathItem1 = new StaticPathItem('cmd1', null);
+      const pathItem2 = new StaticPathItem('cmd2', null);
+
+      root.addStaticPathItem(pathItem1);
+      pathItem1.addStaticPathItem(pathItem2);
+
+      const output = matchCommandsGetPathParameters(['cmd1'], root);
+      expect(output).deep.equal({});
+    });
+
+    it('matchCommandsGetPathParameters for [cmd1, something] and tree {cmd1->dynamic}', () => {
+      const root = new RootPathItem();
+      const pathItem1 = new StaticPathItem('cmd1', null);
+      const pathItem2 = new DynamicPathItem('dynamic', null);
+
+      root.addStaticPathItem(pathItem1);
+      pathItem1.setDynamicPathItem(pathItem2);
+
+      const output = matchCommandsGetPathParameters(['cmd1', 'something'], root);
+      expect(output).deep.equal({ dynamic: 'something' });
+    });
+
+    it('matchCommandsGetPathParameters for [something, cmd2] and tree {dynamic->cmd2}', () => {
+      const root = new RootPathItem();
+      const pathItem1 = new DynamicPathItem('dynamic', null);
+      const pathItem2 = new StaticPathItem('cmd2', null);
+
+      root.setDynamicPathItem(pathItem1);
+      pathItem1.addStaticPathItem(pathItem2);
+
+      const output = matchCommandsGetPathParameters(['something', 'cmd2'], root);
+      expect(output).deep.equal({ dynamic: 'something' });
+    });
+
+    it('matchCommandsGetPathParameters for [something, otherthing] and tree {dynamic->dynamic}', () => {
+      const root = new RootPathItem();
+      const pathItem1 = new DynamicPathItem('dynamic1', null);
+      const pathItem2 = new DynamicPathItem('dynamic2', null);
+
+      root.setDynamicPathItem(pathItem1);
+      pathItem1.setDynamicPathItem(pathItem2);
+
+      const output = matchCommandsGetPathParameters(['something', 'otherthing'], root);
+      expect(output).deep.equal({ dynamic1: 'something', dynamic2: 'otherthing' });
+    });
+
+    it('matchCommandsGetPathParameters for [cmd1, cmd2] and tree {cmd1->cmd2}', () => {
+      const root = new RootPathItem();
+      const pathItem1 = new StaticPathItem('cmd1', null);
+      const pathItem2 = new StaticPathItem('cmd2', null);
+
+      root.addStaticPathItem(pathItem1);
+      pathItem1.addStaticPathItem(pathItem2);
+
+      const output = matchCommandsGetPathParameters(['cmd1', 'cmd2'], root);
+      expect(output).deep.equal({});
+    });
+
   });
 
   describe('matchSwitches', () => {
