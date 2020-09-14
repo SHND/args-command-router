@@ -19,7 +19,11 @@ export class Switch {
     }
 
     if (shortname && shortname.length > 1) {
-      throw Error('Switch shortname cannot be more than one character.')
+      throw Error(`Switch shortname "${shortname}" is longer than 1 character.`);
+    }
+
+    if (longname && longname.length <= 1) {
+      throw Error(`Switch longname "${longname}" is shorter 2 characters.`);
     }
 
     this.shortname = shortname;
