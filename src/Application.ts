@@ -1,13 +1,14 @@
 import { PathTree } from './PathTree/PathTree'
 import { Route } from './Route';
 import { parser } from 'args-command-parser';
-import { matchCommands, matchSwitches, matchCommandsGetPathParameters } from './utility';
+import { matchCommands, matchSwitches, matchCommandsGetPathParameters, noop } from './utility';
 import { PathItem } from './PathTree/PathItem';
 
 export default class Application {
 
   private _config: { [key: string]: any }
   private _tree = new PathTree();
+  private _noroute_callback: Function = noop;
 
   constructor(config = {}) {
     this._config = config
@@ -15,6 +16,10 @@ export default class Application {
 
   public route(path: string) {
     return new Route(this._tree, path);
+  }
+
+  public noroute(callback: Function) {
+    this._noroute_callback = callback;
   }
 
   public run(argv?: string[]) {
@@ -30,9 +35,16 @@ export default class Application {
     const targetBlockPathItem = matchCommands(commands, root);
 
     if (!targetBlockPathItem) {
-      //FIXME: no route
-      console.log('no route');
-      process.exit(0);
+      this._noroute_callback.call(null, {
+        commands: args.commands,
+        pathParams: {},
+        shortSwitches: args.shortSwitches,
+        longSwitches: args.longSwitches,
+        switches: { ...args.shortSwitches, ...args.longSwitches },
+        all: { ...shortSwitches, ...longSwitches }
+      });
+      
+      return;
     }
 
     const pathParametes = matchCommandsGetPathParameters(commands, root);
@@ -41,16 +53,30 @@ export default class Application {
 
     const target: PathItem = targetSwitchPathItem || targetBlockPathItem;
 
-    target.getCallbacks().forEach(callback => {
-      callback.call(target, {
+    const targetCallbacks = target.getCallbacks();
+
+    if (targetCallbacks.length > 0) {
+      targetCallbacks.forEach(callback => {
+        callback.call(target, {
+          commands: args.commands,
+          pathParams: pathParametes,
+          shortSwitches: args.shortSwitches,
+          longSwitches: args.longSwitches,
+          switches: { ...args.shortSwitches, ...args.longSwitches },
+          all: { ...pathParametes, ...shortSwitches, ...longSwitches }
+        })
+      });  
+    } else {
+      this._noroute_callback.call(null, {
         commands: args.commands,
-        pathParams: pathParametes,
+        pathParams: {},
         shortSwitches: args.shortSwitches,
         longSwitches: args.longSwitches,
         switches: { ...args.shortSwitches, ...args.longSwitches },
-        all: { ...pathParametes, ...shortSwitches, ...longSwitches }
-      })
-    });
+        all: { ...shortSwitches, ...longSwitches }
+      });
+    }
+
   }
 
   public debug() {

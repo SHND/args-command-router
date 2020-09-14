@@ -7,7 +7,7 @@ import { SwitchPathItem } from '../src/PathTree/SwitchPathItem';
 
 
 describe('Route', () => {
-  describe.only('matchRouteToTreePathItems()', () => {
+  describe('matchRouteToTreePathItems()', () => {
 
     it('matchRouteToTreePathItems for empty tree', () => {
       const tree = new PathTree();

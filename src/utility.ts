@@ -6,6 +6,15 @@ import { BlockPathItem } from "./PathTree/BlockPathItem";
 import { PathItem } from "./PathTree/PathItem";
 import { SwitchPathItem } from "./PathTree/SwitchPathItem";
 
+/**
+ * Empty (no-operation) function
+ */
+export const noop = function() {};
+
+/**
+ * Returns array of keys set on the object
+ * @param obj Object
+ */
 export function objectKeys(obj: Object) {
   return Object.keys(obj);
 }
