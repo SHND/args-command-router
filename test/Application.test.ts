@@ -1,9 +1,9 @@
 import { expect } from 'chai'
-import Application from '../dist/Application';
+import Application from '../src/Application';
 
 describe('Application', () => {
 
-  describe.only('noroute()', () => {
+  describe('noroute()', () => {
     it('route not exist but no noroute callbacks are set', () => {
       const app = new Application();
 
