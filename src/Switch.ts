@@ -31,4 +31,65 @@ export class Switch {
     this.description = description;
     this.parameters = parameters;
   }
+
+  /**
+   * shortname getter
+   */
+  public getShortname = () => {
+    return this.shortname;
+  }
+
+  /**
+   * shortname setter
+   * @param {string} name
+   */
+  public setShortname = (name: string) => {
+    this.shortname = name;
+  }
+
+  /**
+   * longname getter
+   */
+  public getLongname = () => {
+    return this.longname;
+  }
+
+  /**
+   * longname setter
+   * @param {string} name
+   */
+  public setLongname = (name: string) => {
+    this.longname = name;
+  }
+
+  /**
+   * description getter
+   */
+  public getDescription = () => {
+    return this.description;
+  }
+
+  /**
+   * description setter
+   * @param {string} name
+   */
+  public setDescription = (name: string) => {
+    this.description = name;
+  }
+
+  /**
+   * parameters getter
+   */
+  public getParameters = () => {
+    return this.parameters;
+  }
+
+  /**
+   * parameters setter
+   * @param {SwitchParameter[]} params
+   */
+  public setParameters = (params: SwitchParameter[]) => {
+    this.parameters = params;
+  }
+
 }
