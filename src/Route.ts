@@ -5,6 +5,7 @@ import { Switch } from './Switch';
 import { PathTree } from './PathTree/PathTree';
 import { StaticPathItem } from './PathTree/StaticPathItem';
 import { DynamicPathItem } from './PathTree/DynamicPathItem';
+import { SwitchPathItem } from './PathTree/SwitchPathItem';
 
 export class Route {
 
@@ -23,13 +24,11 @@ export class Route {
    * an array of PathItems which is the mix of existing and newly created
    * PathItems on the tree.
    * 
-   * This method is pure and it's not changing the state of tree.
-   * 
    * @param tree for matching path to its PathItems
    * @param path to be matched with the specified tree
    * @returns {PathItem[]}
    */
-  static matchRouteToTreePathItems(tree: PathTree, path: string) {
+  static matchRouteToTreePathItems(tree: PathTree, path: string): PathItem[] {
     let currentPathItem: BlockPathItem = tree.getRoot();
     const newPathItems = parsePath(path);
     const finalPathItems = [];
@@ -43,22 +42,37 @@ export class Route {
           finalPathItems.push(currentPathItem);
         } else {
           currentPathItem.addStaticPathItem(newPathItem);
-          finalPathItems.push(newPathItem);
-          break;
+          currentPathItem = newPathItem;
+          finalPathItems.push(currentPathItem);
         }
       } else if (newPathItem instanceof DynamicPathItem) {
         if (currentPathItem.hasDynamicPathItem()) {
+          currentPathItem = currentPathItem.getDynamicPathItem();
+          
           if (currentPathItem.getName() !== newPathItem.getName()) {
             throw Error(`Dynamic PathItem with name "${newPathItem.getName()}" already exist with name "${currentPathItem.getName()}" in route path "${path}".`);
           }
 
-          currentPathItem = currentPathItem.getDynamicPathItem();
           finalPathItems.push(currentPathItem);
         } else {
           currentPathItem.setDynamicPathItem(newPathItem);
-          finalPathItems.push(newPathItem);
-          break;
+          currentPathItem = newPathItem;
+          finalPathItems.push(currentPathItem);
         }
+      } else if (newPathItem instanceof SwitchPathItem) {
+        const switchPathItems = currentPathItem.getSwitchPathItems();
+        const switchUniqueName = newPathItem.getUniqueName();
+        const existingSwitchPathItem = switchPathItems.find(swich => swich.getUniqueName() === switchUniqueName);
+
+        if (existingSwitchPathItem) {
+          finalPathItems.push(existingSwitchPathItem);
+        } else {
+          currentPathItem.addSwitchPathItem(newPathItem);
+          finalPathItems.push(newPathItem);
+        }
+        
+        // As soon as seeing SwitchPathItem, it should be the last thing to see
+        break;
       }
     }
 
