@@ -48,6 +48,17 @@ export class Switch {
   }
 
   /**
+   * has Shortname been set for this switch
+   */
+  public hasShortname = () => {
+    if (this.shortname) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
    * longname getter
    */
   public getLongname = () => {
@@ -60,6 +71,17 @@ export class Switch {
    */
   public setLongname = (name: string) => {
     this.longname = name;
+  }
+
+  /**
+   * has Longname been set for this switch
+   */
+  public hasLongname = () => {
+    if (this.longname) {
+      return true;
+    }
+
+    return false;
   }
 
   /**

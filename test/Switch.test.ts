@@ -78,6 +78,16 @@ describe('Switch', () => {
     expect(swich.getShortname()).to.equal('b');
   });
 
+  it('hasShortname, hasLongname', () => {
+    const swich1 = new Switch('a');
+    const swich2 = new Switch(null, 'aa');
+
+    expect(swich1.hasShortname()).to.true;
+    expect(swich1.hasLongname()).to.false;
+    expect(swich2.hasShortname()).to.false;
+    expect(swich2.hasLongname()).to.true;
+  })
+
   it('longname property, getLongname, setLongname methods', () => {
     const swich = new Switch(null, 'aa');
 
