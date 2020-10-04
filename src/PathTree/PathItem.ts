@@ -108,20 +108,6 @@ export abstract class PathItem {
   }
 
   /**
-   * Remove callback
-   * @param {Function} callback to be removed
-   */
-  public removeCallback = (callback: Function) => {
-    const index = this.callbacks.indexOf(callback);
-
-    if (index < 0) {
-      return;
-    }
-
-    this.callbacks.splice(index, 1);
-  }
-
-  /**
    * helpCallback getter
    */
   public getHelpCallback = () => {
@@ -196,28 +182,6 @@ export abstract class PathItem {
   }
 
   /**
-   * Remove requireSwitch
-   * @param {Switch} swich to be removed
-   */
-  public removeRequiredSwitch = (swich: Switch) => {
-    const index = this.requiredSwitches.indexOf(swich);
-
-    if (index < 0) {
-      return;
-    }
-
-    this.requiredSwitches.splice(index, 1);
-
-    if (swich.hasShortname()) {
-      delete this._shortRequiredSwitches[swich.getShortname()];
-    }
-
-    if (swich.hasLongname()) {
-      delete this._longRequiredSwitches[swich.getLongname()];
-    }
-  }
-
-  /**
    * Add optionalSwitch
    * @param {Switch} swich to be added
    */
@@ -243,28 +207,6 @@ export abstract class PathItem {
     }
 
     this.optionalSwitches.push(swich);
-  }
-
-  /**
-   * Remove optionalSwitch
-   * @param {Switch} swich to be removed
-   */
-  public removeOptionalSwitch = (swich: Switch) => {
-    const index = this.optionalSwitches.indexOf(swich);
-
-    if (index < 0) {
-      return;
-    }
-
-    this.optionalSwitches.splice(index, 1);
-    
-    if (swich.hasShortname()) {
-      delete this._shortOptionalSwitches[swich.getShortname()];
-    }
-
-    if (swich.hasLongname()) {
-      delete this._longOptionalSwitches[swich.getLongname()];
-    }
   }
 
   /**

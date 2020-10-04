@@ -99,18 +99,6 @@ export abstract class BlockPathItem extends PathItem {
   }
 
   /**
-   * Remove staticPathItem
-   * @param {StaticPathItem} staticPathItem
-   */
-  public removeStaticPathItem = (staticPathItem: StaticPathItem) => {
-    const name = staticPathItem.getUniqueName(false);
-
-    if (this.hasStaticPathItem(name)) {
-      delete this.staticPathItems[name];
-    }
-  }
-
-  /**
    * dynamicPathItem getter
    */
   public getDynamicPathItem = () => {
@@ -149,20 +137,6 @@ export abstract class BlockPathItem extends PathItem {
     switchPathItem.setParentPathItem(this);
 
     this.switchPathItems.push(switchPathItem);
-  }
-
-  /**
-   * Remove switchPathItem
-   * @param {SwitchPathItem} switchPathItem to be removed
-   */
-  public removeSwitchPathItem = (switchPathItem: SwitchPathItem) => {
-    const index = this.switchPathItems.indexOf(switchPathItem);
-
-    if (index < 0) {
-      return;
-    }
-
-    this.switchPathItems.splice(index, 1);
   }
 
   /**
@@ -217,28 +191,6 @@ export abstract class BlockPathItem extends PathItem {
   }
 
   /**
-   * Remove required switch
-   * @param {Switch} switch to be removed from required common switches
-   */
-  public removeCommonRequiredSwitch = (swich: Switch) => {
-    const index = this.commonRequiredSwitches.indexOf(swich);
-
-    if (index < 0) {
-      return;
-    }
-
-    this.commonRequiredSwitches.splice(index, 1);
-
-    if (swich.hasShortname()) {
-      delete this._shortCommonRequiredSwitches[swich.getShortname()];
-    }
-
-    if (swich.hasLongname()) {
-      delete this._longCommonRequiredSwitches[swich.getLongname()];
-    }
-  }
-
-  /**
    * Get common optional switch
    */
   public getCommonOptionalSwitches = () => {
@@ -287,28 +239,6 @@ export abstract class BlockPathItem extends PathItem {
    */
   public hasCommonOptionalSwitchWithLongname = (longname: string) => {
     return !!this._longCommonOptionalSwitches[longname];
-  }
-
-  /**
-   * Remove optional switch
-   * @param {Switch} switch to be removed from optional common switches
-   */
-  public removeCommonOptionalSwitch = (swich: Switch) => {
-    const index = this.commonOptionalSwitches.indexOf(swich);
-
-    if (index < 0) {
-      return;
-    }
-
-    this.commonOptionalSwitches.splice(index, 1);
-
-    if (swich.hasShortname()) {
-      delete this._shortCommonOptionalSwitches[swich.getShortname()];
-    }
-
-    if (swich.hasLongname()) {
-      delete this._longCommonOptionalSwitches[swich.getLongname()];
-    }
   }
 
 }

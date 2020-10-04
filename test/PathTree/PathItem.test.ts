@@ -69,7 +69,7 @@ describe('PathItem', () => {
     expect(pathItem.getDescription()).to.equal('description 1');
   });
 
-  it('callbacks property, callback addCallback, hasCallback, removeCallback methods', () => {
+  it('callbacks property, callback addCallback, hasCallback methods', () => {
     const pathItem = new TestPathItem();
     const callback = () => {};
 
@@ -81,11 +81,6 @@ describe('PathItem', () => {
     expect(pathItem.getCallbacks()).have.lengthOf(1);
     expect(pathItem.getCallbacks()[0]).to.equal(callback);
     expect(pathItem.hasCallback(callback)).to.equal(true);
-
-    pathItem.removeCallback(callback);
-    pathItem.removeCallback(callback);
-    expect(pathItem.getCallbacks()).have.lengthOf(0);
-    expect(pathItem.hasCallback(callback)).to.equal(false);
   });
 
   it('helpCallback property, getHelpCallback, setHelpCallback methods', () => {
@@ -98,7 +93,7 @@ describe('PathItem', () => {
     expect(pathItem.getHelpCallback()).to.equal(callback);
   });
 
-  it('requiredSwitches property, getRequiredSwitches, addRequiredSwitch, hasRequiredSwitch, hasRequiredSwitchWithShortname, hasRequiredSwitchWithLongname, removeRequiredSwitch methods', () => {
+  it('requiredSwitches property, getRequiredSwitches, addRequiredSwitch, hasRequiredSwitch, hasRequiredSwitchWithShortname, hasRequiredSwitchWithLongname methods', () => {
     const pathItem = new TestPathItem();
     const swich = new Switch('a', 'aa');
 
@@ -116,16 +111,9 @@ describe('PathItem', () => {
     expect(pathItem.hasRequiredSwitch(swich)).to.true;
     expect(pathItem.hasRequiredSwitchWithShortname('a')).to.true;
     expect(pathItem.hasRequiredSwitchWithLongname('aa')).to.true;
-
-    pathItem.removeRequiredSwitch(swich);
-    pathItem.removeRequiredSwitch(swich);
-    expect(pathItem.getRequiredSwitches()).to.length(0);
-    expect(pathItem.hasRequiredSwitch(swich)).to.false;
-    expect(pathItem.hasRequiredSwitchWithShortname('a')).to.false;
-    expect(pathItem.hasRequiredSwitchWithLongname('aa')).to.false;
   });
 
-  it('optionalSwitches property, getOptionalSwitches, addOptionalSwitch, hasOptionalSwitch, hasOptionalSwitchWithShortname, hasOptionalSwitchWithLongname, removeOptionalSwitch methods', () => {
+  it('optionalSwitches property, getOptionalSwitches, addOptionalSwitch, hasOptionalSwitch, hasOptionalSwitchWithShortname, hasOptionalSwitchWithLongname methods', () => {
     const pathItem = new TestPathItem();
     const swich = new Switch('a', 'aa');
 
@@ -143,13 +131,6 @@ describe('PathItem', () => {
     expect(pathItem.hasOptionalSwitch(swich)).to.true;
     expect(pathItem.hasOptionalSwitchWithShortname('a')).to.true;
     expect(pathItem.hasOptionalSwitchWithLongname('aa')).to.true;
-
-    pathItem.removeOptionalSwitch(swich);
-    pathItem.removeOptionalSwitch(swich);
-    expect(pathItem.getOptionalSwitches()).to.length(0);
-    expect(pathItem.hasOptionalSwitch(swich)).to.false;
-    expect(pathItem.hasOptionalSwitchWithShortname('a')).to.false;
-    expect(pathItem.hasOptionalSwitchWithLongname('aa')).to.false;
   });
 
   describe('Adding switches when the name is already used', () => {

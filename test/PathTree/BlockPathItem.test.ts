@@ -77,7 +77,7 @@ describe('BlockPathItem', () => {
     expect(blockPathItem.getDynamicPathItem()).to.equal(dynamicPathItem);
   });
 
-  it('switchPathItems property, addSwitchPathItem, removeSwitchPathItem methods', () => {
+  it('switchPathItems property, addSwitchPathItem methods', () => {
     const blockPathItem = new TestBlockPathItem();
 
     expect(blockPathItem.getSwitchPathItems()).to.lengthOf(0);
@@ -85,12 +85,9 @@ describe('BlockPathItem', () => {
     const switchPathItem = new SwitchPathItem('', null);
     blockPathItem.addSwitchPathItem(switchPathItem);
     expect(blockPathItem.getSwitchPathItems()).to.lengthOf(1);
-
-    blockPathItem.removeSwitchPathItem(switchPathItem);
-    expect(blockPathItem.getSwitchPathItems()).to.lengthOf(0);
   });
 
-  it('commonRequiredSwitches property, addCommonRequiredSwitch, removeCommonRequiredSwitch methods', () => {
+  it('commonRequiredSwitches property, addCommonRequiredSwitch methods', () => {
     const blockPathItem = new TestBlockPathItem();
     const swich = new Switch('a', 'aa');
 
@@ -99,9 +96,6 @@ describe('BlockPathItem', () => {
     blockPathItem.addCommonRequiredSwitch(swich);
     expect(blockPathItem.getCommonRequiredSwitches()).to.lengthOf(1);
     expect(blockPathItem.getCommonRequiredSwitches()[0]).to.equal(swich);
-
-    blockPathItem.removeCommonRequiredSwitch(swich);
-    expect(blockPathItem.getCommonRequiredSwitches()).to.length(0)
   });
 
   it('hasCommonRequiredSwitchWithShortname', () => {
@@ -277,7 +271,7 @@ describe('BlockPathItem', () => {
 
   });
 
-  it('optionalCommonSwitches property, addCommonOptionalSwitch, removeCommonOptionalSwitch methods', () => {
+  it('optionalCommonSwitches property, addCommonOptionalSwitch methods', () => {
     const blockPathItem = new TestBlockPathItem();
     const swich = new Switch('a', 'aa');
 
@@ -286,9 +280,6 @@ describe('BlockPathItem', () => {
     blockPathItem.addCommonOptionalSwitch(swich);
     expect(blockPathItem.getCommonOptionalSwitches()).to.lengthOf(1);
     expect(blockPathItem.getCommonOptionalSwitches()[0]).to.equal(swich);
-
-    blockPathItem.removeCommonOptionalSwitch(swich);
-    expect(blockPathItem.getCommonOptionalSwitches()).to.length(0)
   });
 
 })
