@@ -29,7 +29,7 @@ export class RootPathItem extends BlockPathItem {
    */
   public getUniqueName = (shortForm: boolean = false) => {
     return this.name;
-  }
+  };
 
   /**
    * Returns true because this is the RootPathItem
@@ -64,5 +64,7 @@ export class RootPathItem extends BlockPathItem {
       }
     }
   }
+
+  public getDynamicPathItemName: () => string | null = () => null;
 
 }

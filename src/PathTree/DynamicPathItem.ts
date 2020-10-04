@@ -41,5 +41,9 @@ export class DynamicPathItem extends BlockPathItem {
    * @returns false
    */
   public isRootPathItem = () => false;
+
+  public getDynamicPathItemName = () => {
+    return this.getName();
+  }
   
 }

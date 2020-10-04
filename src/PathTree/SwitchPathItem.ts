@@ -65,5 +65,9 @@ export class SwitchPathItem extends PathItem {
 
     return expressions;
   }
+
+  public getDynamicPathItemName: () => string | null = () => null;
+
+  public getCommonSwitchNames = () => ({});
   
 }

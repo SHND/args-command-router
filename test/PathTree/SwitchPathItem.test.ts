@@ -181,6 +181,14 @@ describe('SwitchPathItem', () => {
 
   });
 
+  describe('getCommonSwitchNames', () => {
+    it('getCommonSwitchNames()', () => {
+      const pathItem = new SwitchPathItem('', null);
+
+      expect(pathItem.getCommonSwitchNames()).deep.equal({});
+    })
+  })
+
   describe('parse()', () => {
 
     it('parse() for ""', () => {
@@ -300,6 +308,18 @@ describe('SwitchPathItem', () => {
       expect(expressions[1].isValuedSwitch()).to.be.true;
       expect(expressions[1].getSwitchValue()).equals('1');
     });
+
+    it('getDynamicPathItemName', () => {
+      const pathItem = new SwitchPathItem('', null);
+  
+      expect(pathItem.getDynamicPathItemName()).equal(null);
+    });
+
+    it('getCommonSwitchNames', () => {
+      const pathItem = new SwitchPathItem('', null);
+  
+      expect(pathItem.getCommonSwitchNames()).deep.equal({});
+    })
 
   });
 

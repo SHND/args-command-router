@@ -1,6 +1,5 @@
 import { Switch } from "../Switch";
 import { PATH_ITEM_DELIMITER } from "../constants";
-import { RootPathItem } from "./RootPathItem";
 
 export abstract class PathItem {
 
@@ -8,8 +7,13 @@ export abstract class PathItem {
   protected description: string;
   protected callbacks: Function[] = [];
   protected helpCallback: Function;
-  protected requiredSwitches: Array<Switch> = []
-  protected optionalSwitches: Array<Switch> = []
+  protected requiredSwitches: Switch[] = [];
+  protected optionalSwitches: Switch[] = [];
+
+  private _shortRequiredSwitches: Record<string, Switch> = {};
+  private _longRequiredSwitches: Record<string, Switch> = {};
+  private _shortOptionalSwitches: Record<string, Switch> = {};
+  private _longOptionalSwitches: Record<string, Switch> = {};
 
   public abstract getUniqueName: (shortForm?: boolean) => string;
 
@@ -19,6 +23,33 @@ export abstract class PathItem {
    */
   public abstract isRootPathItem: () => boolean;
 
+  /**
+   * Returns the pathItem name if it is a dynamicPathItem or null if it is not
+   */
+  public abstract getDynamicPathItemName: () => string | null;
+  
+  /**
+   * Returns a dictionary of short and long common switch names in the PathItem
+   */
+  public abstract getCommonSwitchNames: () => Record<string, boolean>;
+
+  /**
+   * Check if the pathItem is in a branch that has a RootPathItem
+   */
+  public isInRootPathItemBranch() {
+    let current: PathItem = this;
+
+    while (current) {
+      if (current.isRootPathItem()) {
+        return true;
+      }
+
+      current = current.parentPathItem;
+    }
+
+    return false;
+  }
+  
   /**
    * parentPathItem getter
    */
@@ -121,13 +152,47 @@ export abstract class PathItem {
   }
 
   /**
+   * Check if the requiredSwitch with specifc shortname exists
+   * @param shortname 
+   */
+  public hasRequiredSwitchWithShortname = (shortname: string) => {
+    return !!this._shortRequiredSwitches[shortname];
+  }
+
+  /**
+   * Check if the requiredSwitch with specifc longname exists
+   * @param longname 
+   */
+  public hasRequiredSwitchWithLongname = (longname: string) => {
+    return !!this._longRequiredSwitches[longname];
+  }
+
+  /**
    * Add requiredSwitch
    * @param {Switch} swich to be added
    */
   public addRequiredSwitch = (swich: Switch) => {
-    if (!this.hasRequiredSwitch(swich)) {
-      this.requiredSwitches.push(swich);      
+    const dynamicNames = this.getDisAllowedSwitchNames();
+
+    if (swich.hasShortname()) {
+      const shortname = swich.getShortname();
+      if (dynamicNames[shortname]) {
+        throw Error(`Name "${shortname}" is already used. Use another name for the Required Switch shortname.`)
+      }
+
+      this._shortRequiredSwitches[shortname] = swich;
     }
+ 
+    if (swich.hasLongname()) {
+      const longname = swich.getLongname();
+      if (dynamicNames[longname]) {
+        throw Error(`Name "${longname}" is already used. Use another name for the Required Switch longname.`)
+      }
+
+      this._longRequiredSwitches[longname] = swich;
+    }
+
+    this.requiredSwitches.push(swich);
   }
 
   /**
@@ -142,6 +207,14 @@ export abstract class PathItem {
     }
 
     this.requiredSwitches.splice(index, 1);
+
+    if (swich.hasShortname()) {
+      delete this._shortRequiredSwitches[swich.getShortname()];
+    }
+
+    if (swich.hasLongname()) {
+      delete this._longRequiredSwitches[swich.getLongname()];
+    }
   }
 
   /**
@@ -149,9 +222,27 @@ export abstract class PathItem {
    * @param {Switch} swich to be added
    */
   public addOptionalSwitch = (swich: Switch) => {
-    if (!this.hasOptionalSwitch(swich)) {
-      this.optionalSwitches.push(swich);
+    const dynamicNames = this.getDisAllowedSwitchNames();
+
+    if (swich.hasShortname()) {
+      const shortname = swich.getShortname();
+      if (dynamicNames[shortname]) {
+        throw Error(`Name "${shortname}" is already used. Use another name for the Optional Switch shortname.`)
+      }
+
+      this._shortOptionalSwitches[shortname] = swich;
     }
+ 
+    if (swich.hasLongname()) {
+      const longname = swich.getLongname();
+      if (dynamicNames[longname]) {
+        throw Error(`Name "${longname}" is already used. Use another name for the Optional Switch longname.`)
+      }
+
+      this._longOptionalSwitches[longname] = swich;
+    }
+
+    this.optionalSwitches.push(swich);
   }
 
   /**
@@ -166,6 +257,14 @@ export abstract class PathItem {
     }
 
     this.optionalSwitches.splice(index, 1);
+    
+    if (swich.hasShortname()) {
+      delete this._shortOptionalSwitches[swich.getShortname()];
+    }
+
+    if (swich.hasLongname()) {
+      delete this._longOptionalSwitches[swich.getLongname()];
+    }
   }
 
   /**
@@ -184,6 +283,22 @@ export abstract class PathItem {
   }
 
   /**
+   * Check if the optionalSwitch with specifc shortname exists
+   * @param shortname 
+   */
+  public hasOptionalSwitchWithShortname = (shortname: string) => {
+    return !!this._shortOptionalSwitches[shortname];
+  }
+
+  /**
+   * Check if the optionalSwitch with specifc longname exists
+   * @param longname 
+   */
+  public hasOptionalSwitchWithLongname = (longname: string) => {
+    return !!this._longOptionalSwitches[longname];
+  }
+
+  /**
    * Get the path for the current PathItem
    * @param shortForm false for path with shortForm, true for longForm
    */
@@ -197,6 +312,67 @@ export abstract class PathItem {
     }
 
     return PATH_ITEM_DELIMITER + stack.reverse().join(PATH_ITEM_DELIMITER);
+  }
+
+   /**
+   * Get all branch DynamicPathItem names
+   */
+  public getBranchDynamicPathItemNames() {
+    const output: Record<string, boolean> = {};
+
+    let current: PathItem = this;
+    while (current) {
+      const name = current.getDynamicPathItemName();
+
+      if (name !== null) {
+        output[name] = true;
+      }
+
+      current = current.getParentPathItem();
+    }
+
+    return output;
+  }
+
+  /**
+   * Get all branch commonSwitch short and long names in a dictionary
+   */
+  public getBranchCommonSwitchNames() {
+    const output: Record<string, boolean> = {};
+
+    let current: PathItem = this;
+    while (current) {
+      const names = Object.keys(current.getCommonSwitchNames());
+
+      for (let name of names) {
+        output[name] = true;;
+      }
+
+      current = current.getParentPathItem();
+    }
+
+    return output;
+  }
+
+  /**
+   * Get all names that are disallowed to be used for DynamicPathItem.
+   */
+  public getDisAllowedDynamicPathItemNames = () => {
+    return this.getBranchDynamicPathItemNames();
+  }
+
+  /**
+   * Get all names that are disallowed to be used for switch names
+   */
+  public getDisAllowedSwitchNames = () => {
+    const commonSwitchNames = { ...this.getBranchCommonSwitchNames() };
+    
+    Object.keys(this._shortRequiredSwitches).forEach(name => commonSwitchNames[name] = true);
+    Object.keys(this._shortOptionalSwitches).forEach(name => commonSwitchNames[name] = true);
+    Object.keys(this._longRequiredSwitches).forEach(name => commonSwitchNames[name] = true);
+    Object.keys(this._longOptionalSwitches).forEach(name => commonSwitchNames[name] = true);
+
+    return commonSwitchNames;
   }
 
 }

@@ -1,21 +1,20 @@
 import { expect } from 'chai'
-import { DynamicPathItem } from '../../src/PathTree/DynamicPathItem';
+import { RootPathItem } from '../../src/PathTree/RootPathItem';
 import { Switch } from '../../src/Switch';
 
-describe('DynamicPathItem', () => {
-  it('instantiating DynamicPathItem subClass', () => {
-    const pathItem = new DynamicPathItem('name1', null);
+describe('RootPathItem', () => {
+  it('instantiating RootPathItem subClass', () => {
+    const pathItem = new RootPathItem();
   });
 
   it('getUniqueName method', () => {
-    const pathItem = new DynamicPathItem('name1', null);
+    const pathItem = new RootPathItem();
 
-    expect(pathItem.getUniqueName(false)).to.equal(':name1');
-    expect(pathItem.getUniqueName(true)).to.equal('name1');
+    expect(pathItem.getUniqueName()).to.equal('/');
   });
-  
+
   it('getCommonSwitchNames', () => {
-    const pathItem = new DynamicPathItem('name1', null);
+    const pathItem = new RootPathItem();
 
     expect(pathItem.getCommonSwitchNames()).deep.equal({});
 
@@ -45,9 +44,9 @@ describe('DynamicPathItem', () => {
   });
 
   it('getDynamicPathItemName', () => {
-    const pathItem = new DynamicPathItem('name1', null);
+    const pathItem = new RootPathItem();
 
-    expect(pathItem.getDynamicPathItemName()).equal('name1')
+    expect(pathItem.getDynamicPathItemName()).equal(null)
   });
 
 });
