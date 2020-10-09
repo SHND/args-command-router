@@ -279,7 +279,7 @@ export abstract class PathItem {
   /**
    * Get all branch commonSwitch short and long names in a dictionary
    */
-  public getBranchCommonSwitchNames() {
+  public getUpwardCommonSwitchNames() {
     const output: Record<string, boolean> = {};
 
     let current: PathItem = this;
@@ -296,6 +296,8 @@ export abstract class PathItem {
     return output;
   }
 
+  public abstract getDownwardCommonSwitchNames: () => Record<string, boolean>;
+
   /**
    * Get all names that are disallowed to be used for DynamicPathItem.
    */
@@ -307,7 +309,7 @@ export abstract class PathItem {
    * Get all names that are disallowed to be used for switch names
    */
   public getDisAllowedSwitchNames = () => {
-    const commonSwitchNames = { ...this.getBranchCommonSwitchNames() };
+    const commonSwitchNames = { ...this.getUpwardCommonSwitchNames(), ...this.getDownwardCommonSwitchNames() };
     
     Object.keys(this._shortRequiredSwitches).forEach(name => commonSwitchNames[name] = true);
     Object.keys(this._shortOptionalSwitches).forEach(name => commonSwitchNames[name] = true);

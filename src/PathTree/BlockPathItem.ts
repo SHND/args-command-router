@@ -18,6 +18,98 @@ export abstract class BlockPathItem extends PathItem {
   private _shortCommonOptionalSwitches: Record<string, Switch> = {};
   private _longCommonOptionalSwitches: Record<string, Switch> = {};
 
+  private downwardCommonRequiredSwitches: Switch[] = [];
+  private downwardCommonOptionalSwitches: Switch[] = [];
+
+  private _downwardShortCommonRequiredSwitches: Record<string, Switch> = {};
+  private _downwardLongCommonRequiredSwitches: Record<string, Switch> = {};
+  private _downwardShortCommonOptionalSwitches: Record<string, Switch> = {};
+  private _downwardLongCommonOptionalSwitches: Record<string, Switch> = {};
+
+  /**
+   * Add the common required switch to the 
+   * current pathItem and update (inform) all 
+   * the parent pathItems with this change, so 
+   * now all the parent know that this common switch 
+   * already exist somewhere in the children.
+   * @param swich that the current and parents should be aware of
+   */
+  public addDownwardCommonRequiredSwitchesAndUpdateParents = (swich: Switch) => {
+    let current: PathItem = this;
+    while (current) {
+      if (!(current instanceof BlockPathItem)) {
+        break;
+      }
+
+      if (swich.hasShortname()) {
+        const name = swich.getShortname();
+        if (current._downwardShortCommonRequiredSwitches[name] || current._downwardShortCommonOptionalSwitches[name]) {
+          throw Error(`Switch name "${name}" is already used in the subtree of pathItem "${current.path(false)}".`)
+        }
+  
+        current._downwardShortCommonRequiredSwitches[name] = swich;
+      }
+  
+      if (swich.hasLongname()) {
+        const name = swich.getLongname();
+        if (current._downwardLongCommonRequiredSwitches[name] || current._downwardLongCommonOptionalSwitches[name]) {
+          throw Error(`Switch name "${name}" is already used in the subtree of pathItem "${current.path(false)}".`)
+        }
+  
+        current._downwardLongCommonRequiredSwitches[swich.getLongname()] = swich;
+      }
+  
+      current.downwardCommonRequiredSwitches.push(swich);
+      current = current.parentPathItem;
+    }
+  }
+
+  public getDownwardCommonRequiredSwitches = () => this.downwardCommonRequiredSwitches;
+  public getDownwardShortCommonRequiredSwitches = () => this._downwardShortCommonRequiredSwitches;
+  public getDownwardLongCommonRequiredSwitches = () => this._downwardLongCommonRequiredSwitches;
+
+  /**
+   * Add the common optional switch to the 
+   * current pathItem and update (inform) all 
+   * the parent pathItems with this change, so 
+   * now all the parent know that this common switch 
+   * already exist somewhere in the children.
+   * @param swich that the current and parents should be aware of
+   */
+  public addDownwardCommonOptionalSwitchesAndUpdateParents = (swich: Switch) => {
+    let current: PathItem = this;
+    while(current) {
+      if (!(current instanceof BlockPathItem)) {
+        break;
+      }
+
+      if (swich.hasShortname()) {
+        const name = swich.getShortname();
+        if (current._downwardShortCommonOptionalSwitches[name] || current._downwardShortCommonRequiredSwitches[name]) {
+          throw Error(`Switch name "${name}" is already used in the subtree of pathItem "${current.path(false)}".`)
+        }
+  
+        current._downwardShortCommonOptionalSwitches[name] = swich;
+      }
+  
+      if (swich.hasLongname()) {
+        const name = swich.getLongname();
+        if (current._downwardLongCommonOptionalSwitches[name] || current._downwardLongCommonRequiredSwitches[name]) {
+          throw Error(`Switch name "${name}" is already used in the subtree of pathItem "${current.path(false)}".`)
+        }
+  
+        current._downwardLongCommonOptionalSwitches[swich.getLongname()] = swich;
+      }
+  
+      current.downwardCommonOptionalSwitches.push(swich);
+      current = current.parentPathItem;
+    }
+  }
+
+  public getDownwardCommonOptionalSwitches = () => this.downwardCommonOptionalSwitches;
+  public getDownwardShortCommonOptionalSwitches = () => this._downwardShortCommonOptionalSwitches;
+  public getDownwardLongCommonOptionalSwitches = () => this._downwardLongCommonOptionalSwitches;
+
   /**
    * Get a dictionary with all commonSwitch names for the current BlockPathItem
    */
@@ -167,26 +259,30 @@ export abstract class BlockPathItem extends PathItem {
    * @param {Switch} switch to be added to required common switches
    */
   public addCommonRequiredSwitch = (swich: Switch) => {
-    const dynamicNames = this.getDisAllowedSwitchNames();
-
+    const disAllowedSwitchNames = this.getDisAllowedSwitchNames();
     if (swich.hasShortname()) {
-      const shortname = swich.getShortname();
-      if (dynamicNames[shortname]) {
-        throw Error(`Name "${shortname}" is already used. Use another name for the Common Required Switch shortname.`)
+      const name = swich.getShortname();
+      if (disAllowedSwitchNames[name]) {
+        throw Error(`Name "${name}" is already used. Use another name for the Common Required Switch shortname.`);
       }
 
-      this._shortCommonRequiredSwitches[shortname] = swich;
+      this._shortCommonRequiredSwitches[name] = swich;
     }
 
     if (swich.hasLongname()) {
-      const longname = swich.getLongname();
-      if (dynamicNames[longname]) {
-        throw Error(`Name "${longname}" is already used. Use another name for the Common Required Switch longname.`)
+      const name = swich.getLongname();
+      if (disAllowedSwitchNames[name]) {
+        throw Error(`Name "${name}" is already used. Use another name for the Common Required Switch longname.`);
       }
 
-      this._longCommonRequiredSwitches[longname] = swich;
+      this._longCommonRequiredSwitches[name] = swich;
     }
-
+   
+    const parent = this.getParentPathItem();
+    if (parent && parent instanceof BlockPathItem) {
+      parent.addDownwardCommonRequiredSwitchesAndUpdateParents(swich);
+    }
+    
     this.commonRequiredSwitches.push(swich);
   }
 
@@ -202,11 +298,11 @@ export abstract class BlockPathItem extends PathItem {
    * @param {Switch} switch to be added to optional common switches
    */
   public addCommonOptionalSwitch = (swich: Switch) => {
-    const dynamicNames = this.getDisAllowedSwitchNames();
+    const disAllowedSwitchNames = this.getDisAllowedSwitchNames();
 
     if (swich.hasShortname()) {
       const shortname = swich.getShortname();
-      if (dynamicNames[shortname]) {
+      if (disAllowedSwitchNames[shortname]) {
         throw Error(`Name "${shortname}" is already used. Use another name for the Common Optional Switch shortname.`)
       }
 
@@ -215,11 +311,16 @@ export abstract class BlockPathItem extends PathItem {
 
     if (swich.hasLongname()) {
       const longname = swich.getLongname();
-      if (dynamicNames[longname]) {
+      if (disAllowedSwitchNames[longname]) {
         throw Error(`Name "${longname}" is already used. Use another name for the Common Optional Switch longname.`)
       }
 
       this._longCommonOptionalSwitches[longname] = swich;
+    }
+
+    const parent = this.getParentPathItem();
+    if (parent && parent instanceof BlockPathItem) {
+      parent.addDownwardCommonOptionalSwitchesAndUpdateParents(swich);
     }
 
     this.commonOptionalSwitches.push(swich);
@@ -239,6 +340,26 @@ export abstract class BlockPathItem extends PathItem {
    */
   public hasCommonOptionalSwitchWithLongname = (longname: string) => {
     return !!this._longCommonOptionalSwitches[longname];
+  }
+
+  /**
+   * Get a dictionary of all Common Switch names 
+   * (optional and required) in children pathItems 
+   * in a form of string => boolean lookup table. Notice 
+   * that this method won't include the current pathItem commonSwitch names.
+   */
+  public getDownwardCommonSwitchNames = () => {
+    const switches = {
+      ...this._downwardShortCommonRequiredSwitches,
+      ...this._downwardLongCommonRequiredSwitches,
+      ...this._downwardShortCommonOptionalSwitches,
+      ...this._downwardLongCommonOptionalSwitches
+    }
+
+    return Object.keys(switches).reduce((acc: Record<string, boolean>, cur) => {
+      acc[cur] = true;
+      return acc;
+    }, {});
   }
 
 }
