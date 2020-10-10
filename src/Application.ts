@@ -8,7 +8,9 @@ export default class Application {
 
   private _config: { [key: string]: any }
   private _tree = new PathTree();
-  private _noroute_callback: Function = noop;
+  private _norouteCallback: Function = noop;
+  private _beforeCallbacks: Function[] = [];
+  private _afterCallbacks: Function[] = [];
 
   constructor(config = {}) {
     this._config = config
@@ -19,7 +21,15 @@ export default class Application {
   }
 
   public noroute(callback: Function) {
-    this._noroute_callback = callback;
+    this._norouteCallback = callback;
+  }
+
+  public before(callback: Function) {
+    this._beforeCallbacks.push(callback);
+  }
+
+  public after(callback: Function) {
+    this._afterCallbacks.push(callback);
   }
 
   public run(argv?: string[]) {
@@ -35,13 +45,12 @@ export default class Application {
     const targetBlockPathItem = matchCommands(commands, root);
 
     if (!targetBlockPathItem) {
-      this._noroute_callback.call(null, {
+      this._norouteCallback.call(null, {
         commands: args.commands,
         pathParams: {},
         shortSwitches: args.shortSwitches,
         longSwitches: args.longSwitches,
-        switches: { ...args.shortSwitches, ...args.longSwitches },
-        all: { ...shortSwitches, ...longSwitches }
+        switches: { ...args.shortSwitches, ...args.longSwitches }
       });
       
       return;
@@ -53,27 +62,46 @@ export default class Application {
 
     const target: PathItem = targetSwitchPathItem || targetBlockPathItem;
 
-    const targetCallbacks = target.getCallbacks();
+    const processMiddleware = ((callback: Function) => {
+      let goNext = false; 
+      
+      const next = () => goNext = true;
 
+      callback.call(target, {
+        commands: args.commands,
+        pathParams: pathParametes,
+        shortSwitches: args.shortSwitches,
+        longSwitches: args.longSwitches,
+        switches: { ...args.shortSwitches, ...args.longSwitches }
+      }, next);
+
+      if (!goNext) {
+        process.exit(0);
+      }
+    });
+
+    const targetCallbacks = target.getCallbacks();
     if (targetCallbacks.length > 0) {
+      this._beforeCallbacks.forEach(processMiddleware);
+
       targetCallbacks.forEach(callback => {
         callback.call(target, {
           commands: args.commands,
           pathParams: pathParametes,
           shortSwitches: args.shortSwitches,
           longSwitches: args.longSwitches,
-          switches: { ...args.shortSwitches, ...args.longSwitches },
-          all: { ...pathParametes, ...shortSwitches, ...longSwitches }
+          switches: { ...args.shortSwitches, ...args.longSwitches }
         })
-      });  
+      });
+      
+      this._afterCallbacks.forEach(processMiddleware);
     } else {
-      this._noroute_callback.call(null, {
+      this._norouteCallback.call(null, {
         commands: args.commands,
         pathParams: {},
         shortSwitches: args.shortSwitches,
         longSwitches: args.longSwitches,
-        switches: { ...args.shortSwitches, ...args.longSwitches },
-        all: { ...shortSwitches, ...longSwitches }
+        switches: { ...args.shortSwitches, ...args.longSwitches }
       });
     }
 
