@@ -8,9 +8,11 @@ export default class Application {
 
   private _config: { [key: string]: any }
   private _tree = new PathTree();
+  
   private _norouteCallback: Function = noop;
-  private _beforeCallbacks: Function[] = [];
-  private _afterCallbacks: Function[] = [];
+
+  private _beforeTargetCallbacks: Function[] = [];
+  private _afterTargetCallbacks: Function[] = [];
 
   constructor(config = {}) {
     this._config = config
@@ -25,11 +27,11 @@ export default class Application {
   }
 
   public before(callback: Function) {
-    this._beforeCallbacks.push(callback);
+    this._beforeTargetCallbacks.push(callback);
   }
 
   public after(callback: Function) {
-    this._afterCallbacks.push(callback);
+    this._afterTargetCallbacks.push(callback);
   }
 
   public run(argv?: string[]) {
@@ -82,7 +84,7 @@ export default class Application {
 
     const targetCallbacks = target.getCallbacks();
     if (targetCallbacks.length > 0) {
-      this._beforeCallbacks.forEach(processMiddleware);
+      this._beforeTargetCallbacks.forEach(processMiddleware);
 
       targetCallbacks.forEach(callback => {
         callback.call(target, {
@@ -93,8 +95,8 @@ export default class Application {
           switches: { ...args.shortSwitches, ...args.longSwitches }
         })
       });
-      
-      this._afterCallbacks.forEach(processMiddleware);
+
+      this._afterTargetCallbacks.forEach(processMiddleware);
     } else {
       this._norouteCallback.call(null, {
         commands: args.commands,
