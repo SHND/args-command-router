@@ -3,10 +3,11 @@ import { Route } from './Route';
 import { parser } from 'args-command-parser';
 import { matchCommands, matchSwitches, matchCommandsGetPathParameters, noop } from './utility';
 import { PathItem } from './PathTree/PathItem';
+import { Config } from './types';
 
 export default class Application {
 
-  private _config: { [key: string]: any }
+  private _config: Config
   private _tree = new PathTree();
   
   private _norouteCallback: Function = noop;
@@ -14,8 +15,13 @@ export default class Application {
   private _beforeTargetCallbacks: Function[] = [];
   private _afterTargetCallbacks: Function[] = [];
 
-  constructor(config = {}) {
-    this._config = config
+  private _beforeAllCallbacks: Function[] = [];
+  private _afterAllCallbacks: Function[] = [];
+
+  constructor(config: Partial<Config> = {}) {
+    this._config = {
+      applyMiddlewareOnNoRoute: config.applyMiddlewareOnNoRoute || false
+    }
   }
 
   public route(path: string) {
@@ -27,11 +33,19 @@ export default class Application {
   }
 
   public before(callback: Function) {
-    this._beforeTargetCallbacks.push(callback);
+    if (this._config.applyMiddlewareOnNoRoute) {
+      this._beforeAllCallbacks.push(callback);
+    } else {
+      this._beforeTargetCallbacks.push(callback);
+    }
   }
 
   public after(callback: Function) {
-    this._afterTargetCallbacks.push(callback);
+    if (this._config.applyMiddlewareOnNoRoute) {
+      this._afterAllCallbacks.push(callback);
+    } else {
+      this._afterTargetCallbacks.push(callback);
+    }
   }
 
   public run(argv?: string[]) {
