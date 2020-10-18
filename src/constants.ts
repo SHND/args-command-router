@@ -32,3 +32,8 @@ export const SINGLE_QUOTE_LITERAL = `'`;
  * Symbol to wrap a literal values in Switch Expression
  */
 export const DOUBLE_QUOTE_LITERAL = `"`;
+
+/**
+ * keyword that can be returned in callback meaning stop processing next callbacks
+ */
+export const STOP = 'stop';

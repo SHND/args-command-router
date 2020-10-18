@@ -1,22 +1,24 @@
 import { PathTree } from './PathTree/PathTree'
 import { Route } from './Route';
 import { parser } from 'args-command-parser';
-import { matchCommands, matchSwitches, matchCommandsGetPathParameters, noop } from './utility';
+import { matchCommands, matchSwitches, matchCommandsGetPathParameters, noop, processCallbacks } from './utility';
 import { PathItem } from './PathTree/PathItem';
-import { Config } from './types';
+import { Callback, CallbackReturnType, Config } from './types';
+import { STOP } from './constants';
+
 
 export default class Application {
 
   private _config: Config
   private _tree = new PathTree();
   
-  private _norouteCallback: Function = noop;
+  private _norouteCallback: Callback = noop;
 
-  private _beforeTargetCallbacks: Function[] = [];
-  private _afterTargetCallbacks: Function[] = [];
+  private _beforeTargetCallbacks: Callback[] = [];
+  private _afterTargetCallbacks: Callback[] = [];
 
-  private _beforeAllCallbacks: Function[] = [];
-  private _afterAllCallbacks: Function[] = [];
+  private _beforeAllCallbacks: Callback[] = [];
+  private _afterAllCallbacks: Callback[] = [];
 
   constructor(config: Partial<Config> = {}) {
     this._config = {
@@ -28,11 +30,11 @@ export default class Application {
     return new Route(this._tree, path);
   }
 
-  public noroute(callback: Function) {
+  public noroute(callback: Callback) {
     this._norouteCallback = callback;
   }
 
-  public before(callback: Function) {
+  public before(callback: Callback) {
     if (this._config.applyMiddlewareOnNoRoute) {
       this._beforeAllCallbacks.push(callback);
     } else {
@@ -40,7 +42,7 @@ export default class Application {
     }
   }
 
-  public after(callback: Function) {
+  public after(callback: Callback) {
     if (this._config.applyMiddlewareOnNoRoute) {
       this._afterAllCallbacks.push(callback);
     } else {
@@ -49,6 +51,8 @@ export default class Application {
   }
 
   public run(argv?: string[]) {
+
+    let partialContext: CallbackReturnType = {};
 
     // if argv is undefined, use the arguments passed from shell
     const args = parser(argv).data;
@@ -61,13 +65,9 @@ export default class Application {
     const targetBlockPathItem = matchCommands(commands, root);
 
     if (!targetBlockPathItem) {
-      this._norouteCallback.call(null, {
-        commands: args.commands,
-        pathParams: {},
-        shortSwitches: args.shortSwitches,
-        longSwitches: args.longSwitches,
-        switches: { ...args.shortSwitches, ...args.longSwitches }
-      });
+      if ((partialContext = processCallbacks(null, partialContext, args, {}, this._beforeAllCallbacks)) === STOP) return;
+      
+      if ((partialContext = processCallbacks(null, partialContext, args, {}, [this._norouteCallback])) === STOP) return;
       
       return;
     }
@@ -78,49 +78,20 @@ export default class Application {
 
     const target: PathItem = targetSwitchPathItem || targetBlockPathItem;
 
-    const processMiddleware = ((callback: Function) => {
-      let goNext = false; 
-      
-      const next = () => goNext = true;
-
-      callback.call(target, {
-        commands: args.commands,
-        pathParams: pathParametes,
-        shortSwitches: args.shortSwitches,
-        longSwitches: args.longSwitches,
-        switches: { ...args.shortSwitches, ...args.longSwitches }
-      }, next);
-
-      if (!goNext) {
-        process.exit(0);
-      }
-    });
+    if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, this._beforeAllCallbacks)) === STOP) return;
 
     const targetCallbacks = target.getCallbacks();
     if (targetCallbacks.length > 0) {
-      this._beforeTargetCallbacks.forEach(processMiddleware);
+      if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, this._beforeTargetCallbacks)) === STOP) return;
 
-      targetCallbacks.forEach(callback => {
-        callback.call(target, {
-          commands: args.commands,
-          pathParams: pathParametes,
-          shortSwitches: args.shortSwitches,
-          longSwitches: args.longSwitches,
-          switches: { ...args.shortSwitches, ...args.longSwitches }
-        })
-      });
+      if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, targetCallbacks)) === STOP) return;
 
-      this._afterTargetCallbacks.forEach(processMiddleware);
+      if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, this._afterTargetCallbacks)) === STOP) return;
     } else {
-      this._norouteCallback.call(null, {
-        commands: args.commands,
-        pathParams: {},
-        shortSwitches: args.shortSwitches,
-        longSwitches: args.longSwitches,
-        switches: { ...args.shortSwitches, ...args.longSwitches }
-      });
+      if ((partialContext = processCallbacks(target, partialContext, args, {}, [this._norouteCallback])) === STOP) return;
     }
 
+    if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, this._afterAllCallbacks)) === STOP) return;
   }
 
   public debug() {

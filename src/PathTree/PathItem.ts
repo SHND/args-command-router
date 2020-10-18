@@ -1,12 +1,13 @@
 import { Switch } from "../Switch";
 import { PATH_ITEM_DELIMITER } from "../constants";
+import { Callback } from "../types";
 
 export abstract class PathItem {
 
   protected parentPathItem: PathItem;
   protected description: string;
-  protected callbacks: Function[] = [];
-  protected helpCallback: Function;
+  protected callbacks: Callback[] = [];
+  protected helpCallback: Callback;
   protected requiredSwitches: Switch[] = [];
   protected optionalSwitches: Switch[] = [];
 
@@ -91,17 +92,17 @@ export abstract class PathItem {
 
   /**
    * check if the callback exists
-   * @param callback 
+   * @param {Callback} callback 
    */
-  public hasCallback = (callback: Function) => {
+  public hasCallback = (callback: Callback) => {
     return this.callbacks.findIndex(cb => cb === callback) >= 0;
   }
 
   /**
    * Add callback
-   * @param {Function} callback to be added
+   * @param {Callback} callback to be added
    */
-  public addCallback = (callback: Function) => {
+  public addCallback = (callback: Callback) => {
     if (!this.hasCallback(callback)) {
       this.callbacks.push(callback);
     }
@@ -116,9 +117,9 @@ export abstract class PathItem {
 
   /**
    * helpCallback setter
-   * @param {Function} callback to be added
+   * @param {Callback} callback to be added
    */
-  public setHelpCallback = (callback: Function) => {
+  public setHelpCallback = (callback: Callback) => {
     this.helpCallback = callback;
   }
 

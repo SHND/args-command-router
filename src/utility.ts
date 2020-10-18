@@ -1,10 +1,11 @@
-import { PATH_ITEM_DELIMITER, DYNAMIC_PATH_PREFIX, OPEN_SWITCH_EXPR_SYMBOL, CLOSE_SWITCH_EXPR_SYMBOL, SINGLE_QUOTE_LITERAL, DOUBLE_QUOTE_LITERAL } from "./constants";
+import { PATH_ITEM_DELIMITER, DYNAMIC_PATH_PREFIX, OPEN_SWITCH_EXPR_SYMBOL, CLOSE_SWITCH_EXPR_SYMBOL, SINGLE_QUOTE_LITERAL, DOUBLE_QUOTE_LITERAL, STOP } from "./constants";
 import { RootPathItem } from "./PathTree/RootPathItem";
 import { DynamicPathItem } from "./PathTree/DynamicPathItem";
 import { StaticPathItem } from "./PathTree/StaticPathItem";
 import { BlockPathItem } from "./PathTree/BlockPathItem";
 import { PathItem } from "./PathTree/PathItem";
 import { SwitchPathItem } from "./PathTree/SwitchPathItem";
+import { Callback, CallbackReturnType, ExternalArgsType } from "./types";
 
 /**
  * Empty (no-operation) function
@@ -283,4 +284,50 @@ export function matchSwitches(
   }
   
   return null;
+}
+
+/**
+ * Calling callbacks and return the partial context.
+ * The callbacks can be any before, after, noRoute, help or main callbacks.
+ * @param targetPathItem which the callbacks are being run in their context
+ * @param forwardedPartialContext Partial context which is being passed through the callbacks
+ * @param args args-command-parser parsed arguments
+ * @param pathParameters Dictionary of dynamic pathItem names and their real values
+ * @param callbacks to be run
+ */
+export function processCallbacks(targetPathItem: PathItem, forwardedPartialContext: CallbackReturnType, args: ExternalArgsType, pathParameters: Record<string, string>, callbacks: Callback[]): CallbackReturnType {
+  if (forwardedPartialContext === STOP) {
+    return;
+  }
+  
+  let partialContext = { ...forwardedPartialContext };
+
+  for (let callback of callbacks) {
+    const output = callback.call(targetPathItem, {
+      ...partialContext,
+      commands: args.commands,
+      pathParams: pathParameters,
+      shortSwitches: args.shortSwitches,
+      longSwitches: args.longSwitches,
+      switches: { ...args.shortSwitches, ...args.longSwitches }
+    });
+
+    if (output === undefined) {
+      // continue with previous forwardedContext
+    } else if (typeof output === 'string' && output === STOP) {
+      return STOP;
+    } else if (typeof output === 'object') {
+      if (output.hasOwnProperty('commands'))  throw Error('The "command" keyword is reserved and it cannot be returned from callbacks.');
+      if (output.hasOwnProperty('pathParams'))  throw Error('The "pathParams" keyword is reserved and it cannot be returned from callbacks.');
+      if (output.hasOwnProperty('shortSwitches'))  throw Error('The "shortSwitches" keyword is reserved and it cannot be returned from callbacks.');
+      if (output.hasOwnProperty('longSwitches'))  throw Error('The "longSwitches" keyword is reserved and it cannot be returned from callbacks.');
+      if (output.hasOwnProperty('switches'))  throw Error('The "switches" keyword is reserved and it cannot be returned from callbacks.');
+
+      partialContext = { ...partialContext, ...output };
+    } else {
+      throw Error('Callbacks can only return simple objects or not returning anything at all.');
+    }
+  }
+
+  return partialContext;
 }

@@ -6,6 +6,7 @@ import { PathTree } from './PathTree/PathTree';
 import { StaticPathItem } from './PathTree/StaticPathItem';
 import { DynamicPathItem } from './PathTree/DynamicPathItem';
 import { SwitchPathItem } from './PathTree/SwitchPathItem';
+import { Callback } from './types';
 
 export class Route {
 
@@ -91,7 +92,7 @@ export class Route {
    * @param callback to be added for being called for the current route
    * @returns {Route} current route
    */
-  callback(callback: Function) {
+  callback(callback: Callback) {
     this.lastPathItem().addCallback(callback);
 
     return this;
@@ -102,7 +103,7 @@ export class Route {
    * @param callback help
    * @returns {Route} current route
    */
-  help(callback: Function) {
+  help(callback: Callback) {
     this.lastPathItem().setHelpCallback(callback);
 
     return this;

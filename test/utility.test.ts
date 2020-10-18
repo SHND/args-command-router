@@ -1,9 +1,10 @@
 import { expect } from 'chai'
-import { parsePath, splitFromSwitchPathItem, splitSwitchExpressions, hasWhiteSpace, hasAnyOfChars, matchCommands, matchSwitches, matchCommandsGetPathParameters } from '../src/utility';
+import { parsePath, splitFromSwitchPathItem, splitSwitchExpressions, hasWhiteSpace, hasAnyOfChars, matchCommands, matchSwitches, matchCommandsGetPathParameters, processCallbacks } from '../src/utility';
 import { StaticPathItem } from '../src/PathTree/StaticPathItem';
 import { DynamicPathItem } from '../src/PathTree/DynamicPathItem';
 import { RootPathItem } from '../src/PathTree/RootPathItem';
 import { SwitchPathItem } from '../src/PathTree/SwitchPathItem';
+import { Callback, CallbackReturnType, ExternalArgsType } from '../src/types';
 
 describe('utility', () => {
 
@@ -2876,7 +2877,101 @@ describe('utility', () => {
       expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:[]}, blockPathItem)).equal(switchPathItemA);
       expect(matchSwitches({a:["1", "10"], b:["2"]}, {aa:["1", "10"], bb:["2"]}, blockPathItem)).equal(switchPathItemA);
     });
-
   });
+
+  describe('processCallbacks()', () => {
+    it('processCallbacks with regular callbacks', () => {
+      const pathItem = new StaticPathItem('static1', null);
+      const partialContext = {};
+      const args: ExternalArgsType = {
+        commands: [],
+        shortSwitches: {},
+        longSwitches: {}
+      }
+      const pathParameters = {};
+
+      let callback1Called = false;
+      let callback2Called = false;
+
+      const callback1 = () => { callback1Called = true; return { a: 1 } };
+      const callback2 = () => { callback2Called = true; return { b: 2 } };
+      const callbacks = [ callback1, callback2 ];
+
+      const output = processCallbacks(pathItem, partialContext, args, pathParameters, callbacks);
+
+      expect(callback1Called).be.true;
+      expect(callback2Called).be.true;
+      expect(output).deep.equal({ a: 1, b: 2 });
+    });
+
+    it('processCallbacks with empty callbacks', () => {
+      const pathItem = new StaticPathItem('static1', null);
+      const partialContext = {};
+      const args: ExternalArgsType = {
+        commands: [],
+        shortSwitches: {},
+        longSwitches: {}
+      }
+      const pathParameters = {};
+      const callbacks: Callback[] = [];
+
+      const output = processCallbacks(pathItem, partialContext, args, pathParameters, callbacks);
+
+      expect(output).deep.equal({});
+    });
+
+    it('processCallbacks when one callback do not return', () => {
+      const pathItem = new StaticPathItem('static1', null);
+      const partialContext = {};
+      const args: ExternalArgsType = {
+        commands: [],
+        shortSwitches: {},
+        longSwitches: {}
+      }
+      const pathParameters = {};
+
+      let callback1Called = false;
+      let callback2Called = false;
+
+      const callback1 = () => { callback1Called = true; return { a: 1 } };
+      const callback2 = () => { callback2Called = true; };
+      const callbacks = [ callback1, callback2 ];
+
+      const output = processCallbacks(pathItem, partialContext, args, pathParameters, callbacks);
+
+      expect(callback1Called).be.true;
+      expect(callback2Called).be.true;
+      expect(output).deep.equal({ a: 1 });
+    });
+
+    it('processCallbacks when one callback returns "stop"', () => {
+      const pathItem = new StaticPathItem('static1', null);
+      const partialContext = {};
+      const args: ExternalArgsType = {
+        commands: [],
+        shortSwitches: {},
+        longSwitches: {}
+      }
+      const pathParameters = {};
+
+      let callback0Called = false;
+      let callback1Called = false;
+      let callback2Called = false;
+
+      const callback0 = () => { callback0Called = true; return {a: 1}; };
+      const callback1: Callback = () => { callback1Called = true; return 'stop' };
+      const callback2 = () => { callback2Called = true; return {b: 2}; };
+      const callbacks = [ callback0, callback1, callback2 ];
+
+      const output = processCallbacks(pathItem, partialContext, args, pathParameters, callbacks);
+
+      expect(callback0Called).be.true;
+      expect(callback1Called).be.true;
+      expect(callback2Called).be.false;
+      expect(output).deep.equal('stop');
+    });
+
+
+  })
 
 });
