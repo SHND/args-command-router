@@ -3,6 +3,9 @@ import { Switch } from '../Switch';
 import { StaticPathItem } from './StaticPathItem';
 import { DynamicPathItem } from './DynamicPathItem';
 import { SwitchPathItem } from './SwitchPathItem';
+import { PATH_ITEM_DELIMITER } from '../constants';
+
+const commandLineUsage = require('command-line-usage');
 
 export abstract class BlockPathItem extends PathItem {
 
@@ -111,32 +114,51 @@ export abstract class BlockPathItem extends PathItem {
   public getDownwardLongCommonOptionalSwitches = () => this._downwardLongCommonOptionalSwitches;
 
   /**
-   * Get a dictionary with all commonSwitch names for the current BlockPathItem
+   * Returns a dictionary of short and long common required switch names in the PathItem
    */
-  public getCommonSwitchNames = () => {
-    const names: Record<string, boolean> = {};
+  public getCommonRequiredSwitchNames = () => {
+    const names: Record<string, Switch> = {};
 
     for (let swich of this.commonRequiredSwitches) {
       if (swich.hasShortname()) {
-        names[swich.getShortname()] = true;
+        names[swich.getShortname()] = swich;
       }
 
       if (swich.hasLongname()) {
-        names[swich.getLongname()] = true;
-      }
-    }
-
-    for (let swich of this.commonOptionalSwitches) {
-      if (swich.hasShortname()) {
-        names[swich.getShortname()] = true;
-      }
-
-      if (swich.hasLongname()) {
-        names[swich.getLongname()] = true;
+        names[swich.getLongname()] = swich;
       }
     }
 
     return names;
+  };
+
+  /**
+   * Returns a dictionary of short and long common optional switch names in the PathItem
+   */
+  public getCommonOptionalSwitchNames = () => {
+    const names: Record<string, Switch> = {};
+
+    for (let swich of this.commonOptionalSwitches) {
+      if (swich.hasShortname()) {
+        names[swich.getShortname()] = swich;
+      }
+
+      if (swich.hasLongname()) {
+        names[swich.getLongname()] = swich;
+      }
+    }
+
+    return names;
+  };
+
+  /**
+   * Get a dictionary with all commonSwitch names for the current BlockPathItem
+   */
+  public getCommonSwitchNames = () => {
+    return { 
+      ...this.getCommonRequiredSwitchNames(), 
+      ...this.getCommonOptionalSwitchNames()
+    };
   }
 
   /**
@@ -356,10 +378,131 @@ export abstract class BlockPathItem extends PathItem {
       ...this._downwardLongCommonOptionalSwitches
     }
 
-    return Object.keys(switches).reduce((acc: Record<string, boolean>, cur) => {
-      acc[cur] = true;
+    return Object.keys(switches).reduce((acc: Record<string, Switch>, cur) => {
+      acc[cur] = switches[cur];
       return acc;
     }, {});
   }
+
+  /**
+   * Display help for the current PathItem
+   */
+  public showHelp = (applicationName: string) => {
+    const sections = [];
+    
+    sections.push({
+      header: 'Name',
+      content: applicationName + this.path(false).split(PATH_ITEM_DELIMITER).join(' ')
+    });
+
+    if (this.hasDescription()) {
+      sections.push({
+        header: 'Description',
+        content: this.getDescription()
+      });
+    };
+
+    const subPathItemNames = [];
+
+    if (this.getSwitchPathItems().length > 0) {
+      subPathItemNames.push(
+        ...Object.values(this.getSwitchPathItems())
+          .map(subPathItem => 
+            subPathItem
+              .path(false)
+              .split(PATH_ITEM_DELIMITER).join(' ')
+            )
+      )
+    }
+
+    subPathItemNames.push(
+      ...Object.values(this.getStaticPathItems())
+        .map(subPathItem => 
+          applicationName +
+          subPathItem
+            .path(false)
+            .split(PATH_ITEM_DELIMITER)
+            .join(' ')
+        )
+    )
+    
+    if (this.hasDynamicPathItem()) {
+      subPathItemNames.push(
+        applicationName +
+        this
+          .getDynamicPathItem()
+          .path(false)
+          .split(PATH_ITEM_DELIMITER)
+          .join(' ')
+      );
+    }
+
+    if (subPathItemNames.length > 0) {
+      sections.push({
+        header: 'SubCommands',
+        content: subPathItemNames.map(name => ({ name }))
+      })
+    }
+
+    const upwardCommonRequiredSwitches: Record<string, Switch> = {};
+    Object.values(this.getUpwardCommonRequiredSwitchNames()).forEach(swich => {
+      const key = `${swich.getShortname()},${swich.getLongname()}`;
+      if (!upwardCommonRequiredSwitches[key]) {
+        upwardCommonRequiredSwitches[key] = swich;
+      }
+    });
+
+    const upwardCommonOptionalSwitches: Record<string, Switch> = {};
+    Object.values(this.getUpwardCommonOptionalSwitchNames()).forEach(swich => {
+      const key = `${swich.getShortname()},${swich.getLongname()}`;
+      if (!upwardCommonOptionalSwitches[key]) {
+        upwardCommonOptionalSwitches[key] = swich;
+      }
+    });
+
+    const requiredSwitches = [
+      ...this.getRequiredSwitches(),
+      ...Object.values(upwardCommonRequiredSwitches)
+    ];
+
+    const optionalSwitches = [
+      ...this.getOptionalSwitches(),
+      ...Object.values(upwardCommonOptionalSwitches)
+    ];
+
+    const requiredDefinitions = [];
+    requiredDefinitions.push(...requiredSwitches.map(swich => ({
+      name: swich.getLongname(),
+      alias: swich.getShortname(),
+      description: swich.getDescription(),
+      type: swich.getParameters().length === 0 ? Boolean : undefined,
+      typeLabel: swich.getParameters().length > 0 && swich.getParameters().map(param => `{underline ${param}}`).join(' ')
+    })));
+
+    const optionalDefinitions = [];
+    optionalDefinitions.push(...optionalSwitches.map(swich => ({
+      name: swich.getLongname(),
+      alias: swich.getShortname(),
+      description: swich.getDescription(),
+      type: swich.getParameters().length === 0 ? Boolean : undefined,
+      typeLabel: swich.getParameters().length > 0 && swich.getParameters().map(param => `{underline ${param}}`).join(' ')
+    })));
+
+    if (requiredDefinitions.length > 0) {
+      sections.push({
+        header: 'Required Options',
+        optionList: requiredDefinitions,
+      });
+    }
+
+    if (optionalDefinitions.length > 0) {
+      sections.push({
+        header: 'Optional Options',
+        optionList: optionalDefinitions,
+      });
+    }
+
+    console.log(commandLineUsage(sections));
+  };
 
 }

@@ -6,13 +6,13 @@ export class Switch {
   public shortname?: string
   public longname?: string
   public description?: string
-  public parameters?: SwitchParameter[] = []
+  public parameters?: string[] = []
 
   constructor(
     shortname?: string,
     longname?: string,
     description?: string,
-    parameters: SwitchParameter[] = []
+    parameters: string[] = []
   ) {
     if (!shortname && !longname) {
       throw Error('Switch cannot be initialized with both shortname and longname not specified.');
@@ -108,9 +108,9 @@ export class Switch {
 
   /**
    * parameters setter
-   * @param {SwitchParameter[]} params
+   * @param {string[]} params
    */
-  public setParameters = (params: SwitchParameter[]) => {
+  public setParameters = (params: string[]) => {
     this.parameters = params;
   }
 

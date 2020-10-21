@@ -30,9 +30,24 @@ export abstract class PathItem {
   public abstract getDynamicPathItemName: () => string | null;
   
   /**
+   * Returns a dictionary of short and long common required switch names in the PathItem
+   */
+  public abstract getCommonRequiredSwitchNames: () => Record<string, Switch>;
+
+  /**
+   * Returns a dictionary of short and long common optional switch names in the PathItem
+   */
+  public abstract getCommonOptionalSwitchNames: () => Record<string, Switch>;
+
+  /**
    * Returns a dictionary of short and long common switch names in the PathItem
    */
-  public abstract getCommonSwitchNames: () => Record<string, boolean>;
+  public abstract getCommonSwitchNames: () => Record<string, Switch>;
+
+  /**
+   * Display help for the current PathItem
+   */
+  public abstract showHelp: (applicationName: string) => void;
 
   /**
    * Check if the pathItem is in a branch that has a RootPathItem
@@ -73,6 +88,10 @@ export abstract class PathItem {
    */
   public getDescription = () => {
     return this.description;
+  }
+
+  public hasDescription = () => {
+    return !!this.description;
   }
 
   /**
@@ -261,14 +280,56 @@ export abstract class PathItem {
    * Get all branch DynamicPathItem names
    */
   public getBranchDynamicPathItemNames() {
-    const output: Record<string, boolean> = {};
+    const output: Record<string, PathItem> = {};
 
     let current: PathItem = this;
     while (current) {
       const name = current.getDynamicPathItemName();
 
       if (name !== null) {
-        output[name] = true;
+        output[name] = current;
+      }
+
+      current = current.getParentPathItem();
+    }
+
+    return output;
+  }
+
+  /**
+   * Get all branch commonRequiredSwitch short and long names in a dictionary
+   */
+  public getUpwardCommonRequiredSwitchNames() {
+    const output: Record<string, Switch> = {};
+
+    let current: PathItem = this;
+    while (current) {
+      const commonSwitchNames = current.getCommonRequiredSwitchNames();
+      const names = Object.keys(commonSwitchNames);
+
+      for (let name of names) {
+        output[name] = commonSwitchNames[name];
+      }
+
+      current = current.getParentPathItem();
+    }
+
+    return output;
+  }
+
+  /**
+   * Get all branch commonOptionalSwitch short and long names in a dictionary
+   */
+  public getUpwardCommonOptionalSwitchNames() {
+    const output: Record<string, Switch> = {};
+
+    let current: PathItem = this;
+    while (current) {
+      const commonSwitchNames = current.getCommonOptionalSwitchNames();
+      const names = Object.keys(commonSwitchNames);
+
+      for (let name of names) {
+        output[name] = commonSwitchNames[name];
       }
 
       current = current.getParentPathItem();
@@ -281,14 +342,15 @@ export abstract class PathItem {
    * Get all branch commonSwitch short and long names in a dictionary
    */
   public getUpwardCommonSwitchNames() {
-    const output: Record<string, boolean> = {};
+    const output: Record<string, Switch> = {};
 
     let current: PathItem = this;
     while (current) {
-      const names = Object.keys(current.getCommonSwitchNames());
+      const commonSwitchNames = current.getCommonSwitchNames();
+      const names = Object.keys(commonSwitchNames);
 
       for (let name of names) {
-        output[name] = true;;
+        output[name] = commonSwitchNames[name];
       }
 
       current = current.getParentPathItem();
@@ -297,7 +359,7 @@ export abstract class PathItem {
     return output;
   }
 
-  public abstract getDownwardCommonSwitchNames: () => Record<string, boolean>;
+  public abstract getDownwardCommonSwitchNames: () => Record<string, Switch>;
 
   /**
    * Get all names that are disallowed to be used for DynamicPathItem.
@@ -310,12 +372,14 @@ export abstract class PathItem {
    * Get all names that are disallowed to be used for switch names
    */
   public getDisAllowedSwitchNames = () => {
-    const commonSwitchNames = { ...this.getUpwardCommonSwitchNames(), ...this.getDownwardCommonSwitchNames() };
-    
-    Object.keys(this._shortRequiredSwitches).forEach(name => commonSwitchNames[name] = true);
-    Object.keys(this._shortOptionalSwitches).forEach(name => commonSwitchNames[name] = true);
-    Object.keys(this._longRequiredSwitches).forEach(name => commonSwitchNames[name] = true);
-    Object.keys(this._longOptionalSwitches).forEach(name => commonSwitchNames[name] = true);
+    const commonSwitchNames = { 
+      ...this.getUpwardCommonSwitchNames(), 
+      ...this.getDownwardCommonSwitchNames(),
+      ...this._shortRequiredSwitches,
+      ...this._shortOptionalSwitches,
+      ...this._longRequiredSwitches,
+      ...this._longOptionalSwitches,
+    };
 
     return commonSwitchNames;
   }

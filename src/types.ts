@@ -9,7 +9,13 @@ export type ExternalArgsType = Data;
  * Configuration for the application
  */
 export interface Config {
-  applyMiddlewareOnNoRoute: boolean
+  applicationName: string,
+  applyMiddlewareOnNoRoute: boolean,
+  helpType: 'switch' | 'command',
+  helpCommandName: string,
+  helpShortSwitch: string,
+  helpLongSwitch: string,
+  showHelpOnNoRoute: boolean
 }
 
 /**

@@ -84,7 +84,11 @@ export class Route {
    * The last pathItem object from the specified route
    */
   private lastPathItem() {
-    return this.pathItems[this.pathItems.length - 1];
+    if (this.pathItems.length > 0) {
+      return this.pathItems[this.pathItems.length - 1];
+    } else {
+      return this.tree.getRoot();
+    }
   }
 
   /**
@@ -103,11 +107,11 @@ export class Route {
    * @param callback help
    * @returns {Route} current route
    */
-  help(callback: Callback) {
-    this.lastPathItem().setHelpCallback(callback);
+  // help(callback: Callback) {
+  //   this.lastPathItem().setHelpCallback(callback);
 
-    return this;
-  }
+  //   return this;
+  // }
 
   /**
    * Set description text for the current route
@@ -125,10 +129,11 @@ export class Route {
    * @param short one character string representing the short form of the switch
    * @param long string representing the long form of the switch
    * @param description for the switch
+   * @param parameters swtich parameters
    * @returns {Route} current route
    */
-  requiredSwitch(short: string, long: string, description: string) {
-    const swich = new Switch(short, long, description);
+  requiredSwitch(short: string, long: string, description: string, parameters: string[]) {
+    const swich = new Switch(short, long, description, parameters);
     
     this.lastPathItem().addRequiredSwitch(swich);
 
@@ -140,12 +145,13 @@ export class Route {
    * @param short one character string representing the short form of the switch
    * @param long string representing the long form of the switch
    * @param description for the switch
+   * @param parameters swtich parameters
    * @returns {Route} current route
    */
-  optionalSwitch(short: string, long: string, description: string) {
-    const swich = new Switch(short, long, description);
+  optionalSwitch(short: string, long: string, description: string, parameters: string[]) {
+    const swich = new Switch(short, long, description, parameters);
     
-    this.lastPathItem().addRequiredSwitch(swich);
+    this.lastPathItem().addOptionalSwitch(swich);
 
     return this;
   }
@@ -158,8 +164,8 @@ export class Route {
    * @param description for the switch
    * @returns {Route} current route
    */
-  commonRequiredSwitch(short: string, long: string, description: string) {
-    const swich = new Switch(short, long, description);
+  commonRequiredSwitch(short: string, long: string, description: string, parameters: string[]) {
+    const swich = new Switch(short, long, description, parameters);
     const last = this.lastPathItem();
 
     if (last instanceof BlockPathItem) {
@@ -179,8 +185,8 @@ export class Route {
    * @param description for the switch
    * @returns {Route} current route
    */
-  commonOptionalSwitch(short: string, long: string, description: string) {
-    const swich = new Switch(short, long, description);
+  commonOptionalSwitch(short: string, long: string, description: string, parameters: string[]) {
+    const swich = new Switch(short, long, description, parameters);
     const last = this.lastPathItem();
 
     if (last instanceof BlockPathItem) {

@@ -32,10 +32,13 @@ describe('BlockPathItem', () => {
     it('getCommonSwitchNames when some commonSwitchNames exist', () => {
       const pathItem = new TestBlockPathItem();
 
-      pathItem.addCommonRequiredSwitch(new Switch('a', 'aa'));
-      pathItem.addCommonOptionalSwitch(new Switch('b', 'bb'));
+      const aSwitch = new Switch('a', 'aa')
+      const bSwitch = new Switch('b', 'bb');
 
-      expect(pathItem.getCommonSwitchNames()).deep.equal({ a: true, aa: true, b: true, bb: true });
+      pathItem.addCommonRequiredSwitch(aSwitch);
+      pathItem.addCommonOptionalSwitch(bSwitch);
+
+      expect(pathItem.getCommonSwitchNames()).deep.equal({ a: aSwitch, aa: aSwitch, b: bSwitch, bb: bSwitch });
     });
   });
 

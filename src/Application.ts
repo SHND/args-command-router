@@ -22,7 +22,13 @@ export default class Application {
 
   constructor(config: Partial<Config> = {}) {
     this._config = {
-      applyMiddlewareOnNoRoute: config.applyMiddlewareOnNoRoute || false
+      applicationName: config.applicationName || '<App>',
+      applyMiddlewareOnNoRoute: config.applyMiddlewareOnNoRoute || false,
+      helpType: config.helpType || 'switch',
+      helpCommandName: config.helpCommandName || 'help',
+      helpShortSwitch: config.helpShortSwitch || 'h',
+      helpLongSwitch: config.helpLongSwitch || 'help',
+      showHelpOnNoRoute: config.showHelpOnNoRoute || true,
     }
   }
 
@@ -62,13 +68,47 @@ export default class Application {
     const shortSwitches = args.shortSwitches;
     const longSwitches = args.longSwitches;
 
+    const that = this;
+    /**
+     * Help Before All Hook
+     */
+    this._beforeAllCallbacks.push(function (this: PathItem, context) {
+      if (that._config.helpType === 'command') {
+        if (context.commands[context.commands.length - 1] === that._config.helpCommandName) {
+          const parent = this.getParentPathItem();
+          if (parent) {
+            parent.showHelp(that._config.applicationName);
+          } else {
+            root.showHelp(that._config.applicationName);
+          }
+          return STOP;
+        }
+      } else if (that._config.helpType === 'switch') {
+        if (context.shortSwitches[that._config.helpShortSwitch] || context.longSwitches[that._config.helpLongSwitch]) {
+          if (this) {
+            this.showHelp(that._config.applicationName);
+          } else {
+            root.showHelp(that._config.applicationName);
+          }
+
+          return STOP;
+        }
+      }
+    });
+
     const targetBlockPathItem = matchCommands(commands, root);
 
     if (!targetBlockPathItem) {
       if ((partialContext = processCallbacks(null, partialContext, args, {}, this._beforeAllCallbacks)) === STOP) return;
       
       if ((partialContext = processCallbacks(null, partialContext, args, {}, [this._norouteCallback])) === STOP) return;
-      
+
+      if (this._config.showHelpOnNoRoute) {
+        root.showHelp(this._config.applicationName);
+      }
+
+      if ((partialContext = processCallbacks(null, partialContext, args, {}, this._afterAllCallbacks)) === STOP) return;
+
       return;
     }
 
@@ -77,6 +117,8 @@ export default class Application {
     const targetSwitchPathItem = matchSwitches(shortSwitches, longSwitches, targetBlockPathItem);
 
     const target: PathItem = targetSwitchPathItem || targetBlockPathItem;
+
+    // TODO: Check if switches are match, show good error if not
 
     if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, this._beforeAllCallbacks)) === STOP) return;
 
@@ -89,6 +131,10 @@ export default class Application {
       if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, this._afterTargetCallbacks)) === STOP) return;
     } else {
       if ((partialContext = processCallbacks(target, partialContext, args, {}, [this._norouteCallback])) === STOP) return;
+
+      if (this._config.showHelpOnNoRoute) {
+        target.showHelp(this._config.applicationName);
+      }
     }
 
     if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, this._afterAllCallbacks)) === STOP) return;

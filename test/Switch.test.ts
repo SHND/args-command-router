@@ -107,8 +107,8 @@ describe('Switch', () => {
   });
 
   it('parameters property, getParameters, setParameters methods', () => {
-    const params1 = [{name: 'a'}, {name: 'b'}];
-    const params2 = [{name: 'c'}, {name: 'd'}];
+    const params1 = [ 'a', 'b' ];
+    const params2 = [ 'c', 'd' ];
     const swich = new Switch('a', 'aa', 'description1', params1);
 
     expect(swich.getParameters()).to.equal(params1);
