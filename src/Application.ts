@@ -1,9 +1,9 @@
 import { PathTree } from './PathTree/PathTree'
 import { Route } from './Route';
 import { parser } from 'args-command-parser';
-import { matchCommands, matchSwitches, matchCommandsGetPathParameters, noop, processCallbacks } from './utility';
 import { PathItem } from './PathTree/PathItem';
 import { Callback, CallbackReturnType, Config } from './types';
+import { matchCommands, matchSwitches, matchCommandsGetPathParameters, noop, processCallbacks, verifySwitches } from './utility';
 import { STOP } from './constants';
 
 
@@ -118,7 +118,13 @@ export default class Application {
 
     const target: PathItem = targetSwitchPathItem || targetBlockPathItem;
 
-    // TODO: Check if switches are match, show good error if not
+    try {
+      verifySwitches(target, args.shortSwitches, args.longSwitches, this._config);
+    } catch(error) {
+      console.error(error.message);
+      
+      return;
+    }
 
     if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, this._beforeAllCallbacks)) === STOP) return;
 

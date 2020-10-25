@@ -1,10 +1,11 @@
 import { expect } from 'chai'
-import { parsePath, splitFromSwitchPathItem, splitSwitchExpressions, hasWhiteSpace, hasAnyOfChars, matchCommands, matchSwitches, matchCommandsGetPathParameters, processCallbacks } from '../src/utility';
+import { parsePath, splitFromSwitchPathItem, splitSwitchExpressions, hasWhiteSpace, hasAnyOfChars, matchCommands, matchSwitches, matchCommandsGetPathParameters, processCallbacks, verifySwitches } from '../src/utility';
 import { StaticPathItem } from '../src/PathTree/StaticPathItem';
 import { DynamicPathItem } from '../src/PathTree/DynamicPathItem';
 import { RootPathItem } from '../src/PathTree/RootPathItem';
 import { SwitchPathItem } from '../src/PathTree/SwitchPathItem';
-import { Callback, CallbackReturnType, ExternalArgsType } from '../src/types';
+import { Callback, CallbackReturnType, Config, ExternalArgsType } from '../src/types';
+import { Switch } from '../src/Switch';
 
 describe('utility', () => {
 
@@ -2970,8 +2971,305 @@ describe('utility', () => {
       expect(callback2Called).be.false;
       expect(output).deep.equal('stop');
     });
+  });
 
+  describe('verifySwitches', () => {
+    it('verifySwitches() for valid empty switches', () => {
+      const rootPathItem = new RootPathItem();
+      const staticPathItem = new StaticPathItem('static', rootPathItem);
 
-  })
+      const config: Config = {
+        applicationName: '<App>',
+        applyMiddlewareOnNoRoute: false,
+        helpType: 'switch',
+        helpCommandName: 'zelp',
+        helpShortSwitch: 'z',
+        helpLongSwitch: 'zelp',
+        showHelpOnNoRoute: true,
+      }
+
+      expect(() => {
+        verifySwitches(rootPathItem, {}, {}, config);
+        verifySwitches(staticPathItem, {}, {}, config);
+      }).not.throw();
+    });
+
+    it('verifySwitches() for valid cases', () => {
+      const rootPathItem = new RootPathItem();
+      const staticPathItem = new StaticPathItem('static', rootPathItem);
+
+      rootPathItem.addCommonRequiredSwitch(new Switch('a', null));
+      rootPathItem.addCommonRequiredSwitch(new Switch(null, 'bb'));
+      rootPathItem.addCommonRequiredSwitch(new Switch('c', 'cc'));
+
+      rootPathItem.addCommonOptionalSwitch(new Switch('d', null));
+      rootPathItem.addCommonOptionalSwitch(new Switch(null, 'ee'));
+      rootPathItem.addCommonOptionalSwitch(new Switch('f', 'ff'));
+
+      rootPathItem.addRequiredSwitch(new Switch('g', null));
+      rootPathItem.addRequiredSwitch(new Switch(null, 'hh'));
+      rootPathItem.addRequiredSwitch(new Switch('i', 'ii'));
+
+      rootPathItem.addOptionalSwitch(new Switch('j', null));
+      rootPathItem.addOptionalSwitch(new Switch(null, 'kk'));
+      rootPathItem.addOptionalSwitch(new Switch('l', 'll'));
+
+      staticPathItem.addCommonRequiredSwitch(new Switch('m', null));
+      staticPathItem.addCommonRequiredSwitch(new Switch(null, 'nn'));
+      staticPathItem.addCommonRequiredSwitch(new Switch('o', 'oo'));
+
+      staticPathItem.addCommonOptionalSwitch(new Switch('p', null));
+      staticPathItem.addCommonOptionalSwitch(new Switch(null, 'qq'));
+      staticPathItem.addCommonOptionalSwitch(new Switch('r', 'rr'));
+
+      staticPathItem.addRequiredSwitch(new Switch('s', null));
+      staticPathItem.addRequiredSwitch(new Switch(null, 'tt'));
+      staticPathItem.addRequiredSwitch(new Switch('u', 'uu'));
+
+      staticPathItem.addOptionalSwitch(new Switch('v', null));
+      staticPathItem.addOptionalSwitch(new Switch(null, 'ww'));
+      staticPathItem.addOptionalSwitch(new Switch('x', 'xx'));
+
+      const config: Config = {
+        applicationName: '<App>',
+        applyMiddlewareOnNoRoute: false,
+        helpType: 'switch',
+        helpCommandName: 'zelp',
+        helpShortSwitch: 'z',
+        helpLongSwitch: 'zelp',
+        showHelpOnNoRoute: true,
+      }
+
+      /******************************************
+       * rootPathItem
+       ******************************************/
+
+      expect(() => {
+        verifySwitches(rootPathItem, {a: [], c: [], d: [], f: [], g:[], i: [], j: [], l: [] }, {bb: [], ee: [], hh: [], kk: [] }, config);
+      }).not.throws();
+
+      // short help
+      expect(() => {
+        verifySwitches(rootPathItem, {a: [], c: [], d: [], f: [], g:[], i: [], j: [], l: [], z: [] }, {bb: [], ee: [], hh: [], kk: [] }, config);
+      }).not.throws();
+
+      // long help
+      expect(() => {
+        verifySwitches(rootPathItem, {a: [], c: [], d: [], f: [], g:[], i: [], j: [], l: [] }, {bb: [], ee: [], hh: [], kk: [], zelp: [] }, config);
+      }).not.throws();
+
+      /******************************************
+       * staticPathItem
+       ******************************************/
+
+      expect(() => {
+        verifySwitches(staticPathItem, {a: [], c: [], d: [], f: [], m: [], o: [], p: [], r: [], s: [], u: [], v: [], x: []}, {bb: [], ee: [], nn: [], qq: [], tt: [], ww: [] }, config);
+      }).not.throws();
+
+      // short help
+      expect(() => {
+        verifySwitches(staticPathItem, {a: [], c: [], d: [], f: [], m: [], o: [], p: [], r: [], s: [], u: [], v: [], x: [], z: []}, {bb: [], ee: [], nn: [], qq: [], tt: [], ww: [] }, config);
+      }).not.throws();
+
+      // long help
+      expect(() => {
+        verifySwitches(staticPathItem, {a: [], c: [], d: [], f: [], m: [], o: [], p: [], r: [], s: [], u: [], v: [], x: []}, {bb: [], ee: [], nn: [], qq: [], tt: [], ww: [], zelp: [] }, config);
+      }).not.throws();
+    });
+
+    it('verifySwitches() for invalid cases', () => {
+      const rootPathItem = new RootPathItem();
+      const staticPathItem = new StaticPathItem('static', rootPathItem);
+
+      rootPathItem.addCommonRequiredSwitch(new Switch('a', null));
+      rootPathItem.addCommonRequiredSwitch(new Switch(null, 'bb'));
+      rootPathItem.addCommonRequiredSwitch(new Switch('c', 'cc'));
+
+      rootPathItem.addCommonOptionalSwitch(new Switch('d', null));
+      rootPathItem.addCommonOptionalSwitch(new Switch(null, 'ee'));
+      rootPathItem.addCommonOptionalSwitch(new Switch('f', 'ff'));
+
+      rootPathItem.addRequiredSwitch(new Switch('g', null));
+      rootPathItem.addRequiredSwitch(new Switch(null, 'hh'));
+      rootPathItem.addRequiredSwitch(new Switch('i', 'ii'));
+
+      rootPathItem.addOptionalSwitch(new Switch('j', null));
+      rootPathItem.addOptionalSwitch(new Switch(null, 'kk'));
+      rootPathItem.addOptionalSwitch(new Switch('l', 'll'));
+
+      staticPathItem.addCommonRequiredSwitch(new Switch('m', null));
+      staticPathItem.addCommonRequiredSwitch(new Switch(null, 'nn'));
+      staticPathItem.addCommonRequiredSwitch(new Switch('o', 'oo'));
+
+      staticPathItem.addCommonOptionalSwitch(new Switch('p', null));
+      staticPathItem.addCommonOptionalSwitch(new Switch(null, 'qq'));
+      staticPathItem.addCommonOptionalSwitch(new Switch('r', 'rr'));
+
+      staticPathItem.addRequiredSwitch(new Switch('s', null));
+      staticPathItem.addRequiredSwitch(new Switch(null, 'tt'));
+      staticPathItem.addRequiredSwitch(new Switch('u', 'uu'));
+
+      staticPathItem.addOptionalSwitch(new Switch('v', null));
+      staticPathItem.addOptionalSwitch(new Switch(null, 'ww'));
+      staticPathItem.addOptionalSwitch(new Switch('x', 'xx'));
+
+      const config: Config = {
+        applicationName: '<App>',
+        applyMiddlewareOnNoRoute: false,
+        helpType: 'switch',
+        helpCommandName: 'zelp',
+        helpShortSwitch: 'z',
+        helpLongSwitch: 'zelp',
+        showHelpOnNoRoute: true,
+      }
+
+      /******************************************
+       * rootPathItem
+       ******************************************/
+
+      expect(() => {
+        verifySwitches(rootPathItem, {}, {}, config);
+      }, 'missing required switches (1)').throws('is required');
+      
+      expect(() => {
+        verifySwitches(rootPathItem, {a: []}, {}, config);
+      }, 'missing required switches (2)').throws('is required');
+
+      expect(() => {
+        verifySwitches(rootPathItem, {a: []}, {bb: []}, config);
+      }, 'missing required switches (3)').throws('is required');
+
+      expect(() => {
+        verifySwitches(rootPathItem, {a: [], c: []}, {bb: []}, config);
+      }, 'missing required switches (4)').throws('is required');
+
+      expect(() => {
+        verifySwitches(rootPathItem, {a: [], c: [], g:[]}, {bb: []}, config);
+      }, 'missing required switches (5)').throws('is required');
+
+      expect(() => {
+        verifySwitches(rootPathItem, {a: [], c: [], g:[]}, {bb: [], hh: []}, config);
+      }, 'missing required switches (6)').throws('is required');
+
+      expect(() => {
+        // not throws
+        verifySwitches(rootPathItem, {a: [], c: [], g:[], i: []}, {bb: [], hh: []}, config);
+      }, 'no missing required switches (7)').not.throws();
+
+      expect(() => {
+        verifySwitches(rootPathItem, {a: [], c: [], g:[], i: []}, {bb: [], cc: [], hh: []}, config);
+      }, 'short "c" and long "cc" switches passed').throws('can be passed at the same time');
+
+      expect(() => {
+        verifySwitches(rootPathItem, {a: [], c: [], g:[], i: [], f: []}, {bb: [], hh: [], ff: []}, config);
+      }, 'short "f" and long "ff" switches passed').throws('can be passed at the same time');
+
+      expect(() => {
+        verifySwitches(rootPathItem, {a: [], c: [], g:[], i: []}, {bb: [], hh: [], ii: []}, config);
+      }, 'short "i" and long "ii" switches passed').throws('can be passed at the same time');
+
+      expect(() => {
+        verifySwitches(rootPathItem, {a: [], c: [], g:[], i: [], l: []}, {bb: [], hh: [], ll: []}, config);
+      }, 'short "l" and long "ll" switches passed').throws('can be passed at the same time');
+
+      expect(() => {
+        verifySwitches(rootPathItem, {a: [], c: [], g:[], i: [], l: [], y: []}, {bb: [], hh: []}, config);
+      }, 'passed not defined switch "y"').throws('is not recognized');
+
+      expect(() => {
+        verifySwitches(rootPathItem, {a: [], c: [], g:[], i: [], l: []}, {bb: [], hh: [], yy: []}, config);
+      }, 'passed not defined switch "yy"').throws('is not recognized');
+
+      /******************************************
+       * staticPathItem
+       ******************************************/
+
+      expect(() => {
+        verifySwitches(staticPathItem, {}, {}, config);
+      }, 'missing required switches (8)').throws('is required');
+      
+      expect(() => {
+        verifySwitches(staticPathItem, {a: []}, {}, config);
+      }, 'missing required switches (9)').throws('is required');
+
+      expect(() => {
+        verifySwitches(staticPathItem, {a: []}, {bb: []}, config);
+      }, 'missing required switches (10)').throws('is required');
+
+      expect(() => {
+        verifySwitches(staticPathItem, {a: [], c: []}, {bb: []}, config);
+      }, 'missing required switches (11)').throws('is required');
+
+      expect(() => {
+        verifySwitches(staticPathItem, {a: [], c: []}, {bb: []}, config);
+      }, 'missing required switches (12)').throws('is required');
+
+      expect(() => {
+        verifySwitches(staticPathItem, {a: [], c: []}, {bb: []}, config);
+      }, 'missing required switches (13)').throws('is required');
+
+      expect(() => {
+        verifySwitches(staticPathItem, {a: [], c: []}, {bb: []}, config);
+      }, 'missing required switches (14)').throws('is required');
+
+      expect(() => {
+        verifySwitches(staticPathItem, {a: [], c: [], m: []}, {bb: []}, config);
+      }, 'missing required switches (15)').throws('is required');
+
+      expect(() => {
+        verifySwitches(staticPathItem, {a: [], c: [], m: []}, {bb: [], nn: []}, config);
+      }, 'missing required switches (16)').throws('is required');
+
+      expect(() => {
+        verifySwitches(staticPathItem, {a: [], c: [], m: [], o: []}, {bb: [], nn: []}, config);
+      }, 'missing required switches (17)').throws('is required');
+
+      expect(() => {
+        verifySwitches(staticPathItem, {a: [], c: [], m: [], o: [], s: []}, {bb: [], nn: []}, config);
+      }, 'missing required switches (18)').throws('is required');
+      
+      expect(() => {
+        verifySwitches(staticPathItem, {a: [], c: [], m: [], o: [], s: []}, {bb: [], nn: [], tt: []}, config);
+      }, 'missing required switches (19)').throws('is required');
+
+      expect(() => {
+        // not throws
+        verifySwitches(staticPathItem, {a: [], c: [], m: [], o: [], s: [], u: []}, {bb: [], nn: [], tt: []}, config);
+      }, 'missing required switches (20)').not.throws();
+
+      expect(() => {
+        verifySwitches(staticPathItem, {a: [], c: [], m: [], o: [], s: [], u: []}, {bb: [], cc: [], nn: [], tt: []}, config);
+      }, 'short "c" and long "cc" switches passed').throws('can be passed at the same time');
+      
+      expect(() => {
+        verifySwitches(staticPathItem, {a: [], c: [], f: [], m: [], o: [], s: [], u: []}, {bb: [], ff:[], nn: [], tt: []}, config);
+      }, 'short "f" and long "ff" switches passed').throws('can be passed at the same time');
+
+      expect(() => {
+        verifySwitches(staticPathItem, {a: [], c: [], m: [], o: [], s: [], u: []}, {bb: [], nn: [], oo: [], tt: []}, config);
+      }, 'short "o" and long "oo" switches passed').throws('can be passed at the same time');
+
+      expect(() => {
+        verifySwitches(staticPathItem, {a: [], c: [], m: [], o: [], r: [], s: [], u: []}, {bb: [], nn: [], rr: [], tt: []}, config);
+      }, 'short "r" and long "rr" switches passed').throws('can be passed at the same time');
+
+      expect(() => {
+        verifySwitches(staticPathItem, {a: [], c: [], m: [], o: [], s: [], u: []}, {bb: [], nn: [], tt: [], uu: []}, config);
+      }, 'short "u" and long "uu" switches passed').throws('can be passed at the same time');
+
+      expect(() => {
+        verifySwitches(staticPathItem, {a: [], c: [], m: [], o: [], s: [], u: [], x: []}, {bb: [], nn: [], tt: [], xx: []}, config);
+      }, 'short "x" and long "xx" switches passed').throws('can be passed at the same time');
+
+      expect(() => {
+        verifySwitches(staticPathItem, {a: [], c: [], m: [], o: [], s: [], u: [], y: []}, {bb: [], nn: [], tt: []}, config);
+      }, 'passed not defined switch "y"').throws('is not recognized');
+
+      expect(() => {
+        verifySwitches(staticPathItem, {a: [], c: [], m: [], o: [], s: [], u: []}, {bb: [], nn: [], tt: [], yy: []}, config);
+      }, 'passed not defined switch "yy"').throws('is not recognized');
+    });
+
+  });
 
 });

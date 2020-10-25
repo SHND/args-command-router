@@ -5,7 +5,8 @@ import { StaticPathItem } from "./PathTree/StaticPathItem";
 import { BlockPathItem } from "./PathTree/BlockPathItem";
 import { PathItem } from "./PathTree/PathItem";
 import { SwitchPathItem } from "./PathTree/SwitchPathItem";
-import { Callback, CallbackReturnType, ExternalArgsType } from "./types";
+import { Callback, CallbackReturnType, Config, ExternalArgsType } from "./types";
+import { Switch } from "./Switch";
 
 /**
  * Empty (no-operation) function
@@ -330,4 +331,173 @@ export function processCallbacks(targetPathItem: PathItem, forwardedPartialConte
   }
 
   return partialContext;
+}
+
+/**
+ * Verify if the passed Switches are matched with defined switches on the pathItem
+ * @param pathItem for the passed switches to be verified by
+ * @param argsShortSwitches passed short switches
+ * @param argsLongSwitches passed long switches
+ * @returns {void}
+ */
+export function verifySwitches(pathItem: PathItem, argsShortSwitches: Record<string, string[]>, argsLongSwitches: Record<string, string[]>, config: Config) {
+
+  /*********************************************************************
+   * Check if helpType is switch and help switch exists                *
+   *********************************************************************/
+
+  if (config.helpType === 'switch') {
+    if (argsShortSwitches[config.helpShortSwitch] || argsLongSwitches[config.helpLongSwitch]) {
+      return;
+    }
+  }
+
+  /*********************************************************************
+   * Prepare required swiches lookup table for short and long switches *
+   *********************************************************************/
+
+  const upwardRequiredCommonSwitches = pathItem.getUpwardCommonRequiredSwitchNames();
+  const pathItemRequiredSwitches = pathItem.getRequiredSwitches().reduce((dict: Record<string, Switch>, swich: Switch) => {
+    dict[swich.getShortname()] = swich;
+    dict[swich.getLongname()] = swich;
+
+    return dict;
+  }, {});
+
+  const allRequired = { ...upwardRequiredCommonSwitches, ...pathItemRequiredSwitches };
+  const requiredShort = Object.values(allRequired).reduce((dict: Record<string, Switch>, swich: Switch) => {
+    if (swich.hasShortname()) {
+      dict[swich.getShortname()] = swich;
+    }
+    
+    return dict;
+  }, {});
+  const requiredLong = Object.values(allRequired).reduce((dict: Record<string, Switch>, swich: Switch) => {
+    if (swich.hasLongname()) {
+      dict[swich.getLongname()] = swich;
+    }
+    
+    return dict;
+  }, {});
+
+  /*********************************************************************
+   * Prepare optional swiches lookup table for short and long switches *
+   *********************************************************************/
+
+  const upwardOptionalCommonSwitches = pathItem.getUpwardCommonOptionalSwitchNames();
+  const pathItemOptionalSwitches = pathItem.getOptionalSwitches().reduce((dict: Record<string, Switch>, swich: Switch) => {
+    dict[swich.getShortname()] = swich;
+    dict[swich.getLongname()] = swich;
+
+    return dict;
+  }, {});
+
+  const allOptional = { ...upwardOptionalCommonSwitches, ...pathItemOptionalSwitches };
+  const optionalShort = Object.values(allOptional).reduce((dict: Record<string, Switch>, swich: Switch) => {
+    if (swich.hasShortname()) {
+      dict[swich.getShortname()] = swich;
+    }
+    
+    return dict;
+  }, {});
+  const optionalLong = Object.values(allOptional).reduce((dict: Record<string, Switch>, swich: Switch) => {
+    if (swich.hasLongname()) {
+      dict[swich.getLongname()] = swich;
+    }
+    
+    return dict;
+  }, {});
+
+  /*********************************************************************
+   * Check for all passed short switches for:
+   * - if a long switch of the same passed short switch is 
+   *   also passed.
+   * - if the passsed short switch is not defined in pathItem or
+   *   in the common switches.
+   * - delete the existing short and long switches from the prepare 
+   *   look up table from the previous steps so we can figure out
+   *   which required switches are missing from the passed switches.
+   *********************************************************************/
+
+  for (let shortArg of Object.keys(argsShortSwitches)) {
+    if (requiredShort[shortArg]) {
+      const swich = requiredShort[shortArg];
+
+      if (swich.hasLongname() && argsLongSwitches[swich.getLongname()]) {
+        throw Error(`Either "-${swich.getShortname()}" or "--${swich.getLongname()}" can be passed at the same time.`);
+      }
+
+      if (swich.hasLongname()) {
+        delete requiredLong[swich.getLongname()];
+      }
+
+      delete requiredShort[shortArg];
+    } else if (optionalShort[shortArg]) {
+      const swich = optionalShort[shortArg];
+
+      if (swich.hasLongname() &&  argsLongSwitches[swich.getLongname()]) {
+        throw Error(`Either "-${swich.getShortname()}" or "--${swich.getLongname()}" can be passed at the same time.`);
+      }
+
+      if (swich.hasLongname()) {
+        delete optionalLong[swich.getLongname()];
+      }
+
+      delete optionalShort[shortArg];
+    } else {
+      throw Error(`Switch "-${shortArg}" is not recognized.`)
+    }
+  }
+
+  /*********************************************************************
+   * Check for all passed long switches for:
+   * - if a short switch of the same passed long switch is 
+   *   also passed.
+   * - if the passsed long switch is not defined in pathItem or
+   *   in the common switches.
+   * - delete the existing short and long switches from the prepare 
+   *   look up table from the previous steps so we can figure out
+   *   which required switches are missing from the passed switches.
+   *********************************************************************/
+
+  for (let longArg of Object.keys(argsLongSwitches)) {
+    if (requiredLong[longArg]) {
+      const swich = requiredLong[longArg];
+
+      if (swich.hasShortname() && argsShortSwitches[swich.getShortname()]) {
+        throw Error(`Either "-${swich.getShortname()}" or "--${swich.getLongname()}" can be passed at the same time.`);
+      }
+
+      if (swich.hasShortname()) {
+        delete requiredShort[swich.getShortname()];
+      }
+
+      delete requiredLong[longArg];
+    } else if (optionalLong[longArg]) {
+      const swich = optionalLong[longArg];
+
+      if (swich.hasShortname() &&  argsShortSwitches[swich.getShortname()]) {
+        throw Error(`Either "-${swich.getShortname()}" or "--${swich.getLongname()}" can be passed at the same time.`);
+      }
+
+      if (swich.hasShortname()) {
+        delete optionalShort[swich.getShortname()];
+      }
+
+      delete optionalLong[longArg];
+    } else {
+      throw Error(`Switch "--${longArg}" is not recognized.`)
+    }
+  }
+
+  /*********************************************************************
+   * Check for missing required switches
+   *********************************************************************/
+
+   if (Object.keys(requiredShort).length > 0 || Object.keys(requiredLong).length > 0) {
+    const firstMissingSwitch = Object.values(requiredShort)[0];
+
+    throw Error(`Switch "-${firstMissingSwitch.getShortname()}" or "--${firstMissingSwitch.getLongname()}" is required.`);
+  }
+
 }
