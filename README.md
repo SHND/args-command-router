@@ -8,143 +8,185 @@ The idea behind **Args Command Router** is from the **ExpressJS** package, in wh
 [![Build Status](https://travis-ci.org/SHND/args-command-router.svg?branch=master)](https://travis-ci.org/SHND/args-command-router)
 [![Coverage Status](https://coveralls.io/repos/github/SHND/args-command-router/badge.svg?branch=master)](https://coveralls.io/github/SHND/args-command-router?branch=master)
 
-## Installation
+# Installation
 
 ```bash
-npm install args-command-router
+npm install --save args-command-router
 ```
 
-## Usage
+# Usage
 
-### Scenario
+## Basics
 
-Let's say we want to create a nodejs application called _Fetcher_. It can download a file, crawl a website, and so more.
-
-On the CLI, you've decided that your application should work like this:
+Lets say we want to create a simplified git command line interface:
 
 ```bash
-node fetcher.js version
-node fetcher.js check file https://nodejs.org/dist/v10.16.3/node-v10.16.3.pkg
-node fetcher.js download file https://nodejs.org/dist/v10.16.3/node-v10.16.3.pkg
-node fetcher.js download file https://nodejs.org/dist/v10.16.3/node-v10.16.3.pkg --output ~/Downloads
-node fetcher.js download folder https://nodejs.org/dist/ --depth 2
+$ git add .
+$ git commit -a -m "My message"
+$ git branch
+$ git push origin master --force
 ```
 
-Let's try to route `version` path to its implementation:
+You can implement the routing of commands above like this:
 
 ```js
-const { argsCommandRouter } = require('args-command-router')
-const app = argsCommandRouter()
+const { Application } = require('args-command-router')
 
-const APP_VERSION = '1.0.1'
-
-// node fetcher.js version
-app.route('version', () => {
-  console.log(APP_VERSION)
+const app = new Application({
+  applicationName: 'git',
 })
+
+app
+  .route('/add/:filename')
+  .description('Add file contents to the index')
+  .callback(() => {
+    /* Add command routine */
+  })
+
+app
+  .route('/commit')
+  .description('Record changes to the repository')
+  .optionalSwitch('a', 'all', 'commit all changed files')
+  .optionalSwitch('m', 'message', 'commit message', ['message'])
+  .callback(() => {
+    /* Commit command routine */
+  })
+
+app
+  .route('/branch')
+  .description('List, create, or delete branches')
+  .callback(() => {
+    /* Branch command routine */
+  })
+
+app
+  .route('/push/:remote/:branch')
+  .description('Update remote refs along with associated objects')
+  .requiredSwitch('f', 'force', 'force updates')
+  .callback(() => {
+    /* Push command routine */
+  })
 
 app.run()
 ```
 
-Here we are importing _args-command-parser_ and create an _app_ object from it. Then we are defining a route for _version_ and specify a callback to be run whenever the application receives _version_ first thing in its arguments.
-
-In the end, we need to call the `run()` method to tell **Args Command Parser** that we are done with our route definitions, and we are ready to analyze CLI arguments and route them to the correct callback.
-
 ## Routes
 
-For the next one, let's do the `check file <file_url>` and `download file <file_url>` in our Scenario on the top:
+The `route()` method on the Application instance specifies for each series of commands and switches (path), what routine (callback) should be called.
+
+It receives a series of names separated by `/` and series of optional switches at the end of the path each inside `[]`.
 
 ```js
-// initializing app constant like above...
+app.route('/cmd1/:cmd2[switch1=123][s]
+```
 
-// node fetcher.js check file https://nodejs.org/dist/v10.16.3/node-v10.16.3.pkg
-app.route('check/file/:file_url', inputs => {
-  const fileUrl = inputs.params.file_url
+On each run, Application goes through the routes in order they are defined and compares the passed arguments (commands and switches) with each route, and execute the first matched route callback.
 
-  console.log('Check whether the file ' + fileURL + ' exists.')
-})
+All arguments below, would matched the route above:
 
-// node fetcher.js download file https://nodejs.org/dist/v10.16.3/node-v10.16.3.pkg
-app.route('download/file/:file_url', inputs => {
-  const fileUrl = inputs.params.file_url
+```bash
+$ APP cmd1 hi --switch1 123 -s
+$ APP cmd1 hello -s --switch1 123
+$ APP cmd1 'hey all' -s --switch1 123
+```
 
-  console.log('Download the file ' + fileURL + ' to the Desktop')
+Each `cmd1`, `:cmd2` and `[switch1=123][s]` are called **PathItem**.
+
+- `cmd1` is a **Static PathItem**, since it always tries to match the exact name.
+
+- `:cmd2` is a **Dynamic PathItem**, and it can be matched to any value in its place.
+
+- `[switch1=123][s]` is a **Switch PathItem**, and it is matched to existence of switch `-s` (either with value or not) and existence of switch `--switch1` with the exact value of _123_. If you have special characters in the value, you can put that value in single or double quotes.
+
+## Callbacks
+
+Callbacks specifies what routine (function) should be called when a matched route is found.
+
+```js
+route('/call/my/callback').callback(function(inputs) {
+  const { commands, pathParams, shortSwitches, longSwitches, switches } = inputs
+
+  const pathItem = this
 })
 ```
 
-Here `check` and `file` are fixed values, and `file_url` is a parameter, meaning that the user of our application can put any value in `file_url` position, and we're going to capture that. Parameters in CLI arguments are prefixed with a colon (`:`) in the route string.
+Your callbacks are passed with data about the current execution of your application.
 
-Now let's add a condition that if the `download file <file_url>` has an `--output` switch route to another implementation:
+- **commands** is an array of strings passed to your application as commands.
+- **pathParams** is an object of dynamic pathItem names and values that are passed to your application.
+- **shortSwitches** is an object of short switch names and array of values that are passed to your application.
+- **longSwitches** is an object of long switch names and array of values that are passed to your application.
+- **switches** is **shortSwitches** and **longSwitches** in one object.
+- **this** points to the matched pathItem or it's _null_ if no pathItem is associated with the callback.
 
-```js
-// node fetcher.js download file https://nodejs.org/dist/v10.16.3/node-v10.16.3.pkg --output ~/Downloads
-app.route('download/file/:file_url[output]', inputs => {
-  const fileUrl = inputs.params.file_url
-  const outputDir = inputs.switches.output
+You can also add new properties to the input object in hooks and access them in the your callbacks.
 
-  console.log('Download the file ' + fileURL + ' to ' + outputDir)
-})
-```
+## Switches
 
-As you see here, you can have extra conditions in your route strings inside brackets (`[]`).
+In order to pass switches to your application, you need to define them on your routes.
 
-Now let's try to route `download folder <folder_url>` with switch `--depth`. Let's say for different depths, we want to have different implementations:
+Switches can be either **Required** or **Optional**.
 
-```js
-// node fetcher.js download folder https://nodejs.org/dist/ --depth 1
-app.route('download/folder/:folder_url[depth=="1"]', inputs => {
-  const folderUrl = inputs.params.folder_url
+### Required Switches
 
-  console.log('Download only the files inside ' + folderUrl + ' url folder')
-})
-
-// node fetcher.js download folder https://nodejs.org/dist/ --depth 0
-app.route('download/folder/:folder_url[depth < "1"]', inputs => {
-  console.log('There is nothing to download')
-})
-
-// node fetcher.js download folder https://nodejs.org/dist/ --depth 3
-app.route('download/folder/:folder_url[depth]', inputs => {
-  const folderUrl = inputs.params.folder_url
-  const depth = inputs.params.depth
-
-  console.log(
-    'Crawl and download to maximum ' + depth + ' levels in ' + folderUrl
-  )
-})
-
-app.route('download/folder/:folder_url', inputs => {
-  const folderUrl = inputs.params.folder_url
-
-  console.log('Crawl and download eveything inside ' + folderUrl)
-})
-```
-
-### Route Arguments
-
-When a Route callback is called, some data will be passed to it through its parameters.
-
-The first parameter is **input** object. It contains properties and methods about the input to the application:
-
-- `command` property returns the Command for the current route.
-- `params` property returns the parameters passed inside the command arguments passed to the app.
-- `shortSwitches` property returns all short switches.
-- `longSwitches` property return all long switches.
-- `switches` property returns an aggregate of short and long switches
-- `all` property returns aggregate of params, shortSwitches, and longSwitches.
-
-The second parameter is **next()** method. By default, whenever a route is matched, no further routes will be checked. By calling `next()` in your routes, you are specifying that after finishing executing the current route, go for the next matched route and run that.
+These switches must to be present when running your application for a specific route, otherwise your callback won't be called, even if you are mentioning them in your route string.
 
 ```js
-app.route('check/file/:file_url', (inputs, next) => {
-  const fileUrl = inputs.params.file_url
-
-  console.log('Check whether the file ' + fileURL + ' exists.')
-  next()
-})
+app
+  .route('/video/download')
+  .requiredSwitch('u', 'url', 'URL of the video', ['address'])
+  .callback(input => console.log(input.switches.url))
 ```
 
-Remember that routes that are defined sooner have a higher priority to get matched.
+Here we are defining a Required Switch `u`, `url` for `/video/download` that gets one parameter with a name address. So an example of a shell execution could be:
+
+```bash
+$ App video download -u http://myvideo.com/v.avi
+$ App video download --url http://myvideo.com/v.avi
+```
+
+### Optional Switches
+
+These switches can be absent when running your application.
+
+```js
+app.route('/video/formats').optionalSwitch('a', 'all', 'Show all formats')
+```
+
+Examples of a shell execution could be:
+
+```bash
+$ App video formats
+$ App video formats -a
+$ App video formats --all
+```
+
+If your switch expects parameters, you can list them in the switch definition.
+
+```js
+app
+  .route('/video/formats')
+  .optionalSwitch('f', 'filter', 'Filter format lists', ['pattern'])
+```
+
+### Common Required, Optional Switches
+
+These type of switches can be defined on a route and will be inherited by all the subordinate routes.
+
+```js
+app
+  .route('/video')
+  .commonRequired('k', 'key', 'Api key', ['key'])
+  .commonOptional('v', 'verbose', 'Verbose output')
+```
+
+Examples of a shell execution could be:
+
+```bash
+$ App video -k abc123
+$ App video download --key abc123
+$ App video formats --key abc123 -v
+```
 
 ## Hooks
 
@@ -152,187 +194,80 @@ Hooks are functions that are getting executed at different stages of the executi
 
 Currently, there are three different hooks:
 
-- **NoRoute Hooks**: These hooks are executed when no matches found in the routes.
-
-```js
-app.noroute((input, next) => {
-  // do some stuff
-
-  next()
-})
-```
-
-- **Before Hook**: These hooks are executed before executing route callbacks.
-
-```js
-app.before((input, next) => {
-  // do some stuff
-
-  next()
-})
-```
-
-- **After Hook**: These hooks are executed after executing route callbacks.
-
-```js
-app.after((input, next) => {
-  // do some stuff
-
-  next()
-})
-```
-
-By default, whenever a hook is run, no further hooks of the same type will be checked and run. The `next()` method tells **Args Command Router** to execute the next hook of the same type. Without calling `next()`, **Args Command Router** will stop executing hooks of that type and move to the next stage.
-
-```js
-app.route('check/file/:file_url', (inputs, next) => {
-  const fileUrl = inputs.params.file_url
-
-  console.log('Check whether the file ' + fileURL + ' exists.')
-  next()
-})
-```
-
-## Help (Usage)
-
-**Args Command Router** generates help (usage) output out of the box. **Helps** are commands same as other commands in the application.
-
-Each Command item comes with a fixed Command child `help` to display a help message for that command. So you can do:
-
-```bash
-node fetcher.js help
-node fetcher.js download help
-node fetcher.js download file help
-...
-```
-
-In order to get better help output, you can set descriptions and define switches for commands. This will be discussed more in the **Command** section.
-
-## More Details on the Format
-
-**args-command-router** is opinionated command-line router based on the package [args-command-parser](https://www.npmjs.com/package/args-command-parser). The idea is that the commands are in the format below:
-
-```
-node <file.js> [command1 [command2 [...]]] [switches]
-```
-
-### Command
-
-Commands are the first arguments showing up. These are names without `-` or `--`. As soon as a switch is seen, the sequence of commands is considered finished.
-
-### Switch
-
-Switches can be in short or long format.
-
-#### Short Switch
-
-Short Switches are prefixed with `-` followed by one or more single-character switch. If more than one character is specified, each character is considered a Short Switch. Short Switches may have zero or one value.
-
-#### Long Switch
-
-Long Switches are prefixed with `--` followed by the switch name. Long Switches may have zero or one value.
-
-## More Details on Routes
-
-**Be careful about the order of the routes you're defining. The routes that are defined sooner will be matched and run sooner.**
-
-~~If there are multiple matches, the latest matched route callback will be triggered.~~
-
-The `noroute()` method can be used for when no routes are matched:
+- **NoRoute Hooks:** These hooks are executed when no matches found in the routes.
 
 ```js
 app.noroute(inputs => {
-  console.log('No routes matched.')
+  // do some stuff
 })
 ```
 
-After defining all your routes, you need to call the `run()` method on the application instance.
-
-```
-app.run()
-```
-
-The `run()` method use currently passed arguments to find the route match, but you can pass an array of strings to `run()`, and args-command-router will use those instead of the currently passed arguments.
-
-## More Details on Commands and Switches
-
-Routes are consist of two parts:
-
-- Commands
-- Condition
-
-### Commands
-
-Commands are specifying an argument path to the user's implementation. Command path can be specified in string in `route()` or by creating a `Command` object.
-
-Command _string_ items (fixed or parameter) are separated by a slash (`/`), and parameters are prefixed by a colon (`:`).
-
-The _Command_ objects give you better control over organizing and externalizing routes and code.
+- **Before Hook:** These hooks are executed before even searching for the matching route.
 
 ```js
-const { argsCommandRouter, Command } = require('args-command-router')
-const downloadFile = require('./downloadFile.js')
-const app = argsCommandRouter()
-
-const downloadFileCommand = new Command('download/file')
-app.route(downloadFileCommand, downloadFile)
+app.before(inputs => {
+  // do some stuff
+})
 ```
 
-By having a reference to the Command, you can set additional properties for documentation and control.
-
-Just remember that when you are creating a `Command` object, the command path string shouldn't contain any brackets and conditions.
-
-```
-const downloadFileCommand = new Command('download/file')
-downloadFileCommand
-  .description('Downloads a specific file given by its url')
-  .valuedSwitch('o', 'output', null, 'Destination file local path')
-  .booleanSwitch('p', 'progress', 'Show download progress bar')
-  .requiredSwitch('f', 'force', 'Force download for http endpoints')
-```
-
-### Condition
-
-Conditions add extra control over routing the command arguments. They can be specified inside the route path or by creating a `Condition` object.
-
-You can use _Command Parameters_ and _switches that passed at runtime_ in your conditions.
-
-We have already seen conditions inside route (using brackets `[]`). Let's have an example of `Condition` objects.
+- **After Hook:** These hooks are executed after executing route callbacks.
 
 ```js
-const { argsCommandRouter, Command } = require('args-command-router')
-const downloadFile = require('./downloadFile.js')
-const app = argsCommandRouter()
-
-const downloadFileCommand = new Command('download/folder/:folder_url')
-const downloadFileDepthOneCondition = new Condition('depth=="1"')
-app.route(downloadFileCommand, downloadFileDepthOneCondition, downloadFile)
+app.after(inputs => {
+  // do some stuff
+}
 ```
 
-Or you can specify each of them in the route separately by route string path:
+You can also add new properties and values to your inputs for the next hooks and callbacks. In order to do that just return an object with those properties.
 
+```js
+app.before(inputs => {
+  return {
+    hello: 'hi',
+  }
+})
+
+app.route('/video/formats').callback(inputs => {
+  console.log(inputs.hello)
+})
 ```
-app.route('download/folder/:folder_url', downloadFileDepthOneCondition, downloadFile)
-app.route(downloadFileCommand, 'depth=="1"', downloadFile)
-app.route('download/folder/:folder_url', 'depth=="1"', downloadFile)
-app.route('download/folder/:folder_url[depth=="1"]', downloadFile)
+
+If you want to stop the next hooks and callbacks to be called, return a string 'stop' from your callbacks.
+
+```js
+app.before(inputs => {
+  if (new Date().getHours() < 6) {
+    return 'stop'
+  }
+})
 ```
 
-The condition string follows the extended [expr-eval](https://www.npmjs.com/package/expr-eval) conditional syntax and doesn't follow the JavaScript syntax.
+## Help
 
-| Operator | Description         | Example                            | Example explained                            |
-| -------- | :------------------ | :--------------------------------- | :------------------------------------------- |
-| ==       | equal               | a == "2"                           | a is equal to 2                              |
-| !=       | not equal           | a != "2"                           | a is not equal to 2                          |
-| >=       | greater or equal    | a >= "2"                           | a is greater or equal 2                      |
-| <=       | lesser or equal     | a <= "2"                           | a is lesser or equal 2                       |
-| >        | greater             | a > "2"                            | a is greater 2                               |
-| <        | lesser              | a < "2"                            | a is lesser 2                                |
-| and      | logical AND         | b and a == "2"                     | b is present and a is equal to 2             |
-| or       | logical OR          | b or a == "2"                      | b is present or a is equal to 2              |
-| not      | logical Not         | not a                              | a is not present                             |
-| (...)    | Grouping conditions | (a and b) or ((not a) and (not b)) | both a and b are present or both not present |
+Args Command Router generates help (usage) output out of the box for you. By including `-h` or `--help` the help (usage) will be display on the console.
 
-## License
+Help switches are configurable when instantiating the Application.
 
-[MIT](https://choosealicense.com/licenses/mit/)
+## Application Configuration
+
+You can configure the args-command-router behavior when instantiating the Application.
+
+These are the default values:
+
+```js
+const app = new Application({
+  applicationName: '<App>',
+  applyMiddlewareOnNoRoute: false,
+  helpCommandName: 'help',
+  helpShortSwitch: 'h',
+  helpLongSwitch: 'help',
+  showHelpOnNoRoute: true,
+})
+```
+
+- `applicationName`: The name of the application used in generating the help (usage) output.
+- `applyMiddlewareOnNoRoute`: The `before` and `after` hooks will be applied on the `noroute` callback.
+- `helpCommandName`: Not being used for now.
+- `helpShortSwitch`: The short switch name for showing help (usage) output.
+- `helpLongSwitch`: The long switch name for showing help (usage) output.
+- `showHelpOnNoRoute`: If set to `true`, when no routes are matched, `help` output will be shown.
