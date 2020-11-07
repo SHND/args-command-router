@@ -64,29 +64,29 @@ export default class Application {
       const targetSwitchPathItem = matchSwitches(shortSwitches, longSwitches, targetBlockPathItem);
       const target: PathItem = targetSwitchPathItem || targetBlockPathItem;
 
-      if ((partialContext = processCallbacks(target, partialContext, args, {}, this._afterTargetFound)) === STOP) return;
+      if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, this._afterTargetFound)) === STOP) return;
 
       const targetCallbacks = target.getCallbacks();
       if (targetCallbacks.length > 0) {
-        if ((partialContext = processCallbacks(target, partialContext, args, {}, this._afterCallbackFound)) === STOP) return;
+        if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, this._afterCallbackFound)) === STOP) return;
 
         if (app._config.verifySwitches) {
           try {
             verifySwitches(target, args.shortSwitches, args.longSwitches, this._config);
           } catch(error) {
-            if ((partialContext = processCallbacks(target, partialContext, args, {}, this._onVerifySwitchFailure)) === STOP) return;
-            if ((partialContext = processCallbacks(target, partialContext, args, {}, this._afterAll)) === STOP) return;
+            if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, this._onVerifySwitchFailure)) === STOP) return;
+            if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, this._afterAll)) === STOP) return;
             return;
           }
         }
 
-        if ((partialContext = processCallbacks(target, partialContext, args, {}, this._beforeCallback)) === STOP) return;
+        if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, this._beforeCallback)) === STOP) return;
 
         if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, targetCallbacks)) === STOP) return;
 
-        if ((partialContext = processCallbacks(target, partialContext, args, {}, this._afterCallback)) === STOP) return;
+        if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, this._afterCallback)) === STOP) return;
       } else {
-        if ((partialContext = processCallbacks(target, partialContext, args, {}, this._noCallback)) === STOP) return;
+        if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, this._noCallback)) === STOP) return;
       }
     } else {
       if ((partialContext = processCallbacks(null, partialContext, args, {}, this._noTarget)) === STOP) return;
