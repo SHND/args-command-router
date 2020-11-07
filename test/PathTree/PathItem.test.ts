@@ -91,16 +91,6 @@ describe('PathItem', () => {
     expect(pathItem.hasCallback(callback)).to.equal(true);
   });
 
-  it('helpCallback property, getHelpCallback, setHelpCallback methods', () => {
-    const pathItem = new TestPathItem();
-    const callback = () => {};
-
-    expect(pathItem.getHelpCallback()).to.equal(undefined);
-    
-    pathItem.setHelpCallback(callback);
-    expect(pathItem.getHelpCallback()).to.equal(callback);
-  });
-
   it('requiredSwitches property, getRequiredSwitches, addRequiredSwitch, hasRequiredSwitch, hasRequiredSwitchWithShortname, hasRequiredSwitchWithLongname methods', () => {
     const pathItem = new TestPathItem();
     const swich = new Switch('a', 'aa');

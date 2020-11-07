@@ -10,7 +10,6 @@ export class StaticPathItem extends BlockPathItem {
     this.parentPathItem = parent;
     this.description;
     this.callbacks = [];
-    this.helpCallback;
     this.requiredSwitches = [];
     this.optionalSwitches = [];
     

@@ -24,8 +24,7 @@ export default class Application {
     this._config = {
       applicationName: config.applicationName || '<App>',
       applyMiddlewareOnNoRoute: config.applyMiddlewareOnNoRoute || false,
-      helpType: config.helpType || 'switch',
-      helpCommandName: config.helpCommandName || 'help',
+      helpType: config.helpType === null ? null : 'switch',
       helpShortSwitch: config.helpShortSwitch || 'h',
       helpLongSwitch: config.helpLongSwitch || 'help',
       showHelpOnNoRoute: config.showHelpOnNoRoute || true,
@@ -73,17 +72,7 @@ export default class Application {
      * Help Before All Hook
      */
     this._beforeAllCallbacks.push(function (this: PathItem, context) {
-      if (that._config.helpType === 'command') {
-        if (context.commands[context.commands.length - 1] === that._config.helpCommandName) {
-          const parent = this.getParentPathItem();
-          if (parent) {
-            parent.showHelp(that._config.applicationName);
-          } else {
-            root.showHelp(that._config.applicationName);
-          }
-          return STOP;
-        }
-      } else if (that._config.helpType === 'switch') {
+      if (that._config.helpType === 'switch') {
         if (context.shortSwitches[that._config.helpShortSwitch] || context.longSwitches[that._config.helpLongSwitch]) {
           if (this) {
             this.showHelp(that._config.applicationName);
@@ -103,7 +92,7 @@ export default class Application {
       
       if ((partialContext = processCallbacks(null, partialContext, args, {}, [this._norouteCallback])) === STOP) return;
 
-      if (this._config.showHelpOnNoRoute) {
+      if (this._config.showHelpOnNoRoute && that._config.helpType !== null) {
         root.showHelp(this._config.applicationName);
       }
 
@@ -122,7 +111,6 @@ export default class Application {
       verifySwitches(target, args.shortSwitches, args.longSwitches, this._config);
     } catch(error) {
       console.error(error.message);
-      
       return;
     }
 
@@ -138,7 +126,7 @@ export default class Application {
     } else {
       if ((partialContext = processCallbacks(target, partialContext, args, {}, [this._norouteCallback])) === STOP) return;
 
-      if (this._config.showHelpOnNoRoute) {
+      if (this._config.showHelpOnNoRoute && that._config.helpType !== null) {
         target.showHelp(this._config.applicationName);
       }
     }

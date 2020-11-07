@@ -8,15 +8,13 @@ The idea behind **Args Command Router** is from the **ExpressJS** package, in wh
 [![Build Status](https://travis-ci.org/SHND/args-command-router.svg?branch=master)](https://travis-ci.org/SHND/args-command-router)
 [![Coverage Status](https://coveralls.io/repos/github/SHND/args-command-router/badge.svg?branch=master)](https://coveralls.io/github/SHND/args-command-router?branch=master)
 
-# Installation
+## Installation
 
 ```bash
 npm install --save args-command-router
 ```
 
-# Usage
-
-## Basics
+## Usage
 
 Lets say we want to create a simplified git command line interface:
 
@@ -248,6 +246,8 @@ Args Command Router generates help (usage) output out of the box for you. By inc
 
 Help switches are configurable when instantiating the Application.
 
+In case you want to disable default help set the configuration option `helpType` to `null`.
+
 ## Application Configuration
 
 You can configure the args-command-router behavior when instantiating the Application.
@@ -258,7 +258,7 @@ These are the default values:
 const app = new Application({
   applicationName: '<App>',
   applyMiddlewareOnNoRoute: false,
-  helpCommandName: 'help',
+  helpType: 'switch',
   helpShortSwitch: 'h',
   helpLongSwitch: 'help',
   showHelpOnNoRoute: true,
@@ -267,7 +267,7 @@ const app = new Application({
 
 - `applicationName`: The name of the application used in generating the help (usage) output.
 - `applyMiddlewareOnNoRoute`: The `before` and `after` hooks will be applied on the `noroute` callback.
-- `helpCommandName`: Not being used for now.
+- `helpType`: If you want to disable the help functionality, set this to `null`.
 - `helpShortSwitch`: The short switch name for showing help (usage) output.
 - `helpLongSwitch`: The long switch name for showing help (usage) output.
-- `showHelpOnNoRoute`: If set to `true`, when no routes are matched, `help` output will be shown.
+- `showHelpOnNoRoute`: If set to `true` and `helpType` is not `null`, when no route is matched, `help` output will be shown.

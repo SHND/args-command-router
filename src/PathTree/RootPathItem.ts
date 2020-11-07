@@ -9,7 +9,6 @@ export class RootPathItem extends BlockPathItem {
     this.parentPathItem;
     this.description;
     this.callbacks = [];
-    this.helpCallback;
     this.requiredSwitches = [];
     this.optionalSwitches = [];
 

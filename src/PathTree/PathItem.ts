@@ -7,7 +7,6 @@ export abstract class PathItem {
   protected parentPathItem: PathItem;
   protected description: string;
   protected callbacks: Callback[] = [];
-  protected helpCallback: Callback;
   protected requiredSwitches: Switch[] = [];
   protected optionalSwitches: Switch[] = [];
 
@@ -125,21 +124,6 @@ export abstract class PathItem {
     if (!this.hasCallback(callback)) {
       this.callbacks.push(callback);
     }
-  }
-
-  /**
-   * helpCallback getter
-   */
-  public getHelpCallback = () => {
-    return this.helpCallback;
-  }
-
-  /**
-   * helpCallback setter
-   * @param {Callback} callback to be added
-   */
-  public setHelpCallback = (callback: Callback) => {
-    this.helpCallback = callback;
   }
 
   /**

@@ -103,17 +103,6 @@ export class Route {
   }
 
   /**
-   * Set callback which is responsible for returning the help text for the current route
-   * @param callback help
-   * @returns {Route} current route
-   */
-  // help(callback: Callback) {
-  //   this.lastPathItem().setHelpCallback(callback);
-
-  //   return this;
-  // }
-
-  /**
    * Set description text for the current route
    * @param text to be set as description
    * @returns {Route} current route
