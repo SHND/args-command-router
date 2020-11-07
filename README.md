@@ -192,26 +192,66 @@ Hooks are functions that are getting executed at different stages of the executi
 
 Currently, there are three different hooks:
 
-- **NoRoute Hooks:** These hooks are executed when no matches found in the routes.
+- **beforeAll Hook:** is called before all executions.
 
 ```js
-app.noroute(inputs => {
+app.beforeAll(inputs => {
   // do some stuff
 })
 ```
 
-- **Before Hook:** These hooks are executed before even searching for the matching route.
+- **afterTargetFound Hook:** is called after a PathItem for the passed commands is found.
 
 ```js
-app.before(inputs => {
+app.afterTargetFound(inputs => {
   // do some stuff
 })
 ```
 
-- **After Hook:** These hooks are executed after executing route callbacks.
+- **afterCallbackFound Hook:** is called when PathItem is found and at least one callback is set on it.
 
 ```js
-app.after(inputs => {
+app.afterCallbackFound(inputs => {
+  // do some stuff
+}
+```
+
+- **beforeCallback Hook:** is called right before callback execution.
+
+```js
+app.beforeCallback(inputs => {
+  // do some stuff
+}
+```
+
+- **afterCallback Hook:** is called right after callback execution.
+
+```js
+app.afterCallback(inputs => {
+  // do some stuff
+}
+```
+
+- **noTarget Hook:** is called when no PathItems could be associated with passed commands.
+
+```js
+app.noTarget(inputs => {
+  // do some stuff
+}
+```
+
+- **noCallback Hook:** is called when PathItem is found but no callbacks are set on the PathItem.
+
+```js
+app.noCallback(inputs => {
+  // do some stuff
+}
+```
+
+- **onVerifySwitchFailure Hook:** is called when Callback is found but passed switches are not matched with defined switches for that PathItem.
+
+```js
+app.onVerifySwitchFailure(inputs => {
   // do some stuff
 }
 ```
@@ -219,7 +259,7 @@ app.after(inputs => {
 You can also add new properties and values to your inputs for the next hooks and callbacks. In order to do that just return an object with those properties.
 
 ```js
-app.before(inputs => {
+app.beforeAll(inputs => {
   return {
     hello: 'hi',
   }
@@ -233,7 +273,7 @@ app.route('/video/formats').callback(inputs => {
 If you want to stop the next hooks and callbacks to be called, return a string 'stop' from your callbacks.
 
 ```js
-app.before(inputs => {
+app.beforeAll(inputs => {
   if (new Date().getHours() < 6) {
     return 'stop'
   }
@@ -257,17 +297,23 @@ These are the default values:
 ```js
 const app = new Application({
   applicationName: '<App>',
-  applyMiddlewareOnNoRoute: false,
+  verifySwitches: true,
   helpType: 'switch',
   helpShortSwitch: 'h',
   helpLongSwitch: 'help',
-  showHelpOnNoRoute: true,
+  helpOnNoTarget: true,
+  helpOnNoCallback: true,
+  helpOnVerifySwitchFailure: true,
+  helpOnAskedForHelp: true,
 })
 ```
 
 - `applicationName`: The name of the application used in generating the help (usage) output.
-- `applyMiddlewareOnNoRoute`: The `before` and `after` hooks will be applied on the `noroute` callback.
+- `verifySwitches`: Verify if the passed switches are matched with switches defined on the found pathItem.
 - `helpType`: If you want to disable the help functionality, set this to `null`.
 - `helpShortSwitch`: The short switch name for showing help (usage) output.
 - `helpLongSwitch`: The long switch name for showing help (usage) output.
-- `showHelpOnNoRoute`: If set to `true` and `helpType` is not `null`, when no route is matched, `help` output will be shown.
+- `helpOnNoTarget`: Show help when no PathItem found for the passed commands.
+- `helpOnNoCallback`: Show help when PathItem is found but no callbacks are defined on that pathItem.
+- `helpOnVerifySwitchFailure`: Show help if the `verifySwitches` config is set to true but switches for that pathItem not matched.
+- `helpOnAskedForHelp`: Show help when user deliberatly asks for help. e.g. when `helpType` is `switch` and `helpShortSwitch` is passed.

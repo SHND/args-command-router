@@ -10,11 +10,14 @@ export type ExternalArgsType = Data;
  */
 export interface Config {
   applicationName: string,
-  applyMiddlewareOnNoRoute: boolean,
+  verifySwitches: boolean,
   helpType: 'switch' | null,
   helpShortSwitch: string,
   helpLongSwitch: string,
-  showHelpOnNoRoute: boolean
+  helpOnNoTarget: boolean,
+  helpOnNoCallback: boolean,
+  helpOnVerifySwitchFailure: boolean;
+  helpOnAskedForHelp: boolean,
 }
 
 /**

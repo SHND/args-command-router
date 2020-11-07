@@ -2980,11 +2980,14 @@ describe('utility', () => {
 
       const config: Config = {
         applicationName: '<App>',
-        applyMiddlewareOnNoRoute: false,
         helpType: 'switch',
+        verifySwitches: true,
         helpShortSwitch: 'z',
         helpLongSwitch: 'zelp',
-        showHelpOnNoRoute: true,
+        helpOnNoTarget: false,
+        helpOnNoCallback: false,
+        helpOnVerifySwitchFailure: false,
+        helpOnAskedForHelp: false
       }
 
       expect(() => {
@@ -3031,11 +3034,14 @@ describe('utility', () => {
 
       const config: Config = {
         applicationName: '<App>',
-        applyMiddlewareOnNoRoute: false,
         helpType: 'switch',
+        verifySwitches: true,
         helpShortSwitch: 'z',
         helpLongSwitch: 'zelp',
-        showHelpOnNoRoute: true,
+        helpOnNoTarget: false,
+        helpOnNoCallback: false,
+        helpOnVerifySwitchFailure: false,
+        helpOnAskedForHelp: false
       }
 
       /******************************************
@@ -3113,11 +3119,14 @@ describe('utility', () => {
 
       const config: Config = {
         applicationName: '<App>',
-        applyMiddlewareOnNoRoute: false,
+        verifySwitches: true,
         helpType: 'switch',
         helpShortSwitch: 'z',
         helpLongSwitch: 'zelp',
-        showHelpOnNoRoute: true,
+        helpOnNoTarget: false,
+        helpOnNoCallback: false,
+        helpOnVerifySwitchFailure: false,
+        helpOnAskedForHelp: false
       }
 
       /******************************************
