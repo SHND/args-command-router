@@ -5,6 +5,7 @@
 # source
 src/
 test/
+play/
 
 # tools
 .gitignore
@@ -16,3 +17,6 @@ coverage/
 .nycrc
 .nyc_output/
 tsconfig.json
+
+# docs
+docs/
