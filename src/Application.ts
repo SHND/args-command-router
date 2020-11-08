@@ -5,6 +5,8 @@ import { PathItem } from './PathTree/PathItem';
 import { Callback, CallbackReturnType, Config } from './types';
 import { matchCommands, matchSwitches, matchCommandsGetPathParameters, noop, processCallbacks, verifySwitches } from './utility';
 import { STOP } from './constants';
+import { askForHelpHook } from './hooks/askForHelpHook';
+import { notFoundHook } from './hooks/notFoundHook';
 
 
 export default class Application {
@@ -34,6 +36,22 @@ export default class Application {
       helpOnVerifySwitchFailure: config.helpOnVerifySwitchFailure === false ? false : true,
       helpOnAskedForHelp: config.helpOnAskedForHelp === false ? false : true,
     }
+
+    if (this._config.helpOnAskedForHelp) {
+      this.afterTargetFound(askForHelpHook)
+    }
+
+    if (this._config.helpOnNoCallback) {
+      this.noCallback(notFoundHook);
+    }
+
+    if (this._config.helpOnNoTarget) {
+      this.noTarget(notFoundHook);
+    }
+
+    if (this._config.helpOnVerifySwitchFailure) {
+      this.onVerifySwitchFailure(notFoundHook);
+    }
   }
 
   public route(path: string) {
@@ -52,9 +70,10 @@ export default class Application {
     const shortSwitches = args.shortSwitches;
     const longSwitches = args.longSwitches;
 
-    const app = this;
+    const config = this._config;
+    const tree = this._tree;
     
-    if ((partialContext = processCallbacks(null, partialContext, args, {}, this._beforeAll)) === STOP) return;
+    if ((partialContext = processCallbacks(null, partialContext, args, {}, config, tree, this._beforeAll)) === STOP) return;
     
     const targetBlockPathItem = matchCommands(commands, root);
 
@@ -64,53 +83,35 @@ export default class Application {
       const targetSwitchPathItem = matchSwitches(shortSwitches, longSwitches, targetBlockPathItem);
       const target: PathItem = targetSwitchPathItem || targetBlockPathItem;
 
-      if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, this._afterTargetFound)) === STOP) return;
+      if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, config, tree, this._afterTargetFound)) === STOP) return;
 
       const targetCallbacks = target.getCallbacks();
       if (targetCallbacks.length > 0) {
-        if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, this._afterCallbackFound)) === STOP) return;
+        if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, config, tree, this._afterCallbackFound)) === STOP) return;
 
-        if (app._config.verifySwitches) {
+        if (config.verifySwitches) {
           try {
             verifySwitches(target, args.shortSwitches, args.longSwitches, this._config);
           } catch(error) {
-            if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, this._onVerifySwitchFailure)) === STOP) return;
-            if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, this._afterAll)) === STOP) return;
+            if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, config, tree, this._onVerifySwitchFailure)) === STOP) return;
+            if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, config, tree, this._afterAll)) === STOP) return;
             return;
           }
         }
 
-        if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, this._beforeCallback)) === STOP) return;
+        if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, config, tree, this._beforeCallback)) === STOP) return;
 
-        if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, targetCallbacks)) === STOP) return;
+        if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, config, tree, targetCallbacks)) === STOP) return;
 
-        if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, this._afterCallback)) === STOP) return;
+        if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, config, tree, this._afterCallback)) === STOP) return;
       } else {
-        if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, this._noCallback)) === STOP) return;
+        if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, config, tree, this._noCallback)) === STOP) return;
       }
     } else {
-      if ((partialContext = processCallbacks(null, partialContext, args, {}, this._noTarget)) === STOP) return;
+      if ((partialContext = processCallbacks(null, partialContext, args, {}, config, tree, this._noTarget)) === STOP) return;
     }
 
-    if ((partialContext = processCallbacks(null, partialContext, args, {}, this._afterAll)) === STOP) return;
-    
-    // /**
-    //  * Help Before All Hook
-    //  */
-    // this._beforeAllCallbacks.push(function (this: PathItem, context) {
-    //   if (that._config.helpType === 'switch') {
-    //     if (context.shortSwitches[that._config.helpShortSwitch] || context.longSwitches[that._config.helpLongSwitch]) {
-    //       if (this) {
-    //         this.showHelp(that._config.applicationName);
-    //       } else {
-    //         root.showHelp(that._config.applicationName);
-    //       }
-
-    //       return STOP;
-    //     }
-    //   }
-    // });
-
+    if ((partialContext = processCallbacks(null, partialContext, args, {}, config, tree, this._afterAll)) === STOP) return;
   }
 
   public beforeAll(hook: Callback) {

@@ -7,6 +7,7 @@ import { PathItem } from "./PathTree/PathItem";
 import { SwitchPathItem } from "./PathTree/SwitchPathItem";
 import { Callback, CallbackReturnType, Config, ExternalArgsType } from "./types";
 import { Switch } from "./Switch";
+import { PathTree } from "./PathTree/PathTree";
 
 /**
  * Empty (no-operation) function
@@ -296,7 +297,7 @@ export function matchSwitches(
  * @param pathParameters Dictionary of dynamic pathItem names and their real values
  * @param callbacks to be run
  */
-export function processCallbacks(targetPathItem: PathItem, forwardedPartialContext: CallbackReturnType, args: ExternalArgsType, pathParameters: Record<string, string>, callbacks: Callback[]): CallbackReturnType {
+export function processCallbacks(targetPathItem: PathItem, forwardedPartialContext: CallbackReturnType, args: ExternalArgsType, pathParameters: Record<string, string>, config: Config, tree: PathTree, callbacks: Callback[]): CallbackReturnType {
   if (forwardedPartialContext === STOP) {
     return;
   }
@@ -311,7 +312,7 @@ export function processCallbacks(targetPathItem: PathItem, forwardedPartialConte
       shortSwitches: args.shortSwitches,
       longSwitches: args.longSwitches,
       switches: { ...args.shortSwitches, ...args.longSwitches }
-    });
+    }, config, tree);
 
     if (output === undefined) {
       // continue with previous forwardedContext

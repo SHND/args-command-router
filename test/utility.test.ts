@@ -5,6 +5,7 @@ import { DynamicPathItem } from '../src/PathTree/DynamicPathItem';
 import { RootPathItem } from '../src/PathTree/RootPathItem';
 import { SwitchPathItem } from '../src/PathTree/SwitchPathItem';
 import { Callback, CallbackReturnType, Config, ExternalArgsType } from '../src/types';
+import { PathTree } from '../src/PathTree/PathTree';
 import { Switch } from '../src/Switch';
 
 describe('utility', () => {
@@ -2890,6 +2891,18 @@ describe('utility', () => {
         longSwitches: {}
       }
       const pathParameters = {};
+      const config: Config = {
+        applicationName: '<App>',
+        verifySwitches: true,
+        helpType: 'switch',
+        helpShortSwitch: 'h',
+        helpLongSwitch: 'help',
+        helpOnNoTarget: true,
+        helpOnNoCallback: true,
+        helpOnVerifySwitchFailure: true,
+        helpOnAskedForHelp: true,
+      }
+      const tree = new PathTree;
 
       let callback1Called = false;
       let callback2Called = false;
@@ -2898,7 +2911,7 @@ describe('utility', () => {
       const callback2 = () => { callback2Called = true; return { b: 2 } };
       const callbacks = [ callback1, callback2 ];
 
-      const output = processCallbacks(pathItem, partialContext, args, pathParameters, callbacks);
+      const output = processCallbacks(pathItem, partialContext, args, pathParameters, config, tree, callbacks);
 
       expect(callback1Called).be.true;
       expect(callback2Called).be.true;
@@ -2914,9 +2927,22 @@ describe('utility', () => {
         longSwitches: {}
       }
       const pathParameters = {};
+      const config: Config = {
+        applicationName: '<App>',
+        verifySwitches: true,
+        helpType: 'switch',
+        helpShortSwitch: 'h',
+        helpLongSwitch: 'help',
+        helpOnNoTarget: true,
+        helpOnNoCallback: true,
+        helpOnVerifySwitchFailure: true,
+        helpOnAskedForHelp: true,
+      }
+      const tree = new PathTree;
+
       const callbacks: Callback[] = [];
 
-      const output = processCallbacks(pathItem, partialContext, args, pathParameters, callbacks);
+      const output = processCallbacks(pathItem, partialContext, args, pathParameters, config, tree, callbacks);
 
       expect(output).deep.equal({});
     });
@@ -2930,6 +2956,18 @@ describe('utility', () => {
         longSwitches: {}
       }
       const pathParameters = {};
+      const config: Config = {
+        applicationName: '<App>',
+        verifySwitches: true,
+        helpType: 'switch',
+        helpShortSwitch: 'h',
+        helpLongSwitch: 'help',
+        helpOnNoTarget: true,
+        helpOnNoCallback: true,
+        helpOnVerifySwitchFailure: true,
+        helpOnAskedForHelp: true,
+      }
+      const tree = new PathTree;
 
       let callback1Called = false;
       let callback2Called = false;
@@ -2938,7 +2976,7 @@ describe('utility', () => {
       const callback2 = () => { callback2Called = true; };
       const callbacks = [ callback1, callback2 ];
 
-      const output = processCallbacks(pathItem, partialContext, args, pathParameters, callbacks);
+      const output = processCallbacks(pathItem, partialContext, args, pathParameters, config, tree, callbacks);
 
       expect(callback1Called).be.true;
       expect(callback2Called).be.true;
@@ -2954,6 +2992,18 @@ describe('utility', () => {
         longSwitches: {}
       }
       const pathParameters = {};
+      const config: Config = {
+        applicationName: '<App>',
+        verifySwitches: true,
+        helpType: 'switch',
+        helpShortSwitch: 'h',
+        helpLongSwitch: 'help',
+        helpOnNoTarget: true,
+        helpOnNoCallback: true,
+        helpOnVerifySwitchFailure: true,
+        helpOnAskedForHelp: true,
+      }
+      const tree = new PathTree;
 
       let callback0Called = false;
       let callback1Called = false;
@@ -2964,7 +3014,7 @@ describe('utility', () => {
       const callback2 = () => { callback2Called = true; return {b: 2}; };
       const callbacks = [ callback0, callback1, callback2 ];
 
-      const output = processCallbacks(pathItem, partialContext, args, pathParameters, callbacks);
+      const output = processCallbacks(pathItem, partialContext, args, pathParameters, config, tree, callbacks);
 
       expect(callback0Called).be.true;
       expect(callback1Called).be.true;

@@ -1,4 +1,6 @@
 import { Data } from "args-command-parser/dist/Models";
+import { PathItem } from "./PathTree/PathItem";
+import { PathTree } from "./PathTree/PathTree";
 
 /**
  * Data type from args-command-parser
@@ -44,4 +46,4 @@ export type CallbackContext = CallbackContextBase & CallbackReturnType;
 /**
  * Callback type for middlewares and main PathItem callback
  */
-export type Callback = (context: CallbackContext) => CallbackReturnType;
+export type Callback = (this: PathItem, context: CallbackContext, config: Config, tree: PathTree) => CallbackReturnType;
