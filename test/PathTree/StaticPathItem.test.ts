@@ -1,6 +1,6 @@
 import { expect } from 'chai'
-import { StaticPathItem } from '../../src/PathTree/StaticPathItem';
 import { Switch } from '../../src/Switch';
+import { StaticPathItem } from '../../src/PathTree/StaticPathItem';
 
 describe('StaticPathItem', () => {
   it('instantiating StaticPathItem subClass', () => {

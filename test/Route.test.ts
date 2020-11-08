@@ -2,8 +2,8 @@ import { expect } from 'chai'
 import { Route } from '../src/Route';
 import { PathTree } from '../src/PathTree/PathTree';
 import { StaticPathItem } from '../src/PathTree/StaticPathItem';
-import { DynamicPathItem } from '../src/PathTree/DynamicPathItem';
 import { SwitchPathItem } from '../src/PathTree/SwitchPathItem';
+import { DynamicPathItem } from '../src/PathTree/DynamicPathItem';
 
 
 describe('Route', () => {

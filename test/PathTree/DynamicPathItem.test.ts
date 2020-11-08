@@ -1,6 +1,6 @@
 import { expect } from 'chai'
-import { DynamicPathItem } from '../../src/PathTree/DynamicPathItem';
 import { Switch } from '../../src/Switch';
+import { DynamicPathItem } from '../../src/PathTree/DynamicPathItem';
 
 describe('DynamicPathItem', () => {
   it('instantiating DynamicPathItem subClass', () => {

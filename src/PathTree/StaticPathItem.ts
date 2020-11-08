@@ -1,5 +1,5 @@
-import { BlockPathItem } from "./BlockPathItem";
 import { PathItem } from "./PathItem";
+import { BlockPathItem } from "./BlockPathItem";
 
 
 export class StaticPathItem extends BlockPathItem {

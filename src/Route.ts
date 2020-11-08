@@ -1,12 +1,12 @@
+import { Switch } from './Switch';
+import { Callback } from './types';
+import { parsePath } from './utility';
+import { PathTree } from './PathTree/PathTree';
 import { PathItem } from './PathTree/PathItem';
 import { BlockPathItem } from './PathTree/BlockPathItem';
-import { parsePath } from './utility';
-import { Switch } from './Switch';
-import { PathTree } from './PathTree/PathTree';
 import { StaticPathItem } from './PathTree/StaticPathItem';
-import { DynamicPathItem } from './PathTree/DynamicPathItem';
 import { SwitchPathItem } from './PathTree/SwitchPathItem';
-import { Callback } from './types';
+import { DynamicPathItem } from './PathTree/DynamicPathItem';
 
 export class Route {
 

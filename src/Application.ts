@@ -1,12 +1,12 @@
-import { PathTree } from './PathTree/PathTree'
 import { Route } from './Route';
-import { parser } from 'args-command-parser';
-import { PathItem } from './PathTree/PathItem';
-import { Callback, CallbackContext, Config } from './types';
-import { matchCommands, matchSwitches, matchCommandsGetPathParameters, noop, processCallbacks, verifySwitches } from './utility';
 import { STOP } from './constants';
-import { askForHelpHook } from './hooks/askForHelpHook';
+import { parser } from 'args-command-parser';
+import { PathTree } from './PathTree/PathTree'
+import { PathItem } from './PathTree/PathItem';
 import { notFoundHook } from './hooks/notFoundHook';
+import { askForHelpHook } from './hooks/askForHelpHook';
+import { Callback, CallbackContext, Config } from './types';
+import { matchCommands, matchSwitches, matchCommandsGetPathParameters, processCallbacks, verifySwitches } from './utility';
 
 
 export default class Application {

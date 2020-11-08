@@ -1,5 +1,4 @@
 import { expect } from 'chai'
-import { StaticPathItem } from '../../src/PathTree/StaticPathItem';
 import { SwitchExpression } from '../../src/PathTree/SwitchExpression';
 
 describe('SwitchExpression', () => {

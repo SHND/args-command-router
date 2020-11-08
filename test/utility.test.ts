@@ -1,12 +1,12 @@
 import { expect } from 'chai'
-import { parsePath, splitFromSwitchPathItem, splitSwitchExpressions, hasWhiteSpace, hasAnyOfChars, matchCommands, matchSwitches, matchCommandsGetPathParameters, processCallbacks, verifySwitches } from '../src/utility';
-import { StaticPathItem } from '../src/PathTree/StaticPathItem';
-import { DynamicPathItem } from '../src/PathTree/DynamicPathItem';
-import { RootPathItem } from '../src/PathTree/RootPathItem';
-import { SwitchPathItem } from '../src/PathTree/SwitchPathItem';
-import { Callback, CallbackReturnType, Config, ExternalArgsType } from '../src/types';
-import { PathTree } from '../src/PathTree/PathTree';
 import { Switch } from '../src/Switch';
+import { PathTree } from '../src/PathTree/PathTree';
+import { RootPathItem } from '../src/PathTree/RootPathItem';
+import { StaticPathItem } from '../src/PathTree/StaticPathItem';
+import { SwitchPathItem } from '../src/PathTree/SwitchPathItem';
+import { Callback, Config, ExternalArgsType } from '../src/types';
+import { DynamicPathItem } from '../src/PathTree/DynamicPathItem';
+import { parsePath, splitFromSwitchPathItem, splitSwitchExpressions, hasWhiteSpace, hasAnyOfChars, matchCommands, matchSwitches, matchCommandsGetPathParameters, processCallbacks, verifySwitches } from '../src/utility';
 
 describe('utility', () => {
 

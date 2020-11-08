@@ -1,5 +1,4 @@
 // import { PathItem } from "./PathItem";
-import { BlockPathItem } from "./BlockPathItem";
 import { RootPathItem } from "./RootPathItem";
 
 export class PathTree {

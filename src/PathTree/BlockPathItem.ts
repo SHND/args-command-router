@@ -1,9 +1,9 @@
-import { PathItem } from './PathItem';
 import { Switch } from '../Switch';
+import { PathItem } from './PathItem';
 import { StaticPathItem } from './StaticPathItem';
-import { DynamicPathItem } from './DynamicPathItem';
 import { SwitchPathItem } from './SwitchPathItem';
 import { PATH_ITEM_DELIMITER } from '../constants';
+import { DynamicPathItem } from './DynamicPathItem';
 
 const commandLineUsage = require('command-line-usage');
 

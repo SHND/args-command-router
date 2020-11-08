@@ -1,8 +1,8 @@
-import { PathItem } from "./PathItem";
-import { SwitchExpression } from "./SwitchExpression";
-import { splitSwitchExpressions } from "../utility";
-import { OPEN_SWITCH_EXPR_SYMBOL, CLOSE_SWITCH_EXPR_SYMBOL, PATH_ITEM_DELIMITER } from "../constants";
 import { Switch } from "../Switch";
+import { PathItem } from "./PathItem";
+import { splitSwitchExpressions } from "../utility";
+import { SwitchExpression } from "./SwitchExpression";
+import { OPEN_SWITCH_EXPR_SYMBOL, CLOSE_SWITCH_EXPR_SYMBOL, PATH_ITEM_DELIMITER } from "../constants";
 
 const commandLineUsage = require('command-line-usage');
 

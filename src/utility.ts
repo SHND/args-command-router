@@ -1,13 +1,13 @@
-import { PATH_ITEM_DELIMITER, DYNAMIC_PATH_PREFIX, OPEN_SWITCH_EXPR_SYMBOL, CLOSE_SWITCH_EXPR_SYMBOL, SINGLE_QUOTE_LITERAL, DOUBLE_QUOTE_LITERAL, STOP } from "./constants";
-import { RootPathItem } from "./PathTree/RootPathItem";
-import { DynamicPathItem } from "./PathTree/DynamicPathItem";
-import { StaticPathItem } from "./PathTree/StaticPathItem";
-import { BlockPathItem } from "./PathTree/BlockPathItem";
-import { PathItem } from "./PathTree/PathItem";
-import { SwitchPathItem } from "./PathTree/SwitchPathItem";
-import { Callback, CallbackContext, CallbackReturnType, Config, ExternalArgsType } from "./types";
 import { Switch } from "./Switch";
 import { PathTree } from "./PathTree/PathTree";
+import { PathItem } from "./PathTree/PathItem";
+import { RootPathItem } from "./PathTree/RootPathItem";
+import { BlockPathItem } from "./PathTree/BlockPathItem";
+import { StaticPathItem } from "./PathTree/StaticPathItem";
+import { SwitchPathItem } from "./PathTree/SwitchPathItem";
+import { DynamicPathItem } from "./PathTree/DynamicPathItem";
+import { Callback, CallbackContext, CallbackReturnType, Config, ExternalArgsType } from "./types";
+import { PATH_ITEM_DELIMITER, DYNAMIC_PATH_PREFIX, OPEN_SWITCH_EXPR_SYMBOL, CLOSE_SWITCH_EXPR_SYMBOL, SINGLE_QUOTE_LITERAL, DOUBLE_QUOTE_LITERAL, STOP } from "./constants";
 
 /**
  * Empty (no-operation) function

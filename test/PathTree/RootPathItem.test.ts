@@ -1,6 +1,6 @@
 import { expect } from 'chai'
-import { RootPathItem } from '../../src/PathTree/RootPathItem';
 import { Switch } from '../../src/Switch';
+import { RootPathItem } from '../../src/PathTree/RootPathItem';
 
 describe('RootPathItem', () => {
   it('instantiating RootPathItem subClass', () => {

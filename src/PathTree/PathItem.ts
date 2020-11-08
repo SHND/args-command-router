@@ -1,6 +1,6 @@
 import { Switch } from "../Switch";
-import { PATH_ITEM_DELIMITER } from "../constants";
 import { Callback } from "../types";
+import { PATH_ITEM_DELIMITER } from "../constants";
 
 export abstract class PathItem {
 

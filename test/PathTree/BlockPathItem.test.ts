@@ -1,10 +1,10 @@
 import { expect } from 'chai'
-import { BlockPathItem } from '../../src/PathTree/BlockPathItem';
-import { StaticPathItem } from '../../src/PathTree/StaticPathItem';
-import { DynamicPathItem } from '../../src/PathTree/DynamicPathItem';
-import { SwitchPathItem } from '../../src/PathTree/SwitchPathItem';
 import { Switch } from '../../src/Switch';
 import { RootPathItem } from '../../src/PathTree/RootPathItem';
+import { BlockPathItem } from '../../src/PathTree/BlockPathItem';
+import { StaticPathItem } from '../../src/PathTree/StaticPathItem';
+import { SwitchPathItem } from '../../src/PathTree/SwitchPathItem';
+import { DynamicPathItem } from '../../src/PathTree/DynamicPathItem';
 
 
 class TestBlockPathItem extends BlockPathItem {
