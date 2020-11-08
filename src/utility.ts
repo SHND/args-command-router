@@ -416,7 +416,7 @@ export function verifySwitches(pathItem: PathItem, argsShortSwitches: Record<str
       const swich = requiredShort[shortArg];
 
       if (swich.hasLongname() && argsLongSwitches[swich.getLongname()]) {
-        throw Error(`Either "-${swich.getShortname()}" or "--${swich.getLongname()}" can be passed at the same time.`);
+        throw Error(`Only one of "-${swich.getShortname()}" or "--${swich.getLongname()}" can be passed at the same time.`);
       }
 
       if (swich.hasLongname()) {
@@ -428,7 +428,7 @@ export function verifySwitches(pathItem: PathItem, argsShortSwitches: Record<str
       const swich = optionalShort[shortArg];
 
       if (swich.hasLongname() &&  argsLongSwitches[swich.getLongname()]) {
-        throw Error(`Either "-${swich.getShortname()}" or "--${swich.getLongname()}" can be passed at the same time.`);
+        throw Error(`Only one of "-${swich.getShortname()}" or "--${swich.getLongname()}" can be passed at the same time.`);
       }
 
       if (swich.hasLongname()) {
