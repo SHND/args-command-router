@@ -11,7 +11,7 @@ The idea behind **Args Command Router** is from the **ExpressJS** package, in wh
 ## Installation
 
 ```bash
-npm install --save args-command-router
+npm install --save args-command-router@next
 ```
 
 ## Usage
@@ -28,9 +28,9 @@ $ git push origin master --force
 You can implement the routing of commands above like this:
 
 ```js
-const { Application } = require('args-command-router')
+const { argsCommandRouter } = require('args-command-router')
 
-const app = new Application({
+const app = argsCommandRouter({
   applicationName: 'git',
 })
 
@@ -70,12 +70,12 @@ app.run()
 
 ## Routes
 
-The `route()` method on the Application instance specifies for each series of commands and switches (path), what routine (callback) should be called.
+The `route()` method on the Application instance specifies, what routine (callback) should be called for each series of commands and switches.
 
 It receives a series of names separated by `/` and series of optional switches at the end of the path each inside `[]`.
 
 ```js
-app.route('/cmd1/:cmd2[switch1=123][s]
+app.route('/cmd1/:cmd2[switch1=123][s]')
 ```
 
 On each run, Application goes through the routes in order they are defined and compares the passed arguments (commands and switches) with each route, and execute the first matched route callback.
@@ -102,19 +102,27 @@ Callbacks specifies what routine (function) should be called when a matched rout
 
 ```js
 route('/call/my/callback').callback(function(inputs) {
-  const { commands, pathParams, shortSwitches, longSwitches, switches } = inputs
+  const {
+    commands,
+    pathParams,
+    shortSwitches,
+    longSwitches,
+    switches,
+    context,
+  } = inputs
 
   const pathItem = this
 })
 ```
 
-Your callbacks are passed with data about the current execution of your application.
+Your callbacks are called with data about the current execution of your application.
 
 - **commands** is an array of strings passed to your application as commands.
 - **pathParams** is an object of dynamic pathItem names and values that are passed to your application.
 - **shortSwitches** is an object of short switch names and array of values that are passed to your application.
 - **longSwitches** is an object of long switch names and array of values that are passed to your application.
 - **switches** is **shortSwitches** and **longSwitches** in one object.
+- **context** is an object that hooks can use to pass values to the next hooks and callbacks.
 - **this** points to the matched pathItem or it's _null_ if no pathItem is associated with the callback.
 
 You can also add new properties to the input object in hooks and access them in the your callbacks.
@@ -127,7 +135,7 @@ Switches can be either **Required** or **Optional**.
 
 ### Required Switches
 
-These switches must to be present when running your application for a specific route, otherwise your callback won't be called, even if you are mentioning them in your route string.
+These switches should be present when running your application for a specific route, otherwise your callback won't be called, even if you are mentioning them in your route string. (This behavior can be changed by the configuration option `verifySwitches`)
 
 ```js
 app
@@ -188,9 +196,7 @@ $ App video formats --key abc123 -v
 
 ## Hooks
 
-Hooks are functions that are getting executed at different stages of the execution of the application.
-
-Currently, there are three different hooks:
+Hooks are functions that are getting executed at different stages of the execution of the application. You can view the order of execution of the callback and hooks from [this diagram](https://raw.githubusercontent.com/SHND/args-command-router/master/docs/hooks_order.png).
 
 - **beforeAll Hook:** is called before all executions.
 
@@ -266,7 +272,7 @@ app.beforeAll(inputs => {
 })
 
 app.route('/video/formats').callback(inputs => {
-  console.log(inputs.hello)
+  console.log(inputs.context.hello)
 })
 ```
 
@@ -316,4 +322,4 @@ const app = new Application({
 - `helpOnNoTarget`: Show help when no PathItem found for the passed commands.
 - `helpOnNoCallback`: Show help when PathItem is found but no callbacks are defined on that pathItem.
 - `helpOnVerifySwitchFailure`: Show help if the `verifySwitches` config is set to true but switches for that pathItem not matched.
-- `helpOnAskedForHelp`: Show help when user deliberatly asks for help. e.g. when `helpType` is `switch` and `helpShortSwitch` is passed.
+- `helpOnAskedForHelp`: Show help when user deliberatly asks for help. e.g. when user pass `-h`.
