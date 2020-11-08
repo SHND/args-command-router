@@ -1,56 +1,36 @@
 const { default: Application } = require('../dist/Application');
 
-const app = new Application;
-
-// app.route('/hi/hoy/:param[x]');
-// app.route('/x/:asdf/z');
-// app.route('x/:asdf/y[a=12]')
-//   .callback(function(x) {
-//     console.log(12)
-//   })
-
-// app.route('x/:asdf/y[a=1]')
-//   .callback(function(x) {
-//     console.log(1)
-//   })
-
-// // app.route('x/:asdf/y[a]')
-// //   .callback(function(x) {
-// //     console.log(0)
-// //   })
-
-// // app.debug()
-
-// app.noroute((x) => {
-//   console.log(x)
-//   console.log('no route')
-// })
-
-
-app.noroute(() => {
-  console.log('noroute')
+const app = new Application({
+  applicationName: 'git',
 });
 
-app.route('/:var/:var/heli/:var')
-  .callback(x => console.log('main', x))
+app.beforeAll(() => console.log('beforeAll'))
+app.afterTargetFound(() => console.log('afterTargetFound'))
+app.afterCallbackFound(() => console.log('afterCallbackFound'))
+app.beforeCallback(() => console.log('beforeCallback'))
+app.afterCallback(() => console.log('afterCallback'))
+app.afterAll(() => console.log('afterAll'))
+app.onVerifySwitchFailure(() => console.log('onVerifySwitchFailure'))
+app.noTarget(() => console.log('noTarget'))
+app.noCallback(() => console.log('noCallback'))
 
-app.before((options) => {
-  console.log('before1', options);
-  return {aa: 1}
-});
+app.route('/add/:filename')
+  .description('Add file contents to the index')
+  .callback(() => { console.log('/add/:filename') })
 
-app.before((options) => {
-  console.log('before2', options);
-  return 'stop'
-});
+app.route('/commit')
+  .description('Record changes to the repository')
+  .optionalSwitch('a', 'all', 'commit all changed files')
+  .optionalSwitch('m', 'message', 'commit message', ['message'])
+  .callback(() => { console.log('/commit') })
 
-app.after((options) => {
-  console.log('after1', options);
-  return {a: 2}
-})
+app.route('/branch')
+  .description('List, create, or delete branches')
+  .callback(() => { console.log('/branch') })
 
-app.after((options) => {
-  console.log('after2', options);
-})
+app.route('/push/:remote/:branch')
+  .description('Update remote refs along with associated objects')
+  .requiredSwitch('f', 'force', 'force updates')
+  .callback(() => { console.log('/push/:remote/:branch') } )
 
 app.run();
