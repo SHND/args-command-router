@@ -2884,7 +2884,7 @@ describe('utility', () => {
   describe('processCallbacks()', () => {
     it('processCallbacks with regular callbacks', () => {
       const pathItem = new StaticPathItem('static1', null);
-      const partialContext = {};
+      const partialContext = { z: 9 };
       const args: ExternalArgsType = {
         commands: [],
         shortSwitches: {},
@@ -2915,12 +2915,12 @@ describe('utility', () => {
 
       expect(callback1Called).be.true;
       expect(callback2Called).be.true;
-      expect(output).deep.equal({ a: 1, b: 2 });
+      expect(output).deep.equal({ a: 1, b: 2, z: 9 });
     });
 
     it('processCallbacks with empty callbacks', () => {
       const pathItem = new StaticPathItem('static1', null);
-      const partialContext = {};
+      const partialContext = { z: 9 };
       const args: ExternalArgsType = {
         commands: [],
         shortSwitches: {},
@@ -2944,12 +2944,12 @@ describe('utility', () => {
 
       const output = processCallbacks(pathItem, partialContext, args, pathParameters, config, tree, callbacks);
 
-      expect(output).deep.equal({});
+      expect(output).deep.equal({ z: 9 });
     });
 
     it('processCallbacks when one callback do not return', () => {
       const pathItem = new StaticPathItem('static1', null);
-      const partialContext = {};
+      const partialContext = { z: 9 };
       const args: ExternalArgsType = {
         commands: [],
         shortSwitches: {},
@@ -2980,7 +2980,7 @@ describe('utility', () => {
 
       expect(callback1Called).be.true;
       expect(callback2Called).be.true;
-      expect(output).deep.equal({ a: 1 });
+      expect(output).deep.equal({ a: 1, z: 9 });
     });
 
     it('processCallbacks when one callback returns "stop"', () => {

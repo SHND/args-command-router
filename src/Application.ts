@@ -2,7 +2,7 @@ import { PathTree } from './PathTree/PathTree'
 import { Route } from './Route';
 import { parser } from 'args-command-parser';
 import { PathItem } from './PathTree/PathItem';
-import { Callback, CallbackReturnType, Config } from './types';
+import { Callback, CallbackContext, Config } from './types';
 import { matchCommands, matchSwitches, matchCommandsGetPathParameters, noop, processCallbacks, verifySwitches } from './utility';
 import { STOP } from './constants';
 import { askForHelpHook } from './hooks/askForHelpHook';
@@ -60,7 +60,7 @@ export default class Application {
 
   public run(argv?: string[]) {
 
-    let partialContext: CallbackReturnType = {};
+    let context: CallbackContext = {};
 
     // if argv is undefined, use the arguments passed from shell
     const args = parser(argv).data;
@@ -73,7 +73,11 @@ export default class Application {
     const config = this._config;
     const tree = this._tree;
     
-    if ((partialContext = processCallbacks(null, partialContext, args, {}, config, tree, this._beforeAll)) === STOP) return;
+    // ------------------ beforeAll hook ------------------
+    const beforeAllResult = processCallbacks(null, context, args, {}, config, tree, this._beforeAll);
+    if (beforeAllResult === STOP) return;
+    else context = beforeAllResult || context;
+    // ------------------------------------------------------
     
     const targetBlockPathItem = matchCommands(commands, root);
 
@@ -83,35 +87,78 @@ export default class Application {
       const targetSwitchPathItem = matchSwitches(shortSwitches, longSwitches, targetBlockPathItem);
       const target: PathItem = targetSwitchPathItem || targetBlockPathItem;
 
-      if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, config, tree, this._afterTargetFound)) === STOP) return;
+      // ------------------ afterTargetFound hook ------------------
+      const afterTargetFoundResult = processCallbacks(target, context, args, pathParametes, config, tree, this._afterTargetFound);
+      if (afterTargetFoundResult === STOP) return;
+      else context = afterTargetFoundResult || context;
+      // ------------------------------------------------------
 
       const targetCallbacks = target.getCallbacks();
       if (targetCallbacks.length > 0) {
-        if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, config, tree, this._afterCallbackFound)) === STOP) return;
+
+        // ------------------ afterCallbackFound hook ------------------
+        const afterCallbackFoundResult = processCallbacks(target, context, args, pathParametes, config, tree, this._afterCallbackFound);
+        if (afterCallbackFoundResult === STOP) return;
+        else context = afterCallbackFoundResult || context;
+        // -------------------------------------------------------------
 
         if (config.verifySwitches) {
           try {
             verifySwitches(target, args.shortSwitches, args.longSwitches, this._config);
           } catch(error) {
-            if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, config, tree, this._onVerifySwitchFailure)) === STOP) return;
-            if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, config, tree, this._afterAll)) === STOP) return;
+            // ------------------ onVerifySwitchFailure hook ------------------
+            const onVerifySwitchFailureResult = processCallbacks(target, context, args, pathParametes, config, tree, this._onVerifySwitchFailure);
+            if (onVerifySwitchFailureResult === STOP) return;
+            else context = onVerifySwitchFailureResult || context;
+            // ----------------------------------------------------------------
+
+            // ------------------ afterAll hook ------------------
+            const afterAllResult = processCallbacks(target, context, args, pathParametes, config, tree, this._afterAll);
+            if (afterAllResult === STOP) return;
+            else context = afterAllResult || context;
+            // ---------------------------------------------------
+
             return;
           }
         }
 
-        if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, config, tree, this._beforeCallback)) === STOP) return;
+        // ------------------ beforeCallback hook ------------------
+        const beforeCallbackResult = processCallbacks(target, context, args, pathParametes, config, tree, this._beforeCallback);
+        if (beforeCallbackResult === STOP) return;
+        else context = beforeCallbackResult || context;
+        // ---------------------------------------------------------
 
-        if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, config, tree, targetCallbacks)) === STOP) return;
+        // ------------------ targetCallbacks ------------------
+        const targetCallbacksResult = processCallbacks(target, context, args, pathParametes, config, tree, targetCallbacks);
+        if (targetCallbacksResult === STOP) return;
+        else context = targetCallbacksResult || context;
+        // -----------------------------------------------------
 
-        if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, config, tree, this._afterCallback)) === STOP) return;
+        // ------------------ afterCallback hook ------------------
+        const afterCallbackResult = processCallbacks(target, context, args, pathParametes, config, tree, this._afterCallback);
+        if (afterCallbackResult === STOP) return;
+        else context = afterCallbackResult || context;
+        // --------------------------------------------------------
       } else {
-        if ((partialContext = processCallbacks(target, partialContext, args, pathParametes, config, tree, this._noCallback)) === STOP) return;
+        // ------------------ noCallback hook ------------------
+        const noCallbackResult = processCallbacks(target, context, args, pathParametes, config, tree, this._noCallback);
+        if (noCallbackResult === STOP) return;
+        else context = noCallbackResult || context;
+        // -----------------------------------------------------
       }
     } else {
-      if ((partialContext = processCallbacks(null, partialContext, args, {}, config, tree, this._noTarget)) === STOP) return;
+      // ------------------ noTarget hook ------------------
+      const noTargetResult = processCallbacks(null, context, args, {}, config, tree, this._noTarget);
+      if (noTargetResult === STOP) return;
+      else context = noTargetResult || context;
+      // ---------------------------------------------------
     }
 
-    if ((partialContext = processCallbacks(null, partialContext, args, {}, config, tree, this._afterAll)) === STOP) return;
+    // ------------------ afterAll hook ------------------
+    const afterAllResult = processCallbacks(null, context, args, {}, config, tree, this._afterAll);
+    if (afterAllResult === STOP) return;
+    else context = afterAllResult || context;
+    // ---------------------------------------------------
   }
 
   public beforeAll(hook: Callback) {

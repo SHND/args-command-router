@@ -1,7 +1,7 @@
 import { STOP } from "../constants";
 import { PathTree } from "../PathTree/PathTree";
 import { PathItem } from "../PathTree/PathItem";
-import { CallbackContext, CallbackReturnType, Config } from "../types";
+import { CallbackInput, CallbackReturnType, Config } from "../types";
 
 /**
  * This native hook is for when user pass wrong arguments and commands to the Application.
@@ -12,7 +12,7 @@ import { CallbackContext, CallbackReturnType, Config } from "../types";
  * @param config Application configuration
  * @param tree PathTree
  */
-export function notFoundHook(this:PathItem, inputs: CallbackContext, config: Config, tree: PathTree): CallbackReturnType {
+export function notFoundHook(this:PathItem, inputs: CallbackInput, config: Config, tree: PathTree): CallbackReturnType {
 
   const pathItem = this;
   if (config.helpType === 'switch') {

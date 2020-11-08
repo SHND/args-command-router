@@ -23,27 +23,28 @@ export interface Config {
 }
 
 /**
- * Callback context base object type
+ * This is a placeholder for hooks to add custom stuff to be passed to next hooks and callbacks
  */
-export interface CallbackContextBase {
+export type CallbackContext = Record<string, any>;
+
+/**
+ * Callback input type that is passed to callbacks
+ */
+export interface CallbackInput {
   commands: string[]
   pathParams: Record<string, string>
   shortSwitches: Record<string, string[]>
   longSwitches: Record<string, string[]>
   switches: Record<string, string[]>
+  context: CallbackContext
 }
 
 /**
  * Callback return type
  */
-export type CallbackReturnType = Exclude<Record<string, any>, keyof CallbackContextBase> | void | 'stop'
+export type CallbackReturnType = CallbackContext | void | 'stop'
 
 /**
- * Callback context should include CallbackContextBase plus anything passed to it
+ * Callback type for hooks and main PathItem callback
  */
-export type CallbackContext = CallbackContextBase & CallbackReturnType;
-
-/**
- * Callback type for middlewares and main PathItem callback
- */
-export type Callback = (this: PathItem, context: CallbackContext, config: Config, tree: PathTree) => CallbackReturnType;
+export type Callback = (this: PathItem, input: CallbackInput, config: Config, tree: PathTree) => CallbackReturnType;
