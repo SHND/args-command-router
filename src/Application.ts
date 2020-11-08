@@ -54,12 +54,22 @@ export default class Application {
     }
   }
 
+  /**
+   * Create a path in the PathTree and returns a route builder to 
+   * add functionality for path (pathItem in the leaf of that path)
+   * @param path of commands representing the path in PathTree
+   */
   public route(path: string) {
     return new Route(this._tree, path);
   }
 
+  /**
+   * Run the Application with specified arguments.
+   * If argv is not set, the Application will run with
+   * arguments passed to the Application in the console.
+   * @param argv runtime arguments passed to the application
+   */
   public run(argv?: string[]) {
-
     let context: CallbackContext = {};
 
     // if argv is undefined, use the arguments passed from shell
@@ -161,42 +171,81 @@ export default class Application {
     // ---------------------------------------------------
   }
 
+  /**
+   * Add a callback to beforeAll hook
+   * @param {Callback} hook
+   */
   public beforeAll(hook: Callback) {
     this._beforeAll.push(hook);
   }
 
+  /**
+   * Add a callback to afterTargetFound hook
+   * @param {Callback} hook
+   */
   public afterTargetFound(hook: Callback) {
     this._afterTargetFound.push(hook);
   }
 
+  /**
+   * Add a callback to afterCallbackFound hook
+   * @param {Callback} hook
+   */
   public afterCallbackFound(hook: Callback) {
     this._afterCallbackFound.push(hook);
   }
 
+  /**
+   * Add a callback to beforeCallback hook
+   * @param {Callback} hook
+   */
   public beforeCallback(hook: Callback) {
     this._beforeCallback.push(hook);
   }
 
+  /**
+   * Add a callback to afterCallback hook
+   * @param {Callback} hook
+   */
   public afterCallback(hook: Callback) {
     this._afterCallback.push(hook);
   }
 
+  /**
+   * Add a callback to afterAll hook
+   * @param {Callback} hook
+   */
   public afterAll(hook: Callback) {
     this._afterAll.push(hook);
   }
 
+  /**
+   * Add a callback to noTarget hook
+   * @param {Callback} hook
+   */
   public noTarget(hook: Callback) {
     this._noTarget.push(hook);
   }
 
+  /**
+   * Add a callback to noCallback hook
+   * @param {Callback} hook
+   */
   public noCallback(hook: Callback) {
     this._noCallback.push(hook);
   }
 
+  /**
+   * Add a callback to onVerifySwitchFailure hook
+   * @param {Callback} hook
+   */
   public onVerifySwitchFailure(hook: Callback) {
     this._onVerifySwitchFailure.push(hook);
   }
 
+  /**
+   * Prints the tree to the terminal
+   */
   public debug() {
     this._tree.printPathItems();
   }
