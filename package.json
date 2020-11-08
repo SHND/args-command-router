@@ -27,25 +27,25 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@types/chai": "^4.2.3",
+    "@types/chai": "^4.2.14",
     "@types/mocha": "^5.2.7",
-    "@types/node": "^12.7.11",
-    "@typescript-eslint/eslint-plugin": "^2.4.0",
-    "@typescript-eslint/parser": "^2.4.0",
+    "@types/node": "^12.19.3",
+    "@typescript-eslint/eslint-plugin": "^2.34.0",
+    "@typescript-eslint/parser": "^2.34.0",
     "chai": "^4.2.0",
-    "coveralls": "^3.0.7",
+    "coveralls": "^3.1.0",
     "cross-env": "^6.0.3",
-    "eslint": "^6.5.1",
-    "eslint-config-prettier": "^6.4.0",
-    "eslint-plugin-prettier": "^3.1.1",
-    "mocha": "^6.2.2",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.15.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "mocha": "^6.2.3",
     "nyc": "^14.1.1",
-    "prettier": "^1.18.2",
-    "ts-node": "^8.4.1",
-    "typescript": "^3.6.4"
+    "prettier": "^1.19.1",
+    "ts-node": "^8.10.2",
+    "typescript": "^3.9.7"
   },
   "dependencies": {
-    "args-command-parser": "^1.0.9",
-    "command-line-usage": "^6.1.0"
+    "args-command-parser": "^1.1.11",
+    "command-line-usage": "^6.1.1"
   }
 }
