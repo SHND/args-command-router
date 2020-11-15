@@ -374,6 +374,10 @@ export abstract class PathItem {
     return output;
   }
 
+  /**
+   * Add a switch name to memoized switch names used in the subtree from this pathItem
+   * @param swich
+   */
   public addToSubtreeUsedSwitchNames = (swich: Switch) => {
     if (swich.hasShortname()) {
       this._subtreeUsedSwitchNames[swich.getShortname()] = true;
@@ -384,6 +388,9 @@ export abstract class PathItem {
     }
   }
 
+  /**
+   * Get all switch names used in the subtree from this pathItem
+   */
   public getSubtreeUsedSwitchNames = () => {
     return this._subtreeUsedSwitchNames;
   }
