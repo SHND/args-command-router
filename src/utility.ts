@@ -348,7 +348,7 @@ export function verifySwitches(pathItem: PathItem, argsShortSwitches: Record<str
    * Prepare required swiches lookup table for short and long switches *
    *********************************************************************/
 
-  const upwardRequiredCommonSwitches = pathItem.getUpwardCommonRequiredSwitchNames();
+  const inheritedRequiredCommonSwitches = pathItem.getInheritedCommonRequiredSwitchNames();
   const pathItemRequiredSwitches = pathItem.getRequiredSwitches().reduce((dict: Record<string, Switch>, swich: Switch) => {
     dict[swich.getShortname()] = swich;
     dict[swich.getLongname()] = swich;
@@ -356,7 +356,7 @@ export function verifySwitches(pathItem: PathItem, argsShortSwitches: Record<str
     return dict;
   }, {});
 
-  const allRequired = { ...upwardRequiredCommonSwitches, ...pathItemRequiredSwitches };
+  const allRequired = { ...inheritedRequiredCommonSwitches, ...pathItemRequiredSwitches };
   const requiredShort = Object.values(allRequired).reduce((dict: Record<string, Switch>, swich: Switch) => {
     if (swich.hasShortname()) {
       dict[swich.getShortname()] = swich;
@@ -376,7 +376,7 @@ export function verifySwitches(pathItem: PathItem, argsShortSwitches: Record<str
    * Prepare optional swiches lookup table for short and long switches *
    *********************************************************************/
 
-  const upwardOptionalCommonSwitches = pathItem.getUpwardCommonOptionalSwitchNames();
+  const inheritedOptionalCommonSwitches = pathItem.getInheritedCommonOptionalSwitchNames();
   const pathItemOptionalSwitches = pathItem.getOptionalSwitches().reduce((dict: Record<string, Switch>, swich: Switch) => {
     dict[swich.getShortname()] = swich;
     dict[swich.getLongname()] = swich;
@@ -384,7 +384,7 @@ export function verifySwitches(pathItem: PathItem, argsShortSwitches: Record<str
     return dict;
   }, {});
 
-  const allOptional = { ...upwardOptionalCommonSwitches, ...pathItemOptionalSwitches };
+  const allOptional = { ...inheritedOptionalCommonSwitches, ...pathItemOptionalSwitches };
   const optionalShort = Object.values(allOptional).reduce((dict: Record<string, Switch>, swich: Switch) => {
     if (swich.hasShortname()) {
       dict[swich.getShortname()] = swich;

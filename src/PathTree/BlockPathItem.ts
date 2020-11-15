@@ -192,7 +192,7 @@ export abstract class BlockPathItem extends PathItem {
 
     // all inherited common switches (including this pathItem) plus all switches in subtree (including this pathItem)
     const usedNames = {
-      ...this.getUpwardCommonSwitchNames(),
+      ...this.getInheritedCommonSwitchNames(),
       ...this.getSubtreeUsedSwitchNames()
     };
 
@@ -238,7 +238,7 @@ export abstract class BlockPathItem extends PathItem {
     
     // all inherited common switches (including this pathItem) plus all switches in subtree (including this pathItem)
     const usedNames = {
-      ...this.getUpwardCommonSwitchNames(),
+      ...this.getInheritedCommonSwitchNames(),
       ...this.getSubtreeUsedSwitchNames()
     };
 
@@ -345,30 +345,30 @@ export abstract class BlockPathItem extends PathItem {
       })
     }
 
-    const upwardCommonRequiredSwitches: Record<string, Switch> = {};
-    Object.values(this.getUpwardCommonRequiredSwitchNames()).forEach(swich => {
+    const inheritedCommonRequiredSwitches: Record<string, Switch> = {};
+    Object.values(this.getInheritedCommonRequiredSwitchNames()).forEach(swich => {
       const key = `${swich.getShortname()},${swich.getLongname()}`;
-      if (!upwardCommonRequiredSwitches[key]) {
-        upwardCommonRequiredSwitches[key] = swich;
+      if (!inheritedCommonRequiredSwitches[key]) {
+        inheritedCommonRequiredSwitches[key] = swich;
       }
     });
 
-    const upwardCommonOptionalSwitches: Record<string, Switch> = {};
-    Object.values(this.getUpwardCommonOptionalSwitchNames()).forEach(swich => {
+    const inheritedCommonOptionalSwitches: Record<string, Switch> = {};
+    Object.values(this.getInheritedCommonOptionalSwitchNames()).forEach(swich => {
       const key = `${swich.getShortname()},${swich.getLongname()}`;
-      if (!upwardCommonOptionalSwitches[key]) {
-        upwardCommonOptionalSwitches[key] = swich;
+      if (!inheritedCommonOptionalSwitches[key]) {
+        inheritedCommonOptionalSwitches[key] = swich;
       }
     });
 
     const requiredSwitches = [
       ...this.getRequiredSwitches(),
-      ...Object.values(upwardCommonRequiredSwitches)
+      ...Object.values(inheritedCommonRequiredSwitches)
     ];
 
     const optionalSwitches = [
       ...this.getOptionalSwitches(),
-      ...Object.values(upwardCommonOptionalSwitches)
+      ...Object.values(inheritedCommonOptionalSwitches)
     ];
 
     const requiredDefinitions = [];

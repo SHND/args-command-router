@@ -327,11 +327,11 @@ describe('PathItem', () => {
     });
   });
 
-  describe('getUpwardCommonSwitchNames', () => {
-    it('getUpwardCommonSwitchNames() for only RootPathItem', () => {
+  describe('getInheritedCommonSwitchNames', () => {
+    it('getInheritedCommonSwitchNames() for only RootPathItem', () => {
       const rootPathItem = new RootPathItem();
 
-      expect(rootPathItem.getUpwardCommonSwitchNames()).deep.equal({});
+      expect(rootPathItem.getInheritedCommonSwitchNames()).deep.equal({});
 
       const aSwitch = new Switch('a', 'aa');
       rootPathItem.addRequiredSwitch(aSwitch);  
@@ -350,10 +350,10 @@ describe('PathItem', () => {
       const hSwitch = new Switch('h', 'hh');
       rootPathItem.addCommonOptionalSwitch(hSwitch);
 
-      expect(rootPathItem.getUpwardCommonSwitchNames()).deep.equal({ c: cSwitch, dd: dSwitch, e: eSwitch, ee: eSwitch, f: fSwitch, gg: gSwitch, h: hSwitch, hh: hSwitch });
+      expect(rootPathItem.getInheritedCommonSwitchNames()).deep.equal({ c: cSwitch, dd: dSwitch, e: eSwitch, ee: eSwitch, f: fSwitch, gg: gSwitch, h: hSwitch, hh: hSwitch });
     });
 
-    it('getUpwardCommonSwitchNames() for RootPathItem -> dynamicPathItem -> staticPathItem -> switchPathItem', () => {
+    it('getInheritedCommonSwitchNames() for RootPathItem -> dynamicPathItem -> staticPathItem -> switchPathItem', () => {
       const rootPathItem = new RootPathItem();
       const dynamicPathItem1 = new DynamicPathItem('dynamic1', rootPathItem);
       const staticPathItem1 = new StaticPathItem('static1', dynamicPathItem1);
@@ -391,10 +391,10 @@ describe('PathItem', () => {
       const nSwtich = new Switch('n', 'n1');
       switchPathItem1.addOptionalSwitch(nSwtich);
 
-      expect(rootPathItem.getUpwardCommonSwitchNames()).deep.equal({ a: aSwitch, a1: aSwitch, b: bSwitch, b1: bSwitch });
-      expect(dynamicPathItem1.getUpwardCommonSwitchNames()).deep.equal({ a: aSwitch, a1: aSwitch, b: bSwitch, b1: bSwitch, e: eSwitch, e1: eSwitch, f: fSwitch, f1: fSwitch });
-      expect(staticPathItem1.getUpwardCommonSwitchNames()).deep.equal({ a: aSwitch, a1: aSwitch, b: bSwitch, b1: bSwitch, e: eSwitch, e1: eSwitch, f: fSwitch, f1: fSwitch, i: iSwitch, i1: iSwitch, j: jSwitch, j1: jSwitch });
-      expect(switchPathItem1.getUpwardCommonSwitchNames()).deep.equal({ a: aSwitch, a1: aSwitch, b: bSwitch, b1: bSwitch, e: eSwitch, e1: eSwitch, f: fSwitch, f1: fSwitch, i: iSwitch, i1: iSwitch, j: jSwitch, j1: jSwitch });
+      expect(rootPathItem.getInheritedCommonSwitchNames()).deep.equal({ a: aSwitch, a1: aSwitch, b: bSwitch, b1: bSwitch });
+      expect(dynamicPathItem1.getInheritedCommonSwitchNames()).deep.equal({ a: aSwitch, a1: aSwitch, b: bSwitch, b1: bSwitch, e: eSwitch, e1: eSwitch, f: fSwitch, f1: fSwitch });
+      expect(staticPathItem1.getInheritedCommonSwitchNames()).deep.equal({ a: aSwitch, a1: aSwitch, b: bSwitch, b1: bSwitch, e: eSwitch, e1: eSwitch, f: fSwitch, f1: fSwitch, i: iSwitch, i1: iSwitch, j: jSwitch, j1: jSwitch });
+      expect(switchPathItem1.getInheritedCommonSwitchNames()).deep.equal({ a: aSwitch, a1: aSwitch, b: bSwitch, b1: bSwitch, e: eSwitch, e1: eSwitch, f: fSwitch, f1: fSwitch, i: iSwitch, i1: iSwitch, j: jSwitch, j1: jSwitch });
     });
   });
 

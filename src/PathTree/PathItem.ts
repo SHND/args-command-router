@@ -171,7 +171,7 @@ export abstract class PathItem {
 
       // all inherited common switches (including this pathItem) plus switches on this exact pathItem
     const usedNames = {
-      ...this.getUpwardCommonSwitchNames(),
+      ...this.getInheritedCommonSwitchNames(),
       ...this._shortRequiredSwitches,
       ...this._shortOptionalSwitches,
     };
@@ -211,7 +211,7 @@ export abstract class PathItem {
 
     // all inherited common switches (including this pathItem) plus switches on this exact pathItem
     const usedNames = {
-      ...this.getUpwardCommonSwitchNames(),
+      ...this.getInheritedCommonSwitchNames(),
       ...this._shortRequiredSwitches,
       ...this._shortOptionalSwitches,
     };
@@ -314,7 +314,7 @@ export abstract class PathItem {
   /**
    * Get all branch commonRequiredSwitch short and long names in a dictionary
    */
-  public getUpwardCommonRequiredSwitchNames() {
+  public getInheritedCommonRequiredSwitchNames() {
     const output: Record<string, Switch> = {};
 
     let current: PathItem = this;
@@ -335,7 +335,7 @@ export abstract class PathItem {
   /**
    * Get all branch commonOptionalSwitch short and long names in a dictionary
    */
-  public getUpwardCommonOptionalSwitchNames() {
+  public getInheritedCommonOptionalSwitchNames() {
     const output: Record<string, Switch> = {};
 
     let current: PathItem = this;
@@ -356,7 +356,7 @@ export abstract class PathItem {
   /**
    * Get all branch commonSwitch short and long names in a dictionary
    */
-  public getUpwardCommonSwitchNames() {
+  public getInheritedCommonSwitchNames() {
     const output: Record<string, Switch> = {};
 
     let current: PathItem = this;
