@@ -21,7 +21,7 @@ export class SwitchPathItem extends PathItem {
 
     this.switchExpressions = SwitchPathItem.parse(switchExpressionStr);
   }
-  
+
   /**
    * returns a unique name for this level
    * @param shortForm 
@@ -84,14 +84,6 @@ export class SwitchPathItem extends PathItem {
    * Returns a dictionary of short and long common switch names in the PathItem
    */
   public getCommonSwitchNames = () => ({});
-
-  /**
-   * Get a dictionary of all Common Switch names 
-   * (optional and required) in children pathItems 
-   * in a form of string => boolean lookup table. Notice 
-   * that this method won't include the current pathItem commonSwitch names.
-   */
-  public getDownwardCommonSwitchNames = () => ({});
 
   /**
    * Display help for the current PathItem

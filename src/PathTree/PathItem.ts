@@ -15,6 +15,12 @@ export abstract class PathItem {
   private _shortOptionalSwitches: Record<string, Switch> = {};
   private _longOptionalSwitches: Record<string, Switch> = {};
 
+  /**
+   * This lookup table keeps track of all used switchNames
+   * in the subtree with this pathItem as root of the subtree.
+   */
+  private _subtreeUsedSwitchNames: Record<string, boolean> = {};
+
   public abstract getUniqueName: (shortForm?: boolean) => string;
 
   /**
@@ -162,11 +168,17 @@ export abstract class PathItem {
    * @param {Switch} swich to be added
    */
   public addRequiredSwitch = (swich: Switch) => {
-    const dynamicNames = this.getDisAllowedSwitchNames();
+
+      // all inherited common switches (including this pathItem) plus switches on this exact pathItem
+    const usedNames = {
+      ...this.getUpwardCommonSwitchNames(),
+      ...this._shortRequiredSwitches,
+      ...this._shortOptionalSwitches,
+    };
 
     if (swich.hasShortname()) {
       const shortname = swich.getShortname();
-      if (dynamicNames[shortname]) {
+      if (usedNames[shortname]) {
         throw Error(`Name "${shortname}" is already used. Use another name for the Required Switch shortname.`)
       }
 
@@ -175,11 +187,17 @@ export abstract class PathItem {
  
     if (swich.hasLongname()) {
       const longname = swich.getLongname();
-      if (dynamicNames[longname]) {
+      if (usedNames[longname]) {
         throw Error(`Name "${longname}" is already used. Use another name for the Required Switch longname.`)
       }
 
       this._longRequiredSwitches[longname] = swich;
+    }
+
+    let current: PathItem = this;
+    while(current) {
+      this.addToSubtreeUsedSwitchNames(swich);
+      current = current.parentPathItem;      
     }
 
     this.requiredSwitches.push(swich);
@@ -190,11 +208,18 @@ export abstract class PathItem {
    * @param {Switch} swich to be added
    */
   public addOptionalSwitch = (swich: Switch) => {
-    const dynamicNames = this.getDisAllowedSwitchNames();
+
+    // all inherited common switches (including this pathItem) plus switches on this exact pathItem
+    const usedNames = {
+      ...this.getUpwardCommonSwitchNames(),
+      ...this._shortRequiredSwitches,
+      ...this._shortOptionalSwitches,
+    };
+
 
     if (swich.hasShortname()) {
       const shortname = swich.getShortname();
-      if (dynamicNames[shortname]) {
+      if (usedNames[shortname]) {
         throw Error(`Name "${shortname}" is already used. Use another name for the Optional Switch shortname.`)
       }
 
@@ -203,11 +228,17 @@ export abstract class PathItem {
  
     if (swich.hasLongname()) {
       const longname = swich.getLongname();
-      if (dynamicNames[longname]) {
+      if (usedNames[longname]) {
         throw Error(`Name "${longname}" is already used. Use another name for the Optional Switch longname.`)
       }
 
       this._longOptionalSwitches[longname] = swich;
+    }
+    
+    let current: PathItem = this;
+    while(current) {
+      this.addToSubtreeUsedSwitchNames(swich);
+      current = current.parentPathItem;      
     }
 
     this.optionalSwitches.push(swich);
@@ -343,29 +374,25 @@ export abstract class PathItem {
     return output;
   }
 
-  public abstract getDownwardCommonSwitchNames: () => Record<string, Switch>;
+  public addToSubtreeUsedSwitchNames = (swich: Switch) => {
+    if (swich.hasShortname()) {
+      this._subtreeUsedSwitchNames[swich.getShortname()] = true;
+    }
+
+    if (swich.hasLongname()) {
+      this._subtreeUsedSwitchNames[swich.getLongname()] = true;
+    }
+  }
+
+  public getSubtreeUsedSwitchNames = () => {
+    return this._subtreeUsedSwitchNames;
+  }
 
   /**
    * Get all names that are disallowed to be used for DynamicPathItem.
    */
   public getDisAllowedDynamicPathItemNames = () => {
     return this.getBranchDynamicPathItemNames();
-  }
-
-  /**
-   * Get all names that are disallowed to be used for switch names
-   */
-  public getDisAllowedSwitchNames = () => {
-    const commonSwitchNames = { 
-      ...this.getUpwardCommonSwitchNames(), 
-      ...this.getDownwardCommonSwitchNames(),
-      ...this._shortRequiredSwitches,
-      ...this._shortOptionalSwitches,
-      ...this._longRequiredSwitches,
-      ...this._longOptionalSwitches,
-    };
-
-    return commonSwitchNames;
   }
 
 }

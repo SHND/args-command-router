@@ -42,53 +42,6 @@ describe('BlockPathItem', () => {
     });
   });
 
-  it('addDownwardCommonRequiredSwitchesAndUpdateParents', () => {
-    const blockPathItem1 = new StaticPathItem('static1', null);
-    const blockPathItem2 = new StaticPathItem('static2', blockPathItem1);
-
-    const aSwitch = new Switch('a', 'aa');
-    const bSwitch = new Switch('b', null);
-    const cSwitch = new Switch(null, 'cc');
-
-    const dSwitch = new Switch('d', 'dd');
-    const eSwitch = new Switch('e', null);
-    const fSwitch = new Switch(null, 'ff');
-
-    blockPathItem1.addDownwardCommonRequiredSwitchesAndUpdateParents(aSwitch);
-    blockPathItem1.addDownwardCommonRequiredSwitchesAndUpdateParents(bSwitch);
-    blockPathItem1.addDownwardCommonRequiredSwitchesAndUpdateParents(cSwitch);
-    blockPathItem2.addDownwardCommonRequiredSwitchesAndUpdateParents(dSwitch);
-    blockPathItem2.addDownwardCommonRequiredSwitchesAndUpdateParents(eSwitch);
-    blockPathItem2.addDownwardCommonRequiredSwitchesAndUpdateParents(fSwitch);
-
-    expect(blockPathItem1.getDownwardCommonRequiredSwitches()).deep.equal([aSwitch, bSwitch, cSwitch, dSwitch, eSwitch, fSwitch]);
-    expect(blockPathItem1.getDownwardShortCommonRequiredSwitches()).deep.equal({ a: aSwitch, b: bSwitch, d: dSwitch, e: eSwitch });
-    expect(blockPathItem1.getDownwardLongCommonRequiredSwitches()).deep.equal({ aa: aSwitch, cc: cSwitch, dd: dSwitch, ff: fSwitch });
-
-    expect(blockPathItem2.getDownwardCommonRequiredSwitches()).deep.equal([dSwitch, eSwitch, fSwitch]);
-    expect(blockPathItem2.getDownwardShortCommonRequiredSwitches()).deep.equal({ d: dSwitch, e: eSwitch });
-    expect(blockPathItem2.getDownwardLongCommonRequiredSwitches()).deep.equal({ dd: dSwitch, ff: fSwitch });
-  });
-
-  it('addDownwardCommonOptionalSwitchesAndUpdateParents', () => {
-    const blockPathItem1 = new StaticPathItem('static1', null);
-    const blockPathItem2 = new StaticPathItem('static2', blockPathItem1);
-
-    const aSwitch = new Switch('a', 'aa');
-    const bSwitch = new Switch('b', 'bb');
-
-    blockPathItem1.addDownwardCommonOptionalSwitchesAndUpdateParents(aSwitch);
-    blockPathItem2.addDownwardCommonOptionalSwitchesAndUpdateParents(bSwitch);
-
-    expect(blockPathItem1.getDownwardCommonOptionalSwitches()).deep.equal([aSwitch, bSwitch]);
-    expect(blockPathItem1.getDownwardShortCommonOptionalSwitches()).deep.equal({ a: aSwitch, b: bSwitch });
-    expect(blockPathItem1.getDownwardLongCommonOptionalSwitches()).deep.equal({ aa: aSwitch, bb: bSwitch });
-
-    expect(blockPathItem2.getDownwardCommonOptionalSwitches()).deep.equal([bSwitch]);
-    expect(blockPathItem2.getDownwardShortCommonOptionalSwitches()).deep.equal({ b: bSwitch });
-    expect(blockPathItem2.getDownwardLongCommonOptionalSwitches()).deep.equal({ bb: bSwitch });
-  });
-
   it('name property, getName, setName methods', () => {
     const blockPathItem = new TestBlockPathItem();
 
