@@ -16,12 +16,6 @@ export abstract class PathItem {
   private _longOptionalSwitches: Record<string, Switch> = {};
 
   /**
-   * This lookup table keeps track of all used switchNames
-   * in the subtree with this pathItem as root of the subtree.
-   */
-  private _subtreeUsedSwitchNames: Record<string, boolean> = {};
-
-  /**
    * returns a unique name for this level
    * e.g. ":something"
    * @param shortForm 
@@ -174,35 +168,12 @@ export abstract class PathItem {
    */
   public addRequiredSwitch = (swich: Switch) => {
 
-      // all inherited common switches (including this pathItem) plus switches on this exact pathItem
-    const usedNames = {
-      ...this.getInheritedCommonSwitchNames(),
-      ...this._shortRequiredSwitches,
-      ...this._shortOptionalSwitches,
-    };
-
     if (swich.hasShortname()) {
-      const shortname = swich.getShortname();
-      if (usedNames[shortname]) {
-        throw Error(`Name "${shortname}" is already used. Use another name for the Required Switch shortname.`)
-      }
-
-      this._shortRequiredSwitches[shortname] = swich;
+      this._shortRequiredSwitches[swich.getShortname()] = swich;
     }
  
     if (swich.hasLongname()) {
-      const longname = swich.getLongname();
-      if (usedNames[longname]) {
-        throw Error(`Name "${longname}" is already used. Use another name for the Required Switch longname.`)
-      }
-
-      this._longRequiredSwitches[longname] = swich;
-    }
-
-    let current: PathItem = this;
-    while(current) {
-      this.addToSubtreeUsedSwitchNames(swich);
-      current = current.parentPathItem;      
+      this._longRequiredSwitches[swich.getLongname()] = swich;
     }
 
     this.requiredSwitches.push(swich);
@@ -214,38 +185,14 @@ export abstract class PathItem {
    */
   public addOptionalSwitch = (swich: Switch) => {
 
-    // all inherited common switches (including this pathItem) plus switches on this exact pathItem
-    const usedNames = {
-      ...this.getInheritedCommonSwitchNames(),
-      ...this._shortRequiredSwitches,
-      ...this._shortOptionalSwitches,
-    };
-
-
     if (swich.hasShortname()) {
-      const shortname = swich.getShortname();
-      if (usedNames[shortname]) {
-        throw Error(`Name "${shortname}" is already used. Use another name for the Optional Switch shortname.`)
-      }
-
-      this._shortOptionalSwitches[shortname] = swich;
+      this._shortOptionalSwitches[swich.getShortname()] = swich;
     }
  
     if (swich.hasLongname()) {
-      const longname = swich.getLongname();
-      if (usedNames[longname]) {
-        throw Error(`Name "${longname}" is already used. Use another name for the Optional Switch longname.`)
-      }
-
-      this._longOptionalSwitches[longname] = swich;
+      this._longOptionalSwitches[swich.getLongname()] = swich;
     }
     
-    let current: PathItem = this;
-    while(current) {
-      this.addToSubtreeUsedSwitchNames(swich);
-      current = current.parentPathItem;      
-    }
-
     this.optionalSwitches.push(swich);
   }
 
@@ -356,48 +303,6 @@ export abstract class PathItem {
     }
 
     return output;
-  }
-
-  /**
-   * Get all branch commonSwitch short and long names in a dictionary
-   */
-  public getInheritedCommonSwitchNames() {
-    const output: Record<string, Switch> = {};
-
-    let current: PathItem = this;
-    while (current) {
-      const commonSwitchNames = current.getCommonSwitchNames();
-      const names = Object.keys(commonSwitchNames);
-
-      for (let name of names) {
-        output[name] = commonSwitchNames[name];
-      }
-
-      current = current.getParentPathItem();
-    }
-
-    return output;
-  }
-
-  /**
-   * Add a switch name to memoized switch names used in the subtree from this pathItem
-   * @param swich
-   */
-  public addToSubtreeUsedSwitchNames = (swich: Switch) => {
-    if (swich.hasShortname()) {
-      this._subtreeUsedSwitchNames[swich.getShortname()] = true;
-    }
-
-    if (swich.hasLongname()) {
-      this._subtreeUsedSwitchNames[swich.getLongname()] = true;
-    }
-  }
-
-  /**
-   * Get all switch names used in the subtree from this pathItem
-   */
-  public getSubtreeUsedSwitchNames = () => {
-    return this._subtreeUsedSwitchNames;
   }
 
   /**

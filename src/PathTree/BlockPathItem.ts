@@ -216,34 +216,12 @@ export abstract class BlockPathItem extends PathItem {
    */
   public addCommonRequiredSwitch = (swich: Switch) => {
 
-    // all inherited common switches (including this pathItem) plus all switches in subtree (including this pathItem)
-    const usedNames = {
-      ...this.getInheritedCommonSwitchNames(),
-      ...this.getSubtreeUsedSwitchNames()
-    };
-
     if (swich.hasShortname()) {
-      const name = swich.getShortname();
-      if (usedNames[name]) {
-        throw Error(`Name "${name}" is already used. Use another name for the Common Required Switch shortname.`);
-      }
-
-      this._shortCommonRequiredSwitches[name] = swich;
+      this._shortCommonRequiredSwitches[swich.getShortname()] = swich;
     }
 
     if (swich.hasLongname()) {
-      const name = swich.getLongname();
-      if (usedNames[name]) {
-        throw Error(`Name "${name}" is already used. Use another name for the Common Required Switch longname.`);
-      }
-
-      this._longCommonRequiredSwitches[name] = swich;
-    }
-   
-    let current: PathItem = this;
-    while(current) {
-      current.addToSubtreeUsedSwitchNames(swich)
-      current = current.getParentPathItem();
+      this._longCommonRequiredSwitches[swich.getLongname()] = swich;
     }
     
     this.commonRequiredSwitches.push(swich);
@@ -261,35 +239,13 @@ export abstract class BlockPathItem extends PathItem {
    * @param {Switch} switch to be added to optional common switches
    */
   public addCommonOptionalSwitch = (swich: Switch) => {
-    
-    // all inherited common switches (including this pathItem) plus all switches in subtree (including this pathItem)
-    const usedNames = {
-      ...this.getInheritedCommonSwitchNames(),
-      ...this.getSubtreeUsedSwitchNames()
-    };
 
     if (swich.hasShortname()) {
-      const shortname = swich.getShortname();
-      if (usedNames[shortname]) {
-        throw Error(`Name "${shortname}" is already used. Use another name for the Common Optional Switch shortname.`)
-      }
-
-      this._shortCommonOptionalSwitches[shortname] = swich;
+      this._shortCommonOptionalSwitches[swich.getShortname()] = swich;
     }
 
     if (swich.hasLongname()) {
-      const longname = swich.getLongname();
-      if (usedNames[longname]) {
-        throw Error(`Name "${longname}" is already used. Use another name for the Common Optional Switch longname.`)
-      }
-
-      this._longCommonOptionalSwitches[longname] = swich;
-    }
-
-    let current: PathItem = this;
-    while(current) {
-      current.addToSubtreeUsedSwitchNames(swich)
-      current = current.getParentPathItem();
+      this._longCommonOptionalSwitches[swich.getLongname()] = swich;
     }
 
     this.commonOptionalSwitches.push(swich);
