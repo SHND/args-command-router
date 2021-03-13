@@ -33,4 +33,10 @@ app.route('/push/:remote/:branch')
   .requiredSwitch('f', 'force', 'force updates')
   .callback(params => { console.log('/push/:remote/:branch', params) } )
 
+/**
+ * In order to run this using npm, you need to use "--"
+ * otherwise your scripts above can not capture the switches 
+ * 
+ * npm run play -- commit -m 'my message'
+ */
 app.run();

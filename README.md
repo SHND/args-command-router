@@ -19,7 +19,7 @@ npm install --save args-command-router@next
 Lets say we want to create a simplified git command line interface:
 
 ```bash
-$ git add .
+$ git add ./files1 ./file2
 $ git commit -a -m "My message"
 $ git branch
 $ git push origin master --force
@@ -35,7 +35,7 @@ const app = argsCommandRouter({
 })
 
 app
-  .route('/add/:filename')
+  .route('/add/...files')
   .description('Add file contents to the index')
   .callback(() => {
     /* Add command routine */
@@ -70,12 +70,10 @@ app.run()
 
 ## Routes
 
-The `route()` method on the Application instance specifies, what routine (callback) should be called for each series of commands and switches.
-
-It receives a series of names separated by `/` and series of optional switches at the end of the path each inside `[]`.
+The `route()` method maps patterns to callbacks. It receives a series of names separated by `/` and series of optional switch patterns at the end of the path each inside `[]`.
 
 ```js
-app.route('/cmd1/:cmd2[switch1=123][s]')
+app.route('/say/:greet/...names[age=21][s]')
 ```
 
 On each run, Application goes through the routes in order they are defined and compares the passed arguments (commands and switches) with each route, and execute the first matched route callback.
@@ -83,25 +81,27 @@ On each run, Application goes through the routes in order they are defined and c
 All arguments below, would matched the route above:
 
 ```bash
-$ APP cmd1 hi --switch1 123 -s
-$ APP cmd1 hello -s --switch1 123
-$ APP cmd1 'hey all' -s --switch1 123
+$ APP say hi john --age 21 -s
+$ APP say hey john marry -s --age 123
+$ APP say hello 'everyone here' -s --age 123
 ```
 
-Each `cmd1`, `:cmd2` and `[switch1=123][s]` are called **PathItem**.
+The `say`, `:greet`, `...names` and `[age=21][s]` are called **PathItem**.
 
-- `cmd1` is a **Static PathItem**, since it always tries to match the exact name.
+- `say` is a **Static PathItem**, since it always tries to match the exact name.
 
-- `:cmd2` is a **Dynamic PathItem**, and it can be matched to any value in its place.
+- `:greet` is a **Dynamic PathItem**, and it matches to any value in its place.
 
-- `[switch1=123][s]` is a **Switch PathItem**, and it is matched to existence of switch `-s` (either with value or not) and existence of switch `--switch1` with the exact value of _123_. If you have special characters in the value, you can put that value in single or double quotes.
+- `...names` is a **Spread PathItem**, and it matches to one to any number of values in its place.
+
+- `[age=21][s]` is a **Switch PathItem**, and it is matched to existence of switch `-s` (either with value or not) and existence of switch `--age` with the exact value of _21_.
 
 ## Callbacks
 
 Callbacks specifies what routine (function) should be called when a matched route is found.
 
 ```js
-route('/call/my/callback').callback(function(inputs) {
+route('/say/:greet/...names[age=21][s]').callback(function(inputs) {
   const {
     commands,
     pathParams,
@@ -118,14 +118,29 @@ route('/call/my/callback').callback(function(inputs) {
 Your callbacks are called with data about the current execution of your application.
 
 - **commands** is an array of strings passed to your application as commands.
-- **pathParams** is an object of dynamic pathItem names and values that are passed to your application.
-- **shortSwitches** is an object of short switch names and array of values that are passed to your application.
-- **longSwitches** is an object of long switch names and array of values that are passed to your application.
+- **pathParams** is an object of dynamic and spread pathItem names and values passed for those.
+- **shortSwitches** is an object of short switch names with values passed to those switches.
+- **longSwitches** is an object of long switch names with values passed to those switches.
 - **switches** is **shortSwitches** and **longSwitches** in one object.
 - **context** is an object that hooks can use to pass values to the next hooks and callbacks.
 - **this** points to the matched pathItem or it's _null_ if no pathItem is associated with the callback.
 
 You can also add new properties to the input object in hooks and access them in the your callbacks.
+
+Considering our example for `route('/say/:greet/...names[age=21][s]')` and execution `$APP say hey john marry -s --age 21` the `inputs` parameter will be:
+
+```js
+{
+  commands: [ 'say', 'hey', 'john', 'marry' ],
+  pathParams: { greet: 'hey', names: [ 'john', 'marry' ] },
+  shortSwitches: { s: [] },
+  longSwitches: { age: [ '21' ] },
+  switches: { s: [], age: [ '21' ] },
+  context: {}
+}
+```
+
+Remember if you mention switches in your route patterns, you need to define them as `requiredSwitch` on your routes otherwise they won't get matched.
 
 ## Switches
 
@@ -182,8 +197,8 @@ These type of switches can be defined on a route and will be inherited by all th
 ```js
 app
   .route('/video')
-  .commonRequired('k', 'key', 'Api key', ['key'])
-  .commonOptional('v', 'verbose', 'Verbose output')
+  .commonRequiredSwitch('k', 'key', 'Api key', ['key'])
+  .commonOptionalSwitch('v', 'verbose', 'Verbose output')
 ```
 
 Examples of a shell execution could be:
@@ -262,7 +277,19 @@ app.onVerifySwitchFailure(inputs => {
 }
 ```
 
-You can also add new properties and values to your inputs for the next hooks and callbacks. In order to do that just return an object with those properties.
+If you want to stop the next hooks and callbacks to be called, return a string 'stop' from your callbacks.
+
+```js
+app.beforeAll(inputs => {
+  if (new Date().getHours() < 6) {
+    return 'stop'
+  }
+})
+```
+
+## Context
+
+You can also add new properties and values to your inputs for the next hooks and callbacks. In order to do that just return an object with those properties. Those will be available in the following hooks and callbacks in the context object.
 
 ```js
 app.beforeAll(inputs => {
@@ -273,16 +300,6 @@ app.beforeAll(inputs => {
 
 app.route('/video/formats').callback(inputs => {
   console.log(inputs.context.hello)
-})
-```
-
-If you want to stop the next hooks and callbacks to be called, return a string 'stop' from your callbacks.
-
-```js
-app.beforeAll(inputs => {
-  if (new Date().getHours() < 6) {
-    return 'stop'
-  }
 })
 ```
 
