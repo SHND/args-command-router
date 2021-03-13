@@ -4,10 +4,11 @@ import { PathItem } from "./PathTree/PathItem";
 import { RootPathItem } from "./PathTree/RootPathItem";
 import { BlockPathItem } from "./PathTree/BlockPathItem";
 import { StaticPathItem } from "./PathTree/StaticPathItem";
+import { SpreadPathItem } from "./PathTree/SpreadPathItem";
 import { SwitchPathItem } from "./PathTree/SwitchPathItem";
 import { DynamicPathItem } from "./PathTree/DynamicPathItem";
 import { Callback, CallbackContext, CallbackReturnType, Config, ExternalArgsType } from "./types";
-import { PATH_ITEM_DELIMITER, DYNAMIC_PATH_PREFIX, OPEN_SWITCH_EXPR_SYMBOL, CLOSE_SWITCH_EXPR_SYMBOL, SINGLE_QUOTE_LITERAL, DOUBLE_QUOTE_LITERAL, STOP } from "./constants";
+import { PATH_ITEM_DELIMITER, DYNAMIC_PATH_PREFIX, OPEN_SWITCH_EXPR_SYMBOL, CLOSE_SWITCH_EXPR_SYMBOL, SINGLE_QUOTE_LITERAL, DOUBLE_QUOTE_LITERAL, STOP, SPREAD_PATH_PREFIX } from "./constants";
 
 /**
  * Empty (no-operation) function
@@ -138,7 +139,7 @@ export function parsePath(pathStr: string): PathItem[] {
   let pathItemsStr = pathItemsPart.split(PATH_ITEM_DELIMITER);
 
   const newRoot: BlockPathItem = new RootPathItem();
-  let parent = newRoot;
+  let parent: PathItem = newRoot;
 
   if (
     (pathItemsStr.length > 1) || 
@@ -158,16 +159,25 @@ export function parsePath(pathStr: string): PathItem[] {
       // Dynamic PathItem
       if (pathItemStr.startsWith(DYNAMIC_PATH_PREFIX)) {
         pathItem = new DynamicPathItem(pathItemStr.substring(DYNAMIC_PATH_PREFIX.length), parent);
-        parent.setDynamicPathItem(pathItem);
+        parent instanceof BlockPathItem && parent.setDynamicPathItem(pathItem);
       } 
+      // Spread PathItem
+      else if (pathItemStr.startsWith(SPREAD_PATH_PREFIX)) {
+        pathItem = new SpreadPathItem(pathItemStr.substring(SPREAD_PATH_PREFIX.length), parent);
+        parent instanceof BlockPathItem && parent.setSpreadPathItem(pathItem);
+      }
       // Static PathItem
       else {
         pathItem = new StaticPathItem(pathItemStr, parent);
-        parent.addStaticPathItem(pathItem);
+        parent instanceof BlockPathItem && parent.addStaticPathItem(pathItem);
       }
 
       // Add to output
       output.push(pathItem);
+
+      if (pathItem instanceof SpreadPathItem && i !== pathItemsStr.length-1) {
+        throw Error(`The path "${pathStr}" contains spread pathItem "${pathItem.getUniqueName(true)}" not at the end.`);
+      }
 
       // parent is the created pathItem
       parent = pathItem;
@@ -186,21 +196,24 @@ export function parsePath(pathStr: string): PathItem[] {
 
 /**
  * Find the actual passed values (Commands) with the PathItems in the tree
- * and return the matched BlockPathItem or null.
+ * and return the matched BlockPathItem or SpreadPathItem or null.
  * @param commands which are actual values passed as BlockPathItem in run time
  * @param node which is a starting point in PathItem as tree to find the match
  */
-export function matchCommands(commands: string[], node: BlockPathItem): BlockPathItem {
-  let lastBlockPathItem: BlockPathItem = node;
+export function matchCommands(commands: string[], node: BlockPathItem): BlockPathItem | SpreadPathItem {
+  let lastBlockPathItem: BlockPathItem | SpreadPathItem = node;
   if (commands.length > commands.length) {
     return null;
   }
 
   for (let command of commands) {
-    if (lastBlockPathItem.hasStaticPathItem(command)) {
+    if (lastBlockPathItem instanceof BlockPathItem && lastBlockPathItem.hasStaticPathItem(command)) {
       lastBlockPathItem = lastBlockPathItem.getStaticPathItem(command);
-    } else if (lastBlockPathItem.hasDynamicPathItem()) {
+    } else if (lastBlockPathItem instanceof BlockPathItem && lastBlockPathItem.hasDynamicPathItem()) {
       lastBlockPathItem = lastBlockPathItem.getDynamicPathItem();
+    } else if (lastBlockPathItem instanceof BlockPathItem && lastBlockPathItem.hasSpreadPathItem()) {
+      lastBlockPathItem = lastBlockPathItem.getSpreadPathItem();
+      break;
     } else {
       return null;
     }
@@ -215,20 +228,28 @@ export function matchCommands(commands: string[], node: BlockPathItem): BlockPat
  * @param node which is a starting point in PathItem as tree to find the match
  * @throws when a match for commands is not found in the node tree
  */
-export function matchCommandsGetPathParameters(commands: string[], node: BlockPathItem): Record<string, string> {
-  let output: Record<string, string> = {};
+export function matchCommandsGetPathParameters(commands: string[], node: BlockPathItem): Record<string, string | string[]> {
+  let output: Record<string, string | string[]> = {};
   let lastBlockPathItem: BlockPathItem = node;
   if (commands.length > commands.length) {
     throw Error(`Failed to match commands "${commands}" and node tree`)
   }
 
-  for (let command of commands) {
+  for (let i=0; i<commands.length; i++) {
+    const command = commands[i];
+
     if (lastBlockPathItem.hasStaticPathItem(command)) {
       lastBlockPathItem = lastBlockPathItem.getStaticPathItem(command);
     } else if (lastBlockPathItem.hasDynamicPathItem()) {
       lastBlockPathItem = lastBlockPathItem.getDynamicPathItem();
 
       output[lastBlockPathItem.getUniqueName(true)] = command;
+    } else if (lastBlockPathItem.hasSpreadPathItem()) {
+      const spreadPathItem = lastBlockPathItem.getSpreadPathItem();
+
+      output[spreadPathItem.getUniqueName(true)] = commands.slice(i);
+
+      return output;
     } else {
       throw Error(`Failed to match commands and node tree on command "${command}" of commands "${commands}"`);
     }
@@ -247,7 +268,7 @@ export function matchCommandsGetPathParameters(commands: string[], node: BlockPa
 export function matchSwitches(
   shortSwithes: Record<string, string[]>, 
   longSwitches: Record<string, string[]>, 
-  node: BlockPathItem
+  node: BlockPathItem | SpreadPathItem
 ): SwitchPathItem {
   const switchPathItems = node.getSwitchPathItems();
 
@@ -297,7 +318,7 @@ export function matchSwitches(
  * @param pathParameters Dictionary of dynamic pathItem names and their real values
  * @param callbacks to be run
  */
-export function processCallbacks(targetPathItem: PathItem, forwardedContext: CallbackContext, args: ExternalArgsType, pathParameters: Record<string, string>, config: Config, tree: PathTree, callbacks: Callback[]): CallbackReturnType {
+export function processCallbacks(targetPathItem: PathItem, forwardedContext: CallbackContext, args: ExternalArgsType, pathParameters: Record<string, string | string[]>, config: Config, tree: PathTree, callbacks: Callback[]): CallbackReturnType {
   
   let context = { ...forwardedContext };
 

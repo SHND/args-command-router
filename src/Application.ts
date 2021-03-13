@@ -89,13 +89,13 @@ export default class Application {
     else context = beforeAllResult || context;
     // ------------------------------------------------------
     
-    const targetBlockPathItem = matchCommands(commands, root);
+    const targetPathItem = matchCommands(commands, root);
 
-    if (targetBlockPathItem) {
+    if (targetPathItem) {
 
       const pathParametes = matchCommandsGetPathParameters(commands, root);
-      const targetSwitchPathItem = matchSwitches(shortSwitches, longSwitches, targetBlockPathItem);
-      const target: PathItem = targetSwitchPathItem || targetBlockPathItem;
+      const targetSwitchPathItem = matchSwitches(shortSwitches, longSwitches, targetPathItem);
+      const target: PathItem = targetSwitchPathItem || targetPathItem;
 
       // ------------------ afterTargetFound hook ------------------
       const afterTargetFoundResult = processCallbacks(target, context, args, pathParametes, config, tree, this._afterTargetFound);

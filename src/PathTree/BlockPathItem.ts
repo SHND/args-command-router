@@ -1,6 +1,7 @@
 import { Switch } from '../Switch';
 import { PathItem } from './PathItem';
 import { StaticPathItem } from './StaticPathItem';
+import { SpreadPathItem } from './SpreadPathItem';
 import { SwitchPathItem } from './SwitchPathItem';
 import { PATH_ITEM_DELIMITER } from '../constants';
 import { DynamicPathItem } from './DynamicPathItem';
@@ -12,6 +13,7 @@ export abstract class BlockPathItem extends PathItem {
   protected name: string;
   protected staticPathItems: Record<string, StaticPathItem> = {};
   protected dynamicPathItem: DynamicPathItem;
+  protected spreadPathItem: SpreadPathItem;
   protected switchPathItems: Array<SwitchPathItem> = [];
   protected commonRequiredSwitches: Switch[] = [];
   protected commonOptionalSwitches: Switch[] = [];
@@ -142,6 +144,30 @@ export abstract class BlockPathItem extends PathItem {
    */
   public hasDynamicPathItem = () => {
     return this.dynamicPathItem !== undefined
+  }
+
+  /**
+   * spreadPathItem getter
+   */
+  public getSpreadPathItem = () => {
+    return this.spreadPathItem;
+  }
+
+  /**
+   * spreadPathItem setter
+   */
+  public hasSpreadPathItem = () => {
+    return this.spreadPathItem !== undefined;
+  }
+
+  /**
+   * check if the spreadPathItem is set
+   * @param {SpreadPathItem} spreadPathItem
+   */
+  public setSpreadPathItem = (spreadPathItem: SpreadPathItem) => {
+    spreadPathItem.setParentPathItem(this);
+
+    this.spreadPathItem = spreadPathItem;
   }
 
   /**
