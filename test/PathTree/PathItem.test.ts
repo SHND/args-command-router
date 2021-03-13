@@ -99,9 +99,7 @@ describe('PathItem', () => {
     expect(pathItem.hasRequiredSwitchWithLongname('aa')).to.false;
 
     pathItem.addRequiredSwitch(swich);
-    expect(() => {
-      pathItem.addRequiredSwitch(swich);
-    }).throws();
+
     expect(pathItem.getRequiredSwitches()).to.lengthOf(1);
     expect(pathItem.getRequiredSwitches()[0]).to.equal(swich);
     expect(pathItem.hasRequiredSwitch(swich)).to.true;
@@ -119,135 +117,12 @@ describe('PathItem', () => {
     expect(pathItem.hasOptionalSwitchWithLongname('aa')).to.false;
 
     pathItem.addOptionalSwitch(swich);
-    expect(() => {
-      pathItem.addOptionalSwitch(swich);
-    }).throws();
+
     expect(pathItem.getOptionalSwitches()).to.lengthOf(1);
     expect(pathItem.getOptionalSwitches()[0]).to.equal(swich);
     expect(pathItem.hasOptionalSwitch(swich)).to.true;
     expect(pathItem.hasOptionalSwitchWithShortname('a')).to.true;
     expect(pathItem.hasOptionalSwitchWithLongname('aa')).to.true;
-  });
-
-  describe('Adding switches when the name is already used', () => {
-    it('For when leaf PathItem in PathTree branch has the shortCommonRequiredSwitchName', () => {
-      const rootPathItem = new RootPathItem();
-      
-      rootPathItem.addCommonRequiredSwitch(new Switch('a', null));
-
-      expect(() => {
-        rootPathItem.addRequiredSwitch(new Switch('a', null));
-      }).throws();
-
-      expect(() => {
-        rootPathItem.addOptionalSwitch(new Switch('a', null));
-      }).throws();
-    });
-
-    it('For when leaf PathItem in PathTree branch has the shortCommonOptionalSwitchName', () => {
-      const rootPathItem = new RootPathItem();
-      
-      rootPathItem.addCommonOptionalSwitch(new Switch('a', null));
-
-      expect(() => {
-        rootPathItem.addRequiredSwitch(new Switch('a', null));
-      }).throws();
-
-      expect(() => {
-        rootPathItem.addOptionalSwitch(new Switch('a', null));
-      }).throws();
-    });
-
-    it('For when leaf PathItem in PathTree branch has the longCommonRequiredSwitchName', () => {
-      const rootPathItem = new RootPathItem();
-      
-      rootPathItem.addCommonRequiredSwitch(new Switch(null, 'aa'));
-
-      expect(() => {
-        rootPathItem.addRequiredSwitch(new Switch(null, 'aa'));
-      }).throws();
-
-      expect(() => {
-        rootPathItem.addOptionalSwitch(new Switch(null, 'aa'));
-      }).throws();
-    });
-
-    it('For when leaf PathItem in PathTree branch has the longCommonOptionalSwitchName', () => {
-      const rootPathItem = new RootPathItem();
-      
-      rootPathItem.addCommonOptionalSwitch(new Switch(null, 'aa'));
-
-      expect(() => {
-        rootPathItem.addRequiredSwitch(new Switch(null, 'aa'));
-      }).throws();
-
-      expect(() => {
-        rootPathItem.addOptionalSwitch(new Switch(null, 'aa'));
-      }).throws();
-    });
-
-    //------------
-
-    it('For when higher PathItem in PathTree branch has the shortCommonRequiredSwitchName', () => {
-      const rootPathItem = new RootPathItem();
-      const staticPathItem = new StaticPathItem('static1', rootPathItem);
-      
-      rootPathItem.addCommonRequiredSwitch(new Switch('a', null));
-
-      expect(() => {
-        staticPathItem.addRequiredSwitch(new Switch('a', null));
-      }).throws();
-
-      expect(() => {
-        staticPathItem.addOptionalSwitch(new Switch('a', null));
-      }).throws();
-    });
-
-    it('For when higher PathItem in PathTree branch has the shortCommonOptionalSwitchName', () => {
-      const rootPathItem = new RootPathItem();
-      const staticPathItem = new StaticPathItem('static1', rootPathItem);
-      
-      rootPathItem.addCommonOptionalSwitch(new Switch('a', null));
-
-      expect(() => {
-        staticPathItem.addRequiredSwitch(new Switch('a', null));
-      }).throws();
-
-      expect(() => {
-        staticPathItem.addOptionalSwitch(new Switch('a', null));
-      }).throws();
-    });
-
-    it('For when higher PathItem in PathTree branch has the longCommonRequiredSwitchName', () => {
-      const rootPathItem = new RootPathItem();
-      const staticPathItem = new StaticPathItem('static1', rootPathItem);
-      
-      rootPathItem.addCommonRequiredSwitch(new Switch(null, 'aa'));
-
-      expect(() => {
-        staticPathItem.addRequiredSwitch(new Switch(null, 'aa'));
-      }).throws();
-
-      expect(() => {
-        staticPathItem.addOptionalSwitch(new Switch(null, 'aa'));
-      }).throws();
-    });
-
-    it('For when higher PathItem in PathTree branch has the longCommonOptionalSwitchName', () => {
-      const rootPathItem = new RootPathItem();
-      const staticPathItem = new StaticPathItem('static1', rootPathItem);
-      
-      rootPathItem.addCommonOptionalSwitch(new Switch(null, 'aa'));
-
-      expect(() => {
-        staticPathItem.addRequiredSwitch(new Switch(null, 'aa'));
-      }).throws();
-
-      expect(() => {
-        staticPathItem.addOptionalSwitch(new Switch(null, 'aa'));
-      }).throws();
-    });
-
   });
 
   describe('path', () => {
