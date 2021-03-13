@@ -32,7 +32,7 @@ export type CallbackContext = Record<string, any>;
  */
 export interface CallbackInput {
   commands: string[]
-  pathParams: Record<string, string>
+  pathParams: Record<string, string | string[]>
   shortSwitches: Record<string, string[]>
   longSwitches: Record<string, string[]>
   switches: Record<string, string[]>

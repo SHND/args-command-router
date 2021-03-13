@@ -9,6 +9,11 @@ export const PATH_ITEM_DELIMITER = '/';
 export const DYNAMIC_PATH_PREFIX = ':';
 
 /**
+ * Prefix which determines that the pathItem is a spread path item.
+ */
+export const SPREAD_PATH_PREFIX = '...';
+
+/**
  * Open symbol for switchRouter pathItem expressions.
  */
 export const OPEN_SWITCH_EXPR_SYMBOL = '[';

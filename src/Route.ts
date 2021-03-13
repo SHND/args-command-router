@@ -5,6 +5,7 @@ import { PathTree } from './PathTree/PathTree';
 import { PathItem } from './PathTree/PathItem';
 import { BlockPathItem } from './PathTree/BlockPathItem';
 import { StaticPathItem } from './PathTree/StaticPathItem';
+import { SpreadPathItem } from './PathTree/SpreadPathItem';
 import { SwitchPathItem } from './PathTree/SwitchPathItem';
 import { DynamicPathItem } from './PathTree/DynamicPathItem';
 
@@ -30,14 +31,14 @@ export class Route {
    * @returns {PathItem[]}
    */
   static matchRouteToTreePathItems(tree: PathTree, path: string): PathItem[] {
-    let currentPathItem: BlockPathItem = tree.getRoot();
+    let currentPathItem: BlockPathItem | SpreadPathItem = tree.getRoot();
     const newPathItems = parsePath(path);
     const finalPathItems = [];
 
     for (let i=0; i<newPathItems.length; i++) {
       const newPathItem = newPathItems[i];
 
-      if (newPathItem instanceof StaticPathItem) {
+      if (newPathItem instanceof StaticPathItem && currentPathItem instanceof BlockPathItem) {
         if (currentPathItem.hasStaticPathItem(newPathItem.getName())) {
           currentPathItem = currentPathItem.getStaticPathItem(newPathItem.getName());
           finalPathItems.push(currentPathItem);
@@ -46,8 +47,12 @@ export class Route {
           currentPathItem = newPathItem;
           finalPathItems.push(currentPathItem);
         }
-      } else if (newPathItem instanceof DynamicPathItem) {
+      } else if (newPathItem instanceof DynamicPathItem && currentPathItem instanceof BlockPathItem) {
         if (currentPathItem.hasDynamicPathItem()) {
+          if (currentPathItem.hasSpreadPathItem()) {
+            throw Error(`Dynamic PathItem with name "${newPathItem.getUniqueName(true)}" is conflicting with Spread PathItem "${currentPathItem.getSpreadPathItem().getUniqueName(true)}" in route path "${path}"`);
+          }
+
           currentPathItem = currentPathItem.getDynamicPathItem();
           
           if (currentPathItem.getName() !== newPathItem.getName()) {
@@ -57,6 +62,24 @@ export class Route {
           finalPathItems.push(currentPathItem);
         } else {
           currentPathItem.setDynamicPathItem(newPathItem);
+          currentPathItem = newPathItem;
+          finalPathItems.push(currentPathItem);
+        }
+      } else if (newPathItem instanceof SpreadPathItem && currentPathItem instanceof BlockPathItem) {
+        if (currentPathItem.hasSpreadPathItem()) {
+          if (currentPathItem.hasDynamicPathItem()) {
+            throw Error(`Spread PathItem with name "${newPathItem.getUniqueName(true)}" is conflicting with Dynamic PathItem "${currentPathItem.getDynamicPathItem().getUniqueName(true)}" in route path "${path}".`);
+          }
+
+          currentPathItem = currentPathItem.getSpreadPathItem();
+
+          if (currentPathItem.getUniqueName(false) !== newPathItem.getUniqueName(false)) {
+            throw Error(`Spread PathItem with name "${newPathItem.getUniqueName(true)}" already exist with name "${currentPathItem.getUniqueName(true)}" in route path "${path}".`);
+          }
+
+          finalPathItems.push(currentPathItem);
+        } else {
+          currentPathItem.setSpreadPathItem(newPathItem);
           currentPathItem = newPathItem;
           finalPathItems.push(currentPathItem);
         }
