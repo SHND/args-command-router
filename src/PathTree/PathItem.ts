@@ -21,6 +21,11 @@ export abstract class PathItem {
    */
   private _subtreeUsedSwitchNames: Record<string, boolean> = {};
 
+  /**
+   * returns a unique name for this level
+   * e.g. ":something"
+   * @param shortForm 
+   */
   public abstract getUniqueName: (shortForm?: boolean) => string;
 
   /**

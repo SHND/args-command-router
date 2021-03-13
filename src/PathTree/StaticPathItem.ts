@@ -37,6 +37,9 @@ export class StaticPathItem extends BlockPathItem {
    */
   public isRootPathItem = () => false;
   
+  /**
+   * Returns the pathItem name if it is a dynamicPathItem or null if it is not
+   */
   public getDynamicPathItemName: () => string | null = () => null;
 
 }

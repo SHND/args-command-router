@@ -16,7 +16,6 @@ const app = new Application({
 
 app.route('/add/...files')
   .description('Add file contents to the index')
-  .optionalSwitch('x', 'xee')
   .callback(params => { console.log('/add/...files', params) })
 
 app.route('/commit')

@@ -31,8 +31,6 @@ class TestPathItem extends PathItem {
   
   public getDynamicPathItemName: () => string | null = () => null;
 
-  public getDownwardCommonSwitchNames = () => ({});
-
   public showHelp = (applicationName: string) => {};
 }
 

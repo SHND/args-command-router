@@ -23,6 +23,11 @@ export class SpreadPathItem extends PathItem {
     this.switchPathItems = [];
   }
 
+  /**
+   * returns a unique name for this level
+   * e.g. "...something"
+   * @param shortForm 
+   */
   public getUniqueName = (shortForm?: boolean) => {
     if (shortForm) {
       return this.name;
@@ -31,17 +36,52 @@ export class SpreadPathItem extends PathItem {
     return `...${this.name}`;
   }
 
+  /**
+   * Returns false because SpreadPathItem is not a RootPathItem
+   * This is for avoiding circular dependency issue
+   * @returns false
+   */
   public isRootPathItem: () => boolean = () => false;
 
+  /**
+   * Returns the pathItem name if it is a dynamicPathItem or null if it is not
+   */
   public getDynamicPathItemName: () => string | null = () => null;
 
+  /**
+   * Get switchPathItems
+   */
+   public getSwitchPathItems = () => {
+    return this.switchPathItems;
+  }
+
+  /**
+   * Add switchPathItem
+   * @param {SwitchPathItem} switchPathItem to be added
+   */
+  public addSwitchPathItem = (switchPathItem: SwitchPathItem) => {
+    switchPathItem.setParentPathItem(this);
+
+    this.switchPathItems.push(switchPathItem);
+  }
+
+  /**
+   * Returns a dictionary of short and long common required switch names in the PathItem
+   * SpreadPathItems could not have any common switches
+   */
   public getCommonRequiredSwitchNames: () => Record<string, Switch> = () => ({});
 
+  /**
+   * Returns a dictionary of short and long common optional switch names in the PathItem
+   * SpreadPathItems could not have any common switches
+   */
   public getCommonOptionalSwitchNames: () => Record<string, Switch> = () => ({});
 
+  /**
+   * Get a dictionary with all commonSwitch names for the current PathItem
+   * SpreadPathItems could not have any common switches
+   */
   public getCommonSwitchNames: () => Record<string, Switch> = () => ({});
-
-  public getDownwardCommonSwitchNames: () => Record<string, Switch> = () => ({});
 
   /**
    * Display help for the current PathItem
@@ -61,30 +101,30 @@ export class SpreadPathItem extends PathItem {
       });
     };
 
-    const upwardCommonRequiredSwitches: Record<string, Switch> = {};
-    Object.values(this.getUpwardCommonRequiredSwitchNames()).forEach(swich => {
+    const inheritedCommonRequiredSwitches: Record<string, Switch> = {};
+    Object.values(this.getInheritedCommonRequiredSwitchNames()).forEach(swich => {
       const key = `${swich.getShortname()},${swich.getLongname()}`;
-      if (!upwardCommonRequiredSwitches[key]) {
-        upwardCommonRequiredSwitches[key] = swich;
+      if (!inheritedCommonRequiredSwitches[key]) {
+        inheritedCommonRequiredSwitches[key] = swich;
       }
     });
 
-    const upwardCommonOptionalSwitches: Record<string, Switch> = {};
-    Object.values(this.getUpwardCommonOptionalSwitchNames()).forEach(swich => {
+    const inheritedCommonOptionalSwitches: Record<string, Switch> = {};
+    Object.values(this.getInheritedCommonOptionalSwitchNames()).forEach(swich => {
       const key = `${swich.getShortname()},${swich.getLongname()}`;
-      if (!upwardCommonOptionalSwitches[key]) {
-        upwardCommonOptionalSwitches[key] = swich;
+      if (!inheritedCommonOptionalSwitches[key]) {
+        inheritedCommonOptionalSwitches[key] = swich;
       }
     });
 
     const requiredSwitches = [
       ...this.getRequiredSwitches(),
-      ...Object.values(upwardCommonRequiredSwitches)
+      ...Object.values(inheritedCommonRequiredSwitches)
     ];
 
     const optionalSwitches = [
       ...this.getOptionalSwitches(),
-      ...Object.values(upwardCommonOptionalSwitches)
+      ...Object.values(inheritedCommonOptionalSwitches)
     ];
 
     const requiredDefinitions = [];
@@ -121,22 +161,5 @@ export class SpreadPathItem extends PathItem {
 
     console.log(commandLineUsage(sections));
   };
-
-  /**
-   * Get switchPathItems
-   */
-     public getSwitchPathItems = () => {
-      return this.switchPathItems;
-    }
-  
-    /**
-     * Add switchPathItem
-     * @param {SwitchPathItem} switchPathItem to be added
-     */
-    public addSwitchPathItem = (switchPathItem: SwitchPathItem) => {
-      switchPathItem.setParentPathItem(this);
-  
-      this.switchPathItems.push(switchPathItem);
-    }
   
 }
