@@ -16,7 +16,7 @@ describe('notFoundHook', () => {
     const inputs: CallbackInput = { commands: ['static1'], pathParams: {}, shortSwitches: {}, longSwitches: {}, switches: {}, context: {} };
     const config: Config = {
       applicationName: '<App>',
-      verifySwitches: true,
+      strictSwitchMatching: true,
       helpType: null,
       helpShortSwitch: 'x',
       helpLongSwitch: 'xelp',
@@ -43,7 +43,7 @@ describe('notFoundHook', () => {
     const inputs: CallbackInput = { commands: ['static1'], pathParams: {}, shortSwitches: {}, longSwitches: {}, switches: {}, context: {} };
     const config: Config = {
       applicationName: '<App>',
-      verifySwitches: true,
+      strictSwitchMatching: true,
       helpType: 'switch',
       helpShortSwitch: 'x',
       helpLongSwitch: 'xelp',
@@ -70,7 +70,7 @@ describe('notFoundHook', () => {
     const inputs: CallbackInput = { commands: ['static1'], pathParams: {}, shortSwitches: {}, longSwitches: {}, switches: {}, context: {} };
     const config: Config = {
       applicationName: '<App>',
-      verifySwitches: true,
+      strictSwitchMatching: true,
       helpType: 'switch',
       helpShortSwitch: 'x',
       helpLongSwitch: 'xelp',

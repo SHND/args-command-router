@@ -12,7 +12,7 @@ export type ExternalArgsType = Data;
  */
 export interface Config {
   applicationName: string,
-  verifySwitches: boolean,
+  strictSwitchMatching: boolean,
   helpType: 'switch' | null,
   helpShortSwitch: string,
   helpLongSwitch: string,

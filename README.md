@@ -150,7 +150,7 @@ Switches can be either **Required** or **Optional**.
 
 ### Required Switches
 
-These switches should be present when running your application for a specific route, otherwise your callback won't be called, even if you are mentioning them in your route string. (This behavior can be changed by the configuration option `verifySwitches`)
+These switches should be present when running your application for a specific route, otherwise your callback won't be called, even if you are mentioning them in your route string. (This behavior can be changed by the configuration option `strictSwitchMatching`)
 
 ```js
 app
@@ -320,7 +320,7 @@ These are the default values:
 ```js
 const app = new Application({
   applicationName: '<App>',
-  verifySwitches: true,
+  strictSwitchMatching: true,
   helpType: 'switch',
   helpShortSwitch: 'h',
   helpLongSwitch: 'help',
@@ -332,11 +332,11 @@ const app = new Application({
 ```
 
 - `applicationName`: The name of the application used in generating the help (usage) output.
-- `verifySwitches`: Verify if the passed switches are matched with switches defined on the found pathItem.
+- `strictSwitchMatching`: Verify if the passed switches are matched with switches defined on the found pathItem. If it's set to false, the requiredSwitches won't be enforced, and switched that are not defined are accepted.
 - `helpType`: If you want to disable the help functionality, set this to `null`.
 - `helpShortSwitch`: The short switch name for showing help (usage) output.
 - `helpLongSwitch`: The long switch name for showing help (usage) output.
 - `helpOnNoTarget`: Show help when no PathItem found for the passed commands.
 - `helpOnNoCallback`: Show help when PathItem is found but no callbacks are defined on that pathItem.
-- `helpOnVerifySwitchFailure`: Show help if the `verifySwitches` config is set to true but switches for that pathItem not matched.
+- `helpOnVerifySwitchFailure`: Show help if the `strictSwitchMatching` config is set to true but switches for that pathItem not matched.
 - `helpOnAskedForHelp`: Show help when user deliberatly asks for help. e.g. when user pass `-h`.

@@ -353,7 +353,7 @@ export function processCallbacks(targetPathItem: PathItem, forwardedContext: Cal
  * @param argsLongSwitches passed long switches
  * @returns {void}
  */
-export function verifySwitches(pathItem: PathItem, argsShortSwitches: Record<string, string[]>, argsLongSwitches: Record<string, string[]>, config: Config) {
+export function matchRuntimeAndDefinedSwitches(pathItem: PathItem, argsShortSwitches: Record<string, string[]>, argsLongSwitches: Record<string, string[]>, config: Config) {
 
   /*********************************************************************
    * Check if helpType is switch and help switch exists                *

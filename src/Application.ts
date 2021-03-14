@@ -6,7 +6,7 @@ import { PathItem } from './PathTree/PathItem';
 import { notFoundHook } from './hooks/notFoundHook';
 import { askForHelpHook } from './hooks/askForHelpHook';
 import { Callback, CallbackContext, Config } from './types';
-import { matchCommands, matchSwitches, matchCommandsGetPathParameters, processCallbacks, verifySwitches } from './utility';
+import { matchCommands, matchSwitches, matchCommandsGetPathParameters, processCallbacks, matchRuntimeAndDefinedSwitches } from './utility';
 
 
 export default class Application {
@@ -27,7 +27,7 @@ export default class Application {
   constructor(config: Partial<Config> = {}) {
     this._config = {
       applicationName: config.applicationName || '<App>',
-      verifySwitches: config.verifySwitches === false ? false : true,
+      strictSwitchMatching: config.strictSwitchMatching === false ? false : true,
       helpType: config.helpType === null ? null : 'switch',
       helpShortSwitch: config.helpShortSwitch || 'h',
       helpLongSwitch: config.helpLongSwitch || 'help',
@@ -112,9 +112,9 @@ export default class Application {
         else context = afterCallbackFoundResult || context;
         // -------------------------------------------------------------
 
-        if (config.verifySwitches) {
+        if (config.strictSwitchMatching) {
           try {
-            verifySwitches(target, args.shortSwitches, args.longSwitches, this._config);
+            matchRuntimeAndDefinedSwitches(target, args.shortSwitches, args.longSwitches, this._config);
           } catch(error) {
             // ------------------ onVerifySwitchFailure hook ------------------
             const onVerifySwitchFailureResult = processCallbacks(target, context, args, pathParametes, config, tree, this._onVerifySwitchFailure);
