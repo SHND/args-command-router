@@ -6,7 +6,14 @@ import { PathItem } from './PathTree/PathItem';
 import { notFoundHook } from './hooks/notFoundHook';
 import { askForHelpHook } from './hooks/askForHelpHook';
 import { Callback, CallbackContext, Config } from './types';
-import { matchCommands, matchSwitches, matchCommandsGetPathParameters, processCallbacks, matchRuntimeAndDefinedSwitches } from './utility';
+import { 
+  matchCommands, 
+  matchSwitches, 
+  matchCommandsGetPathParameters, 
+  processCallbacks, 
+  matchRuntimeAndDefinedSwitches, 
+  checkSwitchNameConflicts 
+} from './utility';
 
 
 export default class Application {
@@ -27,6 +34,7 @@ export default class Application {
   constructor(config: Partial<Config> = {}) {
     this._config = {
       applicationName: config.applicationName || '<App>',
+      checkForSwitchConflicts: config.checkForSwitchConflicts === false ? false : true,
       strictSwitchMatching: config.strictSwitchMatching === false ? false : true,
       helpType: config.helpType === null ? null : 'switch',
       helpShortSwitch: config.helpShortSwitch || 'h',
@@ -82,6 +90,10 @@ export default class Application {
 
     const config = this._config;
     const tree = this._tree;
+
+    if (config.checkForSwitchConflicts) {
+      checkSwitchNameConflicts(tree.getRoot());
+    }
     
     // ------------------ beforeAll hook ------------------
     const beforeAllResult = processCallbacks(null, context, args, {}, config, tree, this._beforeAll);

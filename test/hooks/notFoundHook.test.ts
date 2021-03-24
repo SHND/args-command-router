@@ -16,6 +16,7 @@ describe('notFoundHook', () => {
     const inputs: CallbackInput = { commands: ['static1'], pathParams: {}, shortSwitches: {}, longSwitches: {}, switches: {}, context: {} };
     const config: Config = {
       applicationName: '<App>',
+      checkForSwitchConflicts: true,
       strictSwitchMatching: true,
       helpType: null,
       helpShortSwitch: 'x',
@@ -43,6 +44,7 @@ describe('notFoundHook', () => {
     const inputs: CallbackInput = { commands: ['static1'], pathParams: {}, shortSwitches: {}, longSwitches: {}, switches: {}, context: {} };
     const config: Config = {
       applicationName: '<App>',
+      checkForSwitchConflicts: true,
       strictSwitchMatching: true,
       helpType: 'switch',
       helpShortSwitch: 'x',
@@ -70,6 +72,7 @@ describe('notFoundHook', () => {
     const inputs: CallbackInput = { commands: ['static1'], pathParams: {}, shortSwitches: {}, longSwitches: {}, switches: {}, context: {} };
     const config: Config = {
       applicationName: '<App>',
+      checkForSwitchConflicts: true,
       strictSwitchMatching: true,
       helpType: 'switch',
       helpShortSwitch: 'x',

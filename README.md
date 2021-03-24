@@ -320,6 +320,7 @@ These are the default values:
 ```js
 const app = new Application({
   applicationName: '<App>',
+  checkForSwitchConflicts: true,
   strictSwitchMatching: true,
   helpType: 'switch',
   helpShortSwitch: 'h',
@@ -332,6 +333,7 @@ const app = new Application({
 ```
 
 - `applicationName`: The name of the application used in generating the help (usage) output.
+- `checkForSwitchConflicts`: Verify Switch names are not conflicting in your Application. You can disable this after you're done with your application development to improve performance.
 - `strictSwitchMatching`: Verify if the passed switches are matched with switches defined on the found pathItem. If it's set to false, the requiredSwitches won't be enforced, and switched that are not defined are accepted.
 - `helpType`: If you want to disable the help functionality, set this to `null`.
 - `helpShortSwitch`: The short switch name for showing help (usage) output.

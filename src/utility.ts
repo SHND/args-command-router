@@ -514,3 +514,91 @@ export function matchRuntimeAndDefinedSwitches(pathItem: PathItem, argsShortSwit
   }
 
 }
+
+/**
+ * Check for switch name conflicts in the tree from specified pathItem
+ * @param pathItem that is the root of the tree
+ * @returns dictionary of all used switches in the tree
+ */
+export function checkSwitchNameConflicts(pathItem: PathItem) {
+
+  return _recurse(pathItem);
+
+  function _recurse(pathItem: PathItem){
+    const selfSwitches: Record<string, boolean> = {};
+
+    pathItem.getRequiredSwitches().forEach(swich => _addSwitches(swich, selfSwitches));
+    pathItem.getOptionalSwitches().forEach(swich => _addSwitches(swich, selfSwitches));
+
+    const outputSwitches: Record<string, boolean> = {};
+
+    pathItem.getRequiredSwitches().forEach(swich => _addSwitches(swich, outputSwitches));
+    pathItem.getOptionalSwitches().forEach(swich => _addSwitches(swich, outputSwitches));
+
+    // StaticPathItem, DynamicPathItem
+    if (pathItem instanceof BlockPathItem) {
+      pathItem.getCommonRequiredSwitches().forEach(swich => _addSwitches(swich, selfSwitches));
+      pathItem.getCommonOptionalSwitches().forEach(swich => _addSwitches(swich, selfSwitches));
+
+      pathItem.getCommonRequiredSwitches().forEach(swich => _addSwitches(swich, outputSwitches));
+      pathItem.getCommonOptionalSwitches().forEach(swich => _addSwitches(swich, outputSwitches));
+
+      const commonSwitchNames: Record<string, boolean> = {};
+      
+      pathItem.getCommonRequiredSwitches().forEach(swich => _addSwitches(swich, commonSwitchNames));
+      pathItem.getCommonOptionalSwitches().forEach(swich => _addSwitches(swich, commonSwitchNames));
+ 
+      const staticPathItems = Object.values(pathItem.getStaticPathItems());
+      staticPathItems.forEach(staticPathItem => _handleBranch(staticPathItem, commonSwitchNames, outputSwitches));
+
+      const dynamicPathItem = pathItem.getDynamicPathItem();
+      pathItem.hasDynamicPathItem() && _handleBranch(dynamicPathItem, commonSwitchNames, outputSwitches);
+
+      const switchPathItems = pathItem.getSwitchPathItems();
+      switchPathItems.forEach(switchPathItem => _handleBranch(switchPathItem, commonSwitchNames, outputSwitches));
+
+      const spreadPathItem = pathItem.getSpreadPathItem();
+      pathItem.hasSpreadPathItem() && _handleBranch(spreadPathItem, commonSwitchNames, outputSwitches);
+    } else if (pathItem instanceof SpreadPathItem) {
+      const switchPathItems = pathItem.getSwitchPathItems();
+      
+      switchPathItems.forEach(switchPathItem => _handleBranch(switchPathItem, {}, outputSwitches));
+    } else if (pathItem instanceof SwitchPathItem) {
+      // already updated the allSwitches outside the if condition
+    }
+
+    return outputSwitches;
+  }
+
+  /**
+   * 
+   * @param subPathItem 
+   * @param commonSwitches contains common switch names
+   * @param out aggregate of all switches till now
+   */
+  function _handleBranch(subPathItem: PathItem, commonSwitches: Record<string, boolean>, out: Record<string, boolean>) {
+    const usedSwitches = _recurse(subPathItem);
+
+    Object.keys(commonSwitches).forEach(commonSwitchName => _checkAndAddSwitchName(commonSwitchName, usedSwitches, out));
+    Object.keys(usedSwitches).forEach(usedSwitch => out[usedSwitch] = true);
+  }
+
+  function _addSwitches(swich: Switch, out: Record<string, boolean>) {
+    if (swich.hasShortname()) {
+      _checkAndAddSwitchName(swich.getShortname(), out, out)
+    }
+
+    if (swich.hasLongname()) {
+      _checkAndAddSwitchName(swich.getLongname(), out, out)
+    }
+  }
+
+  function _checkAndAddSwitchName(switchName: string, dict: Record<string, boolean>, out: Record<string, boolean>) {
+    if (dict[switchName]) {
+      throw Error(`Found a conflict for switch name "${switchName}". Check the path "${pathItem.path(false)}"`)
+    }
+
+    out[switchName] = true;
+  }
+
+}

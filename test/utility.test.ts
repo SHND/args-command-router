@@ -3,10 +3,23 @@ import { Switch } from '../src/Switch';
 import { PathTree } from '../src/PathTree/PathTree';
 import { RootPathItem } from '../src/PathTree/RootPathItem';
 import { StaticPathItem } from '../src/PathTree/StaticPathItem';
+import { SpreadPathItem } from '../src/PathTree/SpreadPathItem';
 import { SwitchPathItem } from '../src/PathTree/SwitchPathItem';
 import { Callback, Config, ExternalArgsType } from '../src/types';
 import { DynamicPathItem } from '../src/PathTree/DynamicPathItem';
-import { parsePath, splitFromSwitchPathItem, splitSwitchExpressions, hasWhiteSpace, hasAnyOfChars, matchCommands, matchSwitches, matchCommandsGetPathParameters, processCallbacks, matchRuntimeAndDefinedSwitches } from '../src/utility';
+import { 
+  parsePath, 
+  splitFromSwitchPathItem, 
+  splitSwitchExpressions, 
+  hasWhiteSpace, 
+  hasAnyOfChars, 
+  matchCommands, 
+  matchSwitches, 
+  matchCommandsGetPathParameters, 
+  processCallbacks, 
+  matchRuntimeAndDefinedSwitches, 
+  checkSwitchNameConflicts
+} from '../src/utility';
 
 describe('utility', () => {
 
@@ -2893,6 +2906,7 @@ describe('utility', () => {
       const pathParameters = {};
       const config: Config = {
         applicationName: '<App>',
+        checkForSwitchConflicts: true,
         strictSwitchMatching: true,
         helpType: 'switch',
         helpShortSwitch: 'h',
@@ -2929,6 +2943,7 @@ describe('utility', () => {
       const pathParameters = {};
       const config: Config = {
         applicationName: '<App>',
+        checkForSwitchConflicts: true,
         strictSwitchMatching: true,
         helpType: 'switch',
         helpShortSwitch: 'h',
@@ -2958,6 +2973,7 @@ describe('utility', () => {
       const pathParameters = {};
       const config: Config = {
         applicationName: '<App>',
+        checkForSwitchConflicts: true,
         strictSwitchMatching: true,
         helpType: 'switch',
         helpShortSwitch: 'h',
@@ -2994,6 +3010,7 @@ describe('utility', () => {
       const pathParameters = {};
       const config: Config = {
         applicationName: '<App>',
+        checkForSwitchConflicts: true,
         strictSwitchMatching: true,
         helpType: 'switch',
         helpShortSwitch: 'h',
@@ -3030,8 +3047,9 @@ describe('utility', () => {
 
       const config: Config = {
         applicationName: '<App>',
-        helpType: 'switch',
+        checkForSwitchConflicts: true,
         strictSwitchMatching: true,
+        helpType: 'switch',
         helpShortSwitch: 'z',
         helpLongSwitch: 'zelp',
         helpOnNoTarget: false,
@@ -3084,8 +3102,9 @@ describe('utility', () => {
 
       const config: Config = {
         applicationName: '<App>',
-        helpType: 'switch',
+        checkForSwitchConflicts: true,
         strictSwitchMatching: true,
+        helpType: 'switch',
         helpShortSwitch: 'z',
         helpLongSwitch: 'zelp',
         helpOnNoTarget: false,
@@ -3169,6 +3188,7 @@ describe('utility', () => {
 
       const config: Config = {
         applicationName: '<App>',
+        checkForSwitchConflicts: true,
         strictSwitchMatching: true,
         helpType: 'switch',
         helpShortSwitch: 'z',
@@ -3326,6 +3346,342 @@ describe('utility', () => {
       }, 'passed not defined switch "yy"').throws('is not recognized');
     });
 
+  });
+
+  describe('checkSwitchNameConflicts', () => {
+
+    describe('Test Single PathItem', () => {
+      //#region BlockPathItem
+      it('BlockPathItem with no conflicting switches', () => {
+        const pathItem = new StaticPathItem('cmd', null);
+        pathItem.addOptionalSwitch(new Switch('a', null));
+        pathItem.addOptionalSwitch(new Switch(null, 'bb'));
+        pathItem.addOptionalSwitch(new Switch('c', 'cc'));
+        
+        pathItem.addRequiredSwitch(new Switch('d', null));
+        pathItem.addRequiredSwitch(new Switch(null, 'ee'));
+        pathItem.addRequiredSwitch(new Switch('f', 'ff'));
+
+        pathItem.addCommonOptionalSwitch(new Switch('g', null))
+        pathItem.addCommonOptionalSwitch(new Switch(null, 'hh'))
+        pathItem.addCommonOptionalSwitch(new Switch('i', 'ii'))
+
+        pathItem.addCommonRequiredSwitch(new Switch('j', null))
+        pathItem.addCommonRequiredSwitch(new Switch(null, 'kk'))
+        pathItem.addCommonRequiredSwitch(new Switch('l', 'll'))
+        
+        expect(checkSwitchNameConflicts(pathItem)).deep.equal({
+          'a': true, 'bb': true, 'c': true, 'cc': true, 'd': true, 'ee': true, 'f': true, 'ff': true,
+          'g': true, 'hh': true, 'i': true, 'ii': true, 'j': true, 'kk': true, 'l': true, 'll': true,
+        });
+      });
+
+      it('BlockPathItem with conflicting switches (same short switches)', () => {
+        const pathItem = new StaticPathItem('cmd', null);
+        pathItem.addOptionalSwitch(new Switch('a', null));
+        pathItem.addOptionalSwitch(new Switch('a', null));
+        
+        expect(() => checkSwitchNameConflicts(pathItem)).throw();
+      })
+
+      it('BlockPathItem with conflicting switches (same long switches)', () => {
+        const pathItem = new StaticPathItem('cmd', null);
+        pathItem.addOptionalSwitch(new Switch(null, 'aa'));
+        pathItem.addOptionalSwitch(new Switch(null, 'aa'));
+        
+        expect(() => checkSwitchNameConflicts(pathItem)).throw();
+      })
+
+      it('BlockPathItem with conflicting switches (same short common switches)', () => {
+        const pathItem = new StaticPathItem('cmd', null);
+        pathItem.addCommonOptionalSwitch(new Switch('a', null));
+        pathItem.addCommonOptionalSwitch(new Switch('a', null));
+        
+        expect(() => checkSwitchNameConflicts(pathItem)).throw();
+      })
+
+      it('BlockPathItem with conflicting switches (same common long switches)', () => {
+        const pathItem = new StaticPathItem('cmd', null);
+        pathItem.addCommonOptionalSwitch(new Switch(null, 'aa'));
+        pathItem.addCommonOptionalSwitch(new Switch(null, 'aa'));
+        
+        expect(() => checkSwitchNameConflicts(pathItem)).throw();
+      })
+  
+      it('BlockPathItem with conflicting switches (different short switches)', () => {
+        const pathItem = new StaticPathItem('cmd', null);
+        pathItem.addOptionalSwitch(new Switch('a', null));
+        pathItem.addRequiredSwitch(new Switch('a', null));
+        
+        expect(() => checkSwitchNameConflicts(pathItem)).throw();
+      })
+  
+      it('BlockPathItem with conflicting switches (different long switches)', () => {
+        const pathItem = new StaticPathItem('cmd', null);
+        pathItem.addOptionalSwitch(new Switch(null, 'aa'));
+        pathItem.addRequiredSwitch(new Switch(null, 'aa'));
+        
+        expect(() => checkSwitchNameConflicts(pathItem)).throw();
+      });
+
+      it('BlockPathItem with conflicting switches (different common short switches)', () => {
+        const pathItem = new StaticPathItem('cmd', null);
+        pathItem.addCommonOptionalSwitch(new Switch('a', null));
+        pathItem.addCommonRequiredSwitch(new Switch('a', null));
+        
+        expect(() => checkSwitchNameConflicts(pathItem)).throw();
+      })
+  
+      it('BlockPathItem with conflicting switches (different common long switches)', () => {
+        const pathItem = new StaticPathItem('cmd', null);
+        pathItem.addCommonOptionalSwitch(new Switch(null, 'aa'));
+        pathItem.addCommonRequiredSwitch(new Switch(null, 'aa'));
+        
+        expect(() => checkSwitchNameConflicts(pathItem)).throw();
+      });
+
+      it('BlockPathItem with conflicting switches (different common and non-common short switches)', () => {
+        const pathItem = new StaticPathItem('cmd', null);
+        pathItem.addOptionalSwitch(new Switch('a', null));
+        pathItem.addCommonRequiredSwitch(new Switch('a', null));
+        
+        expect(() => checkSwitchNameConflicts(pathItem)).throw();
+      });
+
+      it('BlockPathItem with conflicting switches (different common and non-common long switches)', () => {
+        const pathItem = new StaticPathItem('cmd', null);
+        pathItem.addOptionalSwitch(new Switch(null, 'aa'));
+        pathItem.addCommonRequiredSwitch(new Switch(null, 'aa'));
+        
+        expect(() => checkSwitchNameConflicts(pathItem)).throw();
+      });
+      //#endregion
+
+      //#region SpreadPathItem
+      it('SpreadPathItem with no conflicting switches', () => {
+        const pathItem = new SpreadPathItem('rest', null);
+        pathItem.addOptionalSwitch(new Switch('a', null));
+        pathItem.addOptionalSwitch(new Switch(null, 'bb'));
+        pathItem.addOptionalSwitch(new Switch('c', 'cc'));
+        
+        pathItem.addRequiredSwitch(new Switch('d', null));
+        pathItem.addRequiredSwitch(new Switch(null, 'ee'));
+        pathItem.addRequiredSwitch(new Switch('f', 'ff'));
+        
+        expect(checkSwitchNameConflicts(pathItem)).deep.equal({
+          'a': true, 'bb': true, 'c': true, 'cc': true, 'd': true, 'ee': true, 'f': true, 'ff': true
+        });
+      })
+  
+      it('SpreadPathItem with conflicting switches (same switches)', () => {
+        const pathItem = new SpreadPathItem('rest', null);
+        pathItem.addOptionalSwitch(new Switch('a', null));
+        pathItem.addOptionalSwitch(new Switch('a', null));
+        
+        expect(() => checkSwitchNameConflicts(pathItem)).throw();
+      })
+  
+      it('SpreadPathItem with conflicting switches (different short switches)', () => {
+        const pathItem = new SpreadPathItem('rest', null);
+        pathItem.addOptionalSwitch(new Switch('a', null));
+        pathItem.addRequiredSwitch(new Switch('a', null));
+        
+        expect(() => checkSwitchNameConflicts(pathItem)).throw();
+      })
+  
+      it('SpreadPathItem with conflicting switches (different long switches)', () => {
+        const pathItem = new SpreadPathItem('rest', null);
+        pathItem.addOptionalSwitch(new Switch(null, 'aa'));
+        pathItem.addRequiredSwitch(new Switch(null, 'aa'));
+        
+        expect(() => checkSwitchNameConflicts(pathItem)).throw();
+      });
+      //#endregion
+
+      //#region SwitchPathItem
+      it('SwitchPathItem with no conflicting switches', () => {
+        const pathItem = new SwitchPathItem('[a=1][b=2]', null);
+        pathItem.addOptionalSwitch(new Switch('a', null));
+        pathItem.addOptionalSwitch(new Switch(null, 'bb'));
+        pathItem.addOptionalSwitch(new Switch('c', 'cc'));
+        
+        pathItem.addRequiredSwitch(new Switch('d', null));
+        pathItem.addRequiredSwitch(new Switch(null, 'ee'));
+        pathItem.addRequiredSwitch(new Switch('f', 'ff'));
+        
+        expect(checkSwitchNameConflicts(pathItem)).deep.equal({
+          'a': true, 'bb': true, 'c': true, 'cc': true, 'd': true, 'ee': true, 'f': true, 'ff': true
+        });
+      })
+  
+      it('SwitchPathItem with conflicting switches (same switches)', () => {
+        const pathItem = new SwitchPathItem('[a=1][b=2]', null);
+        pathItem.addOptionalSwitch(new Switch('a', null));
+        pathItem.addOptionalSwitch(new Switch('a', null));
+        
+        expect(() => checkSwitchNameConflicts(pathItem)).throw();
+      })
+  
+      it('SwitchPathItem with conflicting switches (different short switches)', () => {
+        const pathItem = new SwitchPathItem('[a=1][b=2]', null);
+        pathItem.addOptionalSwitch(new Switch('a', null));
+        pathItem.addRequiredSwitch(new Switch('a', null));
+        
+        expect(() => checkSwitchNameConflicts(pathItem)).throw();
+      })
+  
+      it('SwitchPathItem with conflicting switches (different long switches)', () => {
+        const pathItem = new SwitchPathItem('[a=1][b=2]', null);
+        pathItem.addOptionalSwitch(new Switch(null, 'aa'));
+        pathItem.addRequiredSwitch(new Switch(null, 'aa'));
+        
+        expect(() => checkSwitchNameConflicts(pathItem)).throw();
+      });
+      //#endregion
+    });
+
+    describe('Test Tree of PathItems', () => {
+      let rootPathItem: RootPathItem = null;
+      let staticPathItem1: StaticPathItem = null;
+      let dynamicPathItem11: DynamicPathItem = null;
+      let spreadPathItem1111: SpreadPathItem = null;
+      let switchPathItem11111: SwitchPathItem = null;
+      let switchPathItem11112: SwitchPathItem = null;
+      let staticPathItem2: StaticPathItem = null;
+
+      beforeEach(() => {
+        // /
+        rootPathItem = new RootPathItem();
+        // root/static1
+        staticPathItem1 = new StaticPathItem('static1', rootPathItem);
+        // root/static1/:dynamic11
+        dynamicPathItem11 = new DynamicPathItem('dynamic11', staticPathItem1);
+        // root/static1/:dynamic11/...rest111
+        spreadPathItem1111 = new SpreadPathItem('rest111', dynamicPathItem11);
+        // root/static1/:dynamic11/...rest111[a=1]
+        switchPathItem11111 = new SwitchPathItem('[a=1]', spreadPathItem1111);
+        // root/static1/:dynamic11/...rest111[a=2]
+        switchPathItem11112 = new SwitchPathItem('[a=2]', spreadPathItem1111);
+        // root -> static2
+        staticPathItem2 = new StaticPathItem('static2', rootPathItem);
+
+        // /
+        rootPathItem.addCommonOptionalSwitch(new Switch('a', 'aa'));
+        rootPathItem.addCommonRequiredSwitch(new Switch('b', null));
+        rootPathItem.addCommonRequiredSwitch(new Switch(null, 'cc'));
+        rootPathItem.addOptionalSwitch(new Switch('z', 'zz'))
+        rootPathItem.addRequiredSwitch(new Switch('y', null))
+        rootPathItem.addRequiredSwitch(new Switch(null, 'xx'))
+
+        // root/static1
+        rootPathItem.addStaticPathItem(staticPathItem1);
+        staticPathItem1.addCommonRequiredSwitch(new Switch('d', 'dd'));
+        staticPathItem1.addCommonOptionalSwitch(new Switch('e', null));
+        staticPathItem1.addCommonOptionalSwitch(new Switch(null, 'ee'));
+        staticPathItem1.addOptionalSwitch(new Switch('w', 'ww'));
+        staticPathItem1.addRequiredSwitch(new Switch('v', null));
+        staticPathItem1.addRequiredSwitch(new Switch(null, 'uu'));
+
+        // root/static1/:dynamic11
+        staticPathItem1.setDynamicPathItem(dynamicPathItem11);
+
+        // root/static1/:dynamic11/...rest111
+        dynamicPathItem11.setSpreadPathItem(spreadPathItem1111)
+        spreadPathItem1111.addRequiredSwitch(new Switch('t', null));
+        
+        // root/static1/:dynamic11/...rest111[a=1]
+        spreadPathItem1111.addSwitchPathItem(switchPathItem11111);
+        switchPathItem11111.addOptionalSwitch(new Switch('s', 'ss'))
+
+        // root/static1/:dynamic11/...rest111[a=2]
+        spreadPathItem1111.addSwitchPathItem(switchPathItem11112);;
+        switchPathItem11112.addOptionalSwitch(new Switch('s', 'ss'))
+
+        // root -> static2
+        rootPathItem.addStaticPathItem(staticPathItem2);
+        staticPathItem2.addCommonRequiredSwitch(new Switch('d', 'dd'));
+        staticPathItem2.addCommonOptionalSwitch(new Switch('e', null));
+        staticPathItem2.addCommonOptionalSwitch(new Switch(null, 'ee'));
+        staticPathItem2.addOptionalSwitch(new Switch('w', 'ww'));
+        staticPathItem2.addRequiredSwitch(new Switch('v', null));
+        staticPathItem2.addRequiredSwitch(new Switch(null, 'uu'));
+        staticPathItem2.addRequiredSwitch(new Switch('t', null));
+        staticPathItem2.addOptionalSwitch(new Switch('s', 'ss'));
+        staticPathItem2.addOptionalSwitch(new Switch('r', 'rr'));   // extra
+      });
+
+      afterEach(() => {
+        // /
+        rootPathItem = null;
+        // root/static1
+        staticPathItem1 = null;
+        // root/static1/:dynamic11
+        dynamicPathItem11 = null;
+        // root/static1/:dynamic11/...rest111
+        spreadPathItem1111 = null;
+        // root/static1/:dynamic11/...rest111[a=1]
+        switchPathItem11111 = null;
+        // root/static1/:dynamic11/...rest111[a=2]
+        switchPathItem11112 = null;
+        // root -> static2
+        staticPathItem2 = null;
+      })
+
+      it('Tree of mix pathItems with no conflicts', () => {
+        expect(checkSwitchNameConflicts(rootPathItem)).deep.equal({
+          'a': true,
+          'aa': true,
+          'b': true,
+          'cc': true,
+          'z': true,
+          'zz': true,
+          'y': true,
+          'xx': true,
+          'd': true,
+          'dd': true,
+          'e': true, 
+          'ee': true,
+          'w': true,
+          'ww': true,
+          'v': true,
+          'uu': true,
+          't': true,
+          's': true,
+          'ss': true,
+          'r': true,
+          'rr': true
+        })
+      })
+
+      it('Tree with conflict on RootPathItem and SwitchPathItem', () => {
+        expect(checkSwitchNameConflicts(rootPathItem)).deep.equal({
+          'a': true,
+          'aa': true,
+          'b': true,
+          'cc': true,
+          'z': true,
+          'zz': true,
+          'y': true,
+          'xx': true,
+          'd': true,
+          'dd': true,
+          'e': true, 
+          'ee': true,
+          'w': true,
+          'ww': true,
+          'v': true,
+          'uu': true,
+          't': true,
+          's': true,
+          'ss': true,
+          'r': true,
+          'rr': true
+        })
+
+        switchPathItem11111.addOptionalSwitch(new Switch('a', null));
+        expect(() => checkSwitchNameConflicts(rootPathItem)).throw('switch name "a". Check the path "/"');
+      });
+    });
   });
 
 });
