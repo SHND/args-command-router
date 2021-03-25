@@ -287,28 +287,6 @@ export abstract class BlockPathItem extends PathItem {
 
     const subPathItemNames = [];
 
-    if (this.getSwitchPathItems().length > 0) {
-      subPathItemNames.push(
-        ...Object.values(this.getSwitchPathItems())
-          .map(subPathItem => 
-            subPathItem
-              .path(false)
-              .split(PATH_ITEM_DELIMITER).join(' ')
-            )
-      )
-    }
-
-    subPathItemNames.push(
-      ...Object.values(this.getStaticPathItems())
-        .map(subPathItem => 
-          applicationName +
-          subPathItem
-            .path(false)
-            .split(PATH_ITEM_DELIMITER)
-            .join(' ')
-        )
-    )
-
     if (this.hasSpreadPathItem()) {
       subPathItemNames.push(
         applicationName +
@@ -330,6 +308,28 @@ export abstract class BlockPathItem extends PathItem {
           .join(' ')
       );
     }
+
+    if (this.getSwitchPathItems().length > 0) {
+      subPathItemNames.push(
+        ...Object.values(this.getSwitchPathItems())
+          .map(subPathItem => 
+            subPathItem
+              .path(false)
+              .split(PATH_ITEM_DELIMITER).join(' ')
+            )
+      )
+    }
+
+    subPathItemNames.push(
+      ...Object.values(this.getStaticPathItems())
+        .map(subPathItem => 
+          applicationName +
+          subPathItem
+            .path(false)
+            .split(PATH_ITEM_DELIMITER)
+            .join(' ')
+        )
+    )
 
     if (subPathItemNames.length > 0) {
       sections.push({

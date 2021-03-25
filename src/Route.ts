@@ -48,11 +48,9 @@ export class Route {
           finalPathItems.push(currentPathItem);
         }
       } else if (newPathItem instanceof DynamicPathItem && currentPathItem instanceof BlockPathItem) {
-        if (currentPathItem.hasDynamicPathItem()) {
-          if (currentPathItem.hasSpreadPathItem()) {
-            throw Error(`Dynamic PathItem with name "${newPathItem.getUniqueName(true)}" is conflicting with Spread PathItem "${currentPathItem.getSpreadPathItem().getUniqueName(true)}" in route path "${path}"`);
-          }
-
+        if (currentPathItem.hasSpreadPathItem()) {
+          throw Error(`Dynamic PathItem with name "${newPathItem.getUniqueName(true)}" is conflicting with Spread PathItem "${currentPathItem.getSpreadPathItem().getUniqueName(true)}" in route path "${path}"`);
+        } else if (currentPathItem.hasDynamicPathItem()) {
           currentPathItem = currentPathItem.getDynamicPathItem();
           
           if (currentPathItem.getName() !== newPathItem.getName()) {
@@ -66,11 +64,9 @@ export class Route {
           finalPathItems.push(currentPathItem);
         }
       } else if (newPathItem instanceof SpreadPathItem && currentPathItem instanceof BlockPathItem) {
-        if (currentPathItem.hasSpreadPathItem()) {
-          if (currentPathItem.hasDynamicPathItem()) {
-            throw Error(`Spread PathItem with name "${newPathItem.getUniqueName(true)}" is conflicting with Dynamic PathItem "${currentPathItem.getDynamicPathItem().getUniqueName(true)}" in route path "${path}".`);
-          }
-
+        if (currentPathItem.hasDynamicPathItem()) {
+          throw Error(`Spread PathItem with name "${newPathItem.getUniqueName(true)}" is conflicting with Dynamic PathItem "${currentPathItem.getDynamicPathItem().getUniqueName(true)}" in route path "${path}".`);
+        } else if (currentPathItem.hasSpreadPathItem()) {
           currentPathItem = currentPathItem.getSpreadPathItem();
 
           if (currentPathItem.getUniqueName(false) !== newPathItem.getUniqueName(false)) {
