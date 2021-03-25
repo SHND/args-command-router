@@ -308,6 +308,17 @@ export abstract class BlockPathItem extends PathItem {
             .join(' ')
         )
     )
+
+    if (this.hasSpreadPathItem()) {
+      subPathItemNames.push(
+        applicationName +
+        this
+          .getSpreadPathItem()
+          .path(false)
+          .split(PATH_ITEM_DELIMITER)
+          .join(' ')
+      )
+    }
     
     if (this.hasDynamicPathItem()) {
       subPathItemNames.push(

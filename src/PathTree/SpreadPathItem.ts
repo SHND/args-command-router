@@ -101,6 +101,26 @@ export class SpreadPathItem extends PathItem {
       });
     };
 
+    const subPathItemNames = [];
+
+    if (this.getSwitchPathItems().length > 0) {
+      subPathItemNames.push(
+        ...Object.values(this.getSwitchPathItems())
+          .map(subPathItem => 
+            subPathItem
+              .path(false)
+              .split(PATH_ITEM_DELIMITER).join(' ')
+            )
+      )
+    }
+
+    if (subPathItemNames.length > 0) {
+      sections.push({
+        header: 'SubCommands',
+        content: subPathItemNames.map(name => ({ name }))
+      })
+    }
+
     const inheritedCommonRequiredSwitches: Record<string, Switch> = {};
     Object.values(this.getInheritedCommonRequiredSwitchNames()).forEach(swich => {
       const key = `${swich.getShortname()},${swich.getLongname()}`;
