@@ -182,6 +182,18 @@ export class Route {
   }
 
   /**
+   * Add a optional switch for this route
+   * @param short one character string representing the short form of the switch
+   * @param long string representing the long form of the switch
+   * @param description for the switch
+   * @param parameters swtich parameters
+   * @returns {Route} current route
+   */
+  option(short: string, long?: string, description?: string, parameters?: string[]) {
+    return this.optionalSwitch(short, long, description, parameters);
+  }
+
+  /**
    * Add a common required switch for this route
    * This Switch will be included to all sub-routes of the current route
    * @param short one character string representing the short form of the switch
@@ -221,6 +233,18 @@ export class Route {
     }
 
     return this;
+  }
+
+  /**
+   * Add a common optional switch for this route
+   * This Switch will be included to all sub-routes of the current route
+   * @param short one character string representing the short form of the switch
+   * @param long string representing the long form of the switch
+   * @param description for the switch
+   * @returns {Route} current route
+   */
+  commonOption(short: string, long?: string, description?: string, parameters?: string[]) {
+    return this.commonOptionalSwitch(short, long, description, parameters);
   }
 
 }

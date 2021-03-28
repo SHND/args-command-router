@@ -757,7 +757,7 @@ export function generateHelp(pathItem: PathItem, applicationName: string): objec
 
   if (optionalDefinitions.length > 0) {
     sections.push({
-      header: 'Optional Options',
+      header: 'Options',
       optionList: optionalDefinitions,
     });
   }
