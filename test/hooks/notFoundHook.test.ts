@@ -58,7 +58,8 @@ describe('notFoundHook', () => {
     tree.getRoot().addStaticPathItem(pathItem);
 
     notFoundHook.call(pathItem, inputs, config, tree);
-    expect(consolelogMessage).contains('<App> static1');
+    expect(consolelogMessage).contains('<App>');
+    expect(consolelogMessage).contains('static1');
 
     console.log = consolelog;
   });

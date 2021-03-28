@@ -1,6 +1,6 @@
 {
   "name": "args-command-router",
-  "version": "3.2.2-alpha.6",
+  "version": "3.3.0-alpha.7",
   "description": "Nodejs command-line argument router",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

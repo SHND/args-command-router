@@ -3,6 +3,8 @@ import { PathTree } from "../PathTree/PathTree";
 import { PathItem } from "../PathTree/PathItem";
 import { CallbackInput, CallbackReturnType, Config } from "../types";
 
+const commandLineUsage = require('command-line-usage');
+
 /**
  * This native hook is for checking if user is deliberately asking for viewing help.
  * This hook is designed to be set on afterTargetFound hook.
@@ -18,11 +20,11 @@ export function askForHelpHook(this:PathItem, inputs: CallbackInput, config: Con
   if (config.helpType === 'switch') {
     if (inputs.shortSwitches[config.helpShortSwitch] || inputs.longSwitches[config.helpLongSwitch]) {
       if (pathItem) {
-        pathItem.showHelp(config.applicationName);
+        console.log(commandLineUsage(pathItem.getHelp(config.applicationName)));
       } else {
         const rootPathItem = tree.getRoot();
 
-        rootPathItem.showHelp(config.applicationName);
+        console.log(commandLineUsage(rootPathItem.getHelp(config.applicationName)));
       }
 
       return STOP;

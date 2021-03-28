@@ -51,7 +51,7 @@ export abstract class PathItem {
   /**
    * Display help for the current PathItem
    */
-  public abstract showHelp: (applicationName: string) => void;
+  public abstract getHelp: (applicationName: string) => void;
 
   /**
    * Check if the pathItem is in a branch that has a RootPathItem

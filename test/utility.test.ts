@@ -18,7 +18,8 @@ import {
   matchCommandsGetPathParameters, 
   processCallbacks, 
   matchRuntimeAndDefinedSwitches, 
-  checkSwitchNameConflicts
+  checkSwitchNameConflicts,
+  generateHelp
 } from '../src/utility';
 
 describe('utility', () => {
@@ -685,6 +686,17 @@ describe('utility', () => {
       expect(output).equal(pathItem1);
     });
 
+    it('matchCommands for [alias1] and tree {cmd1}', () => {
+      const root = new RootPathItem();
+      const pathItem1 = new StaticPathItem('cmd1', null);
+      pathItem1.addAlias('alias1')
+
+      root.addStaticPathItem(pathItem1);
+
+      const output = matchCommands(['alias1'], root);
+      expect(output).equal(pathItem1);
+    })
+
     it('matchCommands for [something] and empty tree', () => {
       const root = new RootPathItem();
 
@@ -743,6 +755,19 @@ describe('utility', () => {
       pathItem1.setDynamicPathItem(pathItem2);
 
       const output = matchCommands(['cmd1', 'something'], root);
+      expect(output).equal(pathItem2);
+    });
+
+    it('matchCommands for [alias1, something] and tree {cmd1->dynamic}', () => {
+      const root = new RootPathItem();
+      const pathItem1 = new StaticPathItem('cmd1', null);
+      pathItem1.addAlias('alias1');
+      const pathItem2 = new DynamicPathItem('dynamic', null);
+
+      root.addStaticPathItem(pathItem1);
+      pathItem1.setDynamicPathItem(pathItem2);
+
+      const output = matchCommands(['alias1', 'something'], root);
       expect(output).equal(pathItem2);
     });
 
@@ -820,6 +845,17 @@ describe('utility', () => {
       expect(output).deep.equal({});
     });
 
+    it('matchCommandsGetPathParameters for [alias1] and tree {cmd1}', () => {
+      const root = new RootPathItem();
+      const pathItem1 = new StaticPathItem('cmd1', null);
+      pathItem1.addAlias('alias1')
+
+      root.addStaticPathItem(pathItem1);
+
+      const output = matchCommandsGetPathParameters(['alias1'], root);
+      expect(output).deep.equal({});
+    })
+
     it('matchCommandsGetPathParameters for [something] and empty tree', () => {
       const root = new RootPathItem();
 
@@ -880,6 +916,19 @@ describe('utility', () => {
       pathItem1.setDynamicPathItem(pathItem2);
 
       const output = matchCommandsGetPathParameters(['cmd1', 'something'], root);
+      expect(output).deep.equal({ dynamic: 'something' });
+    });
+
+    it('matchCommandsGetPathParameters for [alias1, something] and tree {cmd1->dynamic}', () => {
+      const root = new RootPathItem();
+      const pathItem1 = new StaticPathItem('cmd1', null);
+      pathItem1.addAlias('alias1')
+      const pathItem2 = new DynamicPathItem('dynamic', null);
+
+      root.addStaticPathItem(pathItem1);
+      pathItem1.setDynamicPathItem(pathItem2);
+
+      const output = matchCommandsGetPathParameters(['alias1', 'something'], root);
       expect(output).deep.equal({ dynamic: 'something' });
     });
 
@@ -3682,6 +3731,17 @@ describe('utility', () => {
         expect(() => checkSwitchNameConflicts(rootPathItem)).throw('switch name "a". Check the path "/"');
       });
     });
+  });
+
+  describe('generateHelp', () => {
+    it('generateHelp for simplest rootPathItem', () => {
+      const rootPathItem = new RootPathItem();
+
+      const helpSections = generateHelp(rootPathItem, 'app');
+      expect(helpSections.length).equal(1);
+      expect(helpSections).deep.equal([{header: 'Name', content: '{reset app}'}])
+    });
+
   });
 
 });

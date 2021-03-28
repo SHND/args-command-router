@@ -86,7 +86,8 @@ describe('askForHelpHook', () => {
     tree.getRoot().addStaticPathItem(pathItem);
 
     askForHelpHook.call(pathItem, inputs, config, tree);
-    expect(consolelogMessage).contains('<App> static1')
+    expect(consolelogMessage).contains('<App>')
+    expect(consolelogMessage).contains('static1')
 
     console.log = consolelog;
   });
@@ -114,7 +115,8 @@ describe('askForHelpHook', () => {
     tree.getRoot().addStaticPathItem(pathItem);
 
     askForHelpHook.call(pathItem, inputs, config, tree);
-    expect(consolelogMessage).contains('<App> static1')
+    expect(consolelogMessage).contains('<App>')
+    expect(consolelogMessage).contains('static1')
 
     console.log = consolelog;
   });

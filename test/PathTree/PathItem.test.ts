@@ -31,7 +31,7 @@ class TestPathItem extends PathItem {
   
   public getDynamicPathItemName: () => string | null = () => null;
 
-  public showHelp = (applicationName: string) => {};
+  public getHelp: (applicationName: string) => object[] = (applicationName: string) => [];
 }
 
 describe('PathItem', () => {

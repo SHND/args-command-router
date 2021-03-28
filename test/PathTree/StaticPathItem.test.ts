@@ -57,4 +57,19 @@ describe('StaticPathItem', () => {
     expect(pathItem.getDynamicPathItemName()).equal(null)
   });
 
+  it('hasAlias, getAliases, addAlias', () => {
+    const pathItem = new StaticPathItem('name1', null);
+
+    expect(pathItem.getAliases()).deep.equal({});
+    expect(pathItem.hasAlias('myAlias')).be.false;
+
+    pathItem.addAlias('name1');
+    expect(pathItem.hasAlias('name1')).be.false;
+    expect(pathItem.getAliases()).deep.equal({});
+
+    pathItem.addAlias('myAlias');
+    expect(pathItem.hasAlias('myAlias')).be.true;
+    expect(pathItem.getAliases()).deep.equal({ myAlias: true });
+  });
+
 });

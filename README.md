@@ -209,6 +209,25 @@ $ App video download --key abc123
 $ App video formats --key abc123 -v
 ```
 
+## Aliases
+
+Static pathItems along with their name can also have aliases.
+
+```js
+app
+  .route('/say')
+  .alias('shout')
+  .alias('whisper')
+```
+
+Now calling the route `/say/:greet` can be done using any lines below:
+
+```bash
+$ App say 'my name'
+$ App shout 'my name'
+$ App whisper 'my name'
+```
+
 ## Hooks
 
 Hooks are functions that are getting executed at different stages of the execution of the application. You can view the order of execution of the callback and hooks from [this diagram](https://raw.githubusercontent.com/SHND/args-command-router/master/docs/hooks_order.png).

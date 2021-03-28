@@ -3,6 +3,8 @@ import { PathTree } from "../PathTree/PathTree";
 import { PathItem } from "../PathTree/PathItem";
 import { CallbackInput, CallbackReturnType, Config } from "../types";
 
+const commandLineUsage = require('command-line-usage');
+
 /**
  * This native hook is for when user pass wrong arguments and commands to the Application.
  * This hook is designed to be set on noTarget, noCallback and onVerifySwitchFailure.
@@ -17,11 +19,12 @@ export function notFoundHook(this:PathItem, inputs: CallbackInput, config: Confi
   const pathItem = this;
   if (config.helpType === 'switch') {
     if (pathItem) {
-      pathItem.showHelp(config.applicationName);
+      
+      console.log(commandLineUsage(pathItem.getHelp(config.applicationName)));
     } else {
       const rootPathItem = tree.getRoot();
 
-      rootPathItem.showHelp(config.applicationName);
+      console.log(commandLineUsage(rootPathItem.getHelp(config.applicationName)));
     }
   }
 

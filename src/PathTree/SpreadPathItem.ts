@@ -1,9 +1,7 @@
 import { Switch } from "../Switch";
 import { PathItem } from "./PathItem";
+import { generateHelp } from "../utility";
 import { SwitchPathItem } from "./SwitchPathItem";
-import { PATH_ITEM_DELIMITER } from "../constants";
-
-const commandLineUsage = require('command-line-usage');
 
 export class SpreadPathItem extends PathItem {
 
@@ -86,100 +84,8 @@ export class SpreadPathItem extends PathItem {
   /**
    * Display help for the current PathItem
    */
-  public showHelp = (applicationName: string) => {
-    const sections = [];
-    
-    sections.push({
-      header: 'Name',
-      content: applicationName + this.path(false).split(PATH_ITEM_DELIMITER).join(' ')
-    });
-
-    if (this.hasDescription()) {
-      sections.push({
-        header: 'Description',
-        content: this.getDescription()
-      });
-    };
-
-    const subPathItemNames = [];
-
-    if (this.getSwitchPathItems().length > 0) {
-      subPathItemNames.push(
-        ...Object.values(this.getSwitchPathItems())
-          .map(subPathItem => 
-            subPathItem
-              .path(false)
-              .split(PATH_ITEM_DELIMITER).join(' ')
-            )
-      )
-    }
-
-    if (subPathItemNames.length > 0) {
-      sections.push({
-        header: 'SubCommands',
-        content: subPathItemNames.map(name => ({ name }))
-      })
-    }
-
-    const inheritedCommonRequiredSwitches: Record<string, Switch> = {};
-    Object.values(this.getInheritedCommonRequiredSwitchNames()).forEach(swich => {
-      const key = `${swich.getShortname()},${swich.getLongname()}`;
-      if (!inheritedCommonRequiredSwitches[key]) {
-        inheritedCommonRequiredSwitches[key] = swich;
-      }
-    });
-
-    const inheritedCommonOptionalSwitches: Record<string, Switch> = {};
-    Object.values(this.getInheritedCommonOptionalSwitchNames()).forEach(swich => {
-      const key = `${swich.getShortname()},${swich.getLongname()}`;
-      if (!inheritedCommonOptionalSwitches[key]) {
-        inheritedCommonOptionalSwitches[key] = swich;
-      }
-    });
-
-    const requiredSwitches = [
-      ...this.getRequiredSwitches(),
-      ...Object.values(inheritedCommonRequiredSwitches)
-    ];
-
-    const optionalSwitches = [
-      ...this.getOptionalSwitches(),
-      ...Object.values(inheritedCommonOptionalSwitches)
-    ];
-
-    const requiredDefinitions = [];
-    requiredDefinitions.push(...requiredSwitches.map(swich => ({
-      name: swich.getLongname(),
-      alias: swich.getShortname(),
-      description: swich.getDescription(),
-      type: swich.getParameters().length === 0 ? Boolean : undefined,
-      typeLabel: swich.getParameters().length > 0 && swich.getParameters().map(param => `{underline ${param}}`).join(' ')
-    })));
-
-    const optionalDefinitions = [];
-    optionalDefinitions.push(...optionalSwitches.map(swich => ({
-      name: swich.getLongname(),
-      alias: swich.getShortname(),
-      description: swich.getDescription(),
-      type: swich.getParameters().length === 0 ? Boolean : undefined,
-      typeLabel: swich.getParameters().length > 0 && swich.getParameters().map(param => `{underline ${param}}`).join(' ')
-    })));
-
-    if (requiredDefinitions.length > 0) {
-      sections.push({
-        header: 'Required Options',
-        optionList: requiredDefinitions,
-      });
-    }
-
-    if (optionalDefinitions.length > 0) {
-      sections.push({
-        header: 'Optional Options',
-        optionList: optionalDefinitions,
-      });
-    }
-
-    console.log(commandLineUsage(sections));
+  public getHelp = (applicationName: string) => {
+    return generateHelp(this, applicationName);
   };
   
 }

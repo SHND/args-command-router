@@ -3,6 +3,8 @@ import { BlockPathItem } from "./BlockPathItem";
 
 
 export class StaticPathItem extends BlockPathItem {
+
+  private _aliases: Record<string, boolean> = {};
   
   constructor(name: string, parent: PathItem) {
     super();
@@ -41,5 +43,36 @@ export class StaticPathItem extends BlockPathItem {
    * Returns the pathItem name if it is a dynamicPathItem or null if it is not
    */
   public getDynamicPathItemName: () => string | null = () => null;
+
+  /**
+   * Add alias to current StaticPathItem
+   * @param alias to add
+   */
+  public addAlias = (alias: string) => {
+    if (alias !== alias.trim()) {
+      throw Error(`An alias "${alias}" cannot start or end with spaces`);
+    }
+
+    if (this.getName() === alias) {
+      return
+    }
+
+    this._aliases[alias] = true;
+  }
+
+  /**
+   * Check if current StaticPathItem has the alias
+   * @param alias to check
+   * @returns if the alias exist or not
+   */
+  public hasAlias = (alias: string): boolean => {
+    return this._aliases[alias] !== undefined;
+  }
+
+  /**
+   * Get aliases
+   * @returns aliases
+   */
+  public getAliases = () => this._aliases;
 
 }

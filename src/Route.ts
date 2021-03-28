@@ -111,6 +111,23 @@ export class Route {
   }
 
   /**
+   * Add an alias for the last pathItem if that is a StaticPathItem
+   * @param alias to be added
+   * @returns {Route} current route
+   */
+  alias(alias: string) {
+    const last = this.lastPathItem();
+
+    if (last instanceof StaticPathItem) {
+      last.addAlias(alias);
+    } else {
+      throw Error(`Alias "${alias}" can only be added to StaticPathItem.`);
+    }
+
+    return this;
+  }
+
+  /**
    * Add a callback to be called for the current route
    * @param callback to be added for being called for the current route
    * @returns {Route} current route

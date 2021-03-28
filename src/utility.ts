@@ -209,6 +209,8 @@ export function matchCommands(commands: string[], node: BlockPathItem): BlockPat
   for (let command of commands) {
     if (lastBlockPathItem instanceof BlockPathItem && lastBlockPathItem.hasStaticPathItem(command)) {
       lastBlockPathItem = lastBlockPathItem.getStaticPathItem(command);
+    } else if (lastBlockPathItem instanceof BlockPathItem && findStaticWithAlias(command, lastBlockPathItem)) {
+      lastBlockPathItem = findStaticWithAlias(command, lastBlockPathItem);
     } else if (lastBlockPathItem instanceof BlockPathItem && lastBlockPathItem.hasDynamicPathItem()) {
       lastBlockPathItem = lastBlockPathItem.getDynamicPathItem();
     } else if (lastBlockPathItem instanceof BlockPathItem && lastBlockPathItem.hasSpreadPathItem()) {
@@ -220,6 +222,15 @@ export function matchCommands(commands: string[], node: BlockPathItem): BlockPat
   }
 
   return lastBlockPathItem;
+
+  /**
+   * Look at all staticPathItems for passed alias
+   * @return found staticPathItem with the alias otherwise null
+   */
+  function findStaticWithAlias(alias: string, currentPathItem: BlockPathItem): StaticPathItem {
+    return Object.values(currentPathItem.getStaticPathItems())
+      .find(staticPathItem => staticPathItem.hasAlias(alias));
+  }
 }
 
 /**
@@ -240,6 +251,8 @@ export function matchCommandsGetPathParameters(commands: string[], node: BlockPa
 
     if (lastBlockPathItem.hasStaticPathItem(command)) {
       lastBlockPathItem = lastBlockPathItem.getStaticPathItem(command);
+    } else if (findStaticWithAlias(command, lastBlockPathItem)) {
+      lastBlockPathItem = findStaticWithAlias(command, lastBlockPathItem);
     } else if (lastBlockPathItem.hasDynamicPathItem()) {
       lastBlockPathItem = lastBlockPathItem.getDynamicPathItem();
 
@@ -256,6 +269,15 @@ export function matchCommandsGetPathParameters(commands: string[], node: BlockPa
   }
 
   return output;
+
+  /**
+   * Look at all staticPathItems for passed alias
+   * @return found staticPathItem with the alias otherwise null
+   */
+  function findStaticWithAlias(alias: string, currentPathItem: BlockPathItem): StaticPathItem {
+    return Object.values(currentPathItem.getStaticPathItems())
+      .find(staticPathItem => staticPathItem.hasAlias(alias));
+  }
 }
 
 /**
@@ -601,4 +623,157 @@ export function checkSwitchNameConflicts(pathItem: PathItem) {
     out[switchName] = true;
   }
 
+}
+
+/**
+ * Prepare help sections for command-line-usage npm package
+ * @param pathItem that we want to print help for
+ * @param applicationName name of the application
+ */
+export function generateHelp(pathItem: PathItem, applicationName: string): object[] {
+  const sections = [];
+  
+  const branchNames = pathItem
+    .path(false)
+    .split(PATH_ITEM_DELIMITER);
+
+  sections.push({
+    header: 'Name',
+    content: `{${pathItem.getUniqueName(false) !== PATH_ITEM_DELIMITER ? 'dim.italic' : 'reset'} ${applicationName + branchNames.slice(0, -1).join(' ')}${branchNames[1].length === 0 ? '' : ' '}}${pathItem.getUniqueName(false) !== PATH_ITEM_DELIMITER ? pathItem.getUniqueName(false) : ''}`
+  });
+
+  if (pathItem.hasDescription()) {
+    sections.push({
+      header: 'Description',
+      content: pathItem.getDescription()
+    });
+  };
+
+  const subPathItemNames = [];
+
+  if (pathItem instanceof BlockPathItem && pathItem.hasSpreadPathItem()) {
+    const branchNames = pathItem
+      .path(false)
+      .split(PATH_ITEM_DELIMITER);
+
+    subPathItemNames.push(
+      `{dim.italic ${applicationName + branchNames.join(' ')}${branchNames[1].length === 0 ? '' : ' '}}${pathItem.getSpreadPathItem().getUniqueName(false)}`
+    )
+  }
+  
+  if (pathItem instanceof BlockPathItem && pathItem.hasDynamicPathItem()) {
+    const branchNames = pathItem
+      .path(false)
+      .split(PATH_ITEM_DELIMITER);
+
+    subPathItemNames.push(
+      `{dim.italic ${applicationName + branchNames.join(' ')}${branchNames[1].length === 0 ? '' : ' '}}${pathItem.getDynamicPathItem().getUniqueName(false)}`
+    );
+  }
+
+  if ((pathItem instanceof BlockPathItem || pathItem instanceof SpreadPathItem) && pathItem.getSwitchPathItems().length > 0) {
+    const branchNames = pathItem
+      .path(false)
+      .split(PATH_ITEM_DELIMITER);
+
+    subPathItemNames.push(
+      ...Object.values(pathItem.getSwitchPathItems())
+        .map(subPathItem => 
+          `{dim.italic ${applicationName + branchNames.join(' ')}${branchNames[1].length === 0 ? '' : ' '}}${subPathItem.getUniqueName(false)}`
+        )
+    )
+  }
+
+  if (pathItem instanceof BlockPathItem) {
+    const branchNames = pathItem
+      .path(false)
+      .split(PATH_ITEM_DELIMITER)
+
+    subPathItemNames.push(
+      ...Object.values(pathItem.getStaticPathItems())
+        .map(subPathItem => 
+          `{dim.italic ${applicationName + branchNames.join(' ')}${branchNames[1].length === 0 ? '' : ' '}}${subPathItem.getUniqueName(false)}`
+        )
+    )
+  }
+
+  if (subPathItemNames.length > 0) {
+    sections.push({
+      header: 'Commands',
+      content: subPathItemNames.map(name => ({ name }))
+    })
+  }
+
+  const inheritedCommonRequiredSwitches: Record<string, Switch> = {};
+  Object.values(pathItem.getInheritedCommonRequiredSwitchNames()).forEach(swich => {
+    const key = `${swich.getShortname()},${swich.getLongname()}`;
+    if (!inheritedCommonRequiredSwitches[key]) {
+      inheritedCommonRequiredSwitches[key] = swich;
+    }
+  });
+
+  const inheritedCommonOptionalSwitches: Record<string, Switch> = {};
+  Object.values(pathItem.getInheritedCommonOptionalSwitchNames()).forEach(swich => {
+    const key = `${swich.getShortname()},${swich.getLongname()}`;
+    if (!inheritedCommonOptionalSwitches[key]) {
+      inheritedCommonOptionalSwitches[key] = swich;
+    }
+  });
+
+  const requiredSwitches = [
+    ...pathItem.getRequiredSwitches(),
+    ...Object.values(inheritedCommonRequiredSwitches)
+  ];
+
+  const optionalSwitches = [
+    ...pathItem.getOptionalSwitches(),
+    ...Object.values(inheritedCommonOptionalSwitches)
+  ];
+
+  const requiredDefinitions = [];
+  requiredDefinitions.push(...requiredSwitches.map(swich => ({
+    name: swich.getLongname(),
+    alias: swich.getShortname(),
+    description: swich.getDescription(),
+    type: swich.getParameters().length === 0 ? Boolean : undefined,
+    typeLabel: swich.getParameters().length > 0 && swich.getParameters().map(param => `{underline ${param}}`).join(' ')
+  })));
+
+  const optionalDefinitions = [];
+  optionalDefinitions.push(...optionalSwitches.map(swich => ({
+    name: swich.getLongname(),
+    alias: swich.getShortname(),
+    description: swich.getDescription(),
+    type: swich.getParameters().length === 0 ? Boolean : undefined,
+    typeLabel: swich.getParameters().length > 0 && swich.getParameters().map(param => `{underline ${param}}`).join(' ')
+  })));
+
+  if (requiredDefinitions.length > 0) {
+    sections.push({
+      header: 'Required Options',
+      optionList: requiredDefinitions,
+    });
+  }
+
+  if (optionalDefinitions.length > 0) {
+    sections.push({
+      header: 'Optional Options',
+      optionList: optionalDefinitions,
+    });
+  }
+
+  if (pathItem instanceof StaticPathItem && Object.keys(pathItem.getAliases()).length > 0) {
+    const itemsTillParent = pathItem.getParentPathItem()
+      .path(false)
+      .split(PATH_ITEM_DELIMITER)
+
+    sections.push({
+      header: 'Aliases',
+      content: Object.keys(pathItem.getAliases()).map(alias => ({
+        name: `{dim.italic ${applicationName + itemsTillParent.join(' ')}${itemsTillParent[1].length === 0 ? '' : ' '}}${alias}`
+      }))
+    });
+  }
+
+  return sections;
 }
