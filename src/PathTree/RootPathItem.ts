@@ -1,3 +1,4 @@
+import { PathItem } from "./PathItem";
 import { BlockPathItem } from "./BlockPathItem";
 import { PATH_ITEM_DELIMITER } from "../constants";
 
@@ -37,30 +38,102 @@ export class RootPathItem extends BlockPathItem {
    */
   public isRootPathItem = () => true;
 
+  /**
+   * Returns a string representing the tree of pathItems
+   * @param shortForm of pathItem names
+   * @returns string representing the tree
+   */
   public listPathItems = (shortForm: boolean = false) => {
-    let output = {value: ''};
+    let output = '';
     
-    _listPathItems(this, 0, output);
+    _listPathItems(this, 0, []);
 
-    return output.value;
+    return output;
     
-    function _listPathItems(pathItem: BlockPathItem, indent = 0, output: {value: string}) {
-      for (let staticChild of Object.values(pathItem.getStaticPathItems())) {
-        if (indent > 0) {
-          output.value += '├';
+    function _listPathItems(pathItem: PathItem, indent: number, indentsDone: boolean[]) {
+
+      const _indentsDone = [...indentsDone];
+      output += line(pathItem.getUniqueName(false), indent, _indentsDone);
+
+      if (pathItem instanceof BlockPathItem) {
+        if (pathItem.hasSpreadPathItem()) {
+          const subPathItem = pathItem.getSpreadPathItem();
+          
+          if (Object.keys(pathItem.getStaticPathItems()).length === 0 && pathItem.getSwitchPathItems.length === 0 && !pathItem.hasDynamicPathItem()) {
+            // last child
+            _indentsDone[indent] = true;
+          } else {
+            // middle child
+            _indentsDone[indent] = false;
+          }
+
+          _listPathItems(subPathItem, indent+1, _indentsDone);
         }
-        output.value += Array(indent*2).fill('─').join('') + staticChild.getUniqueName(shortForm) + '\n';
-        _listPathItems(staticChild, indent+1, output);
+
+        if (pathItem.hasDynamicPathItem()) {
+          const subPathItem = pathItem.getDynamicPathItem();
+          
+          if (Object.keys(pathItem.getStaticPathItems()).length === 0 && pathItem.getSwitchPathItems.length === 0) {
+            // last child
+            _indentsDone[indent] = true;
+          } else {
+            // middle child
+            _indentsDone[indent] = false;
+          }
+
+          _listPathItems(subPathItem, indent+1, _indentsDone);
+        }
+
+        const subSwitchPathItems = pathItem.getSwitchPathItems();
+        for (let i=0; i<subSwitchPathItems.length; i++) {
+          const subPathItem = subSwitchPathItems[i];
+          if (Object.keys(pathItem.getStaticPathItems()).length === 0 && i === subSwitchPathItems.length - 1) {
+            // last child
+            _indentsDone[indent] = true;
+          } else {
+            // middle child
+            _indentsDone[indent] = false;
+          }
+
+          _listPathItems(subPathItem, indent+1, _indentsDone);
+        }
+
+        const subStaticPathItems = Object.values(pathItem.getStaticPathItems());
+        for (let i=0; i<subStaticPathItems.length; i++) {
+          const subPathItem = subStaticPathItems[i];
+          if (i === subStaticPathItems.length - 1) {
+            // last child
+            _indentsDone[indent] = true;
+          } else {
+            // middle child
+            _indentsDone[indent] = false;
+          }
+
+          _listPathItems(subPathItem, indent+1, _indentsDone);
+        }
+      } // ENDOF if (pathItem instanceof BlockPathItem)
+
+    }
+
+    function line(text: string, indent: number, indentsDone: boolean[]) {
+      let output = '';
+      for (let i=0; i<indent-1; i++) {
+        if (indentsDone[i]) {
+          output += '    ';
+        } else {
+          output += '│   '
+        }
       }
 
-      const dynamicChild = pathItem.getDynamicPathItem();
-      if (dynamicChild) {
-        if (indent > 0) {
-          output.value += '├';
+      if (indent > 0) {
+        if (indentsDone[indent-1]) {
+          output += '└──';
+        } else {
+          output += '├──'
         }
-        output.value += Array(indent*2).fill('─').join('') + dynamicChild.getUniqueName(shortForm) + '\n';
-        _listPathItems(dynamicChild, indent+1, output);
       }
+      
+      return `${output}${indent > 0 ? ' ' : ''}${text}\n`;
     }
   }
 
