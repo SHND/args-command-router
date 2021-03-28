@@ -157,7 +157,7 @@ export class Route {
    * @param parameters swtich parameters
    * @returns {Route} current route
    */
-  requiredSwitch(short: string, long: string, description: string, parameters: string[]) {
+  requiredSwitch(short: string, long?: string, description?: string, parameters?: string[]) {
     const swich = new Switch(short, long, description, parameters);
     
     this.lastPathItem().addRequiredSwitch(swich);
@@ -173,7 +173,7 @@ export class Route {
    * @param parameters swtich parameters
    * @returns {Route} current route
    */
-  optionalSwitch(short: string, long: string, description: string, parameters: string[]) {
+  optionalSwitch(short: string, long?: string, description?: string, parameters?: string[]) {
     const swich = new Switch(short, long, description, parameters);
     
     this.lastPathItem().addOptionalSwitch(swich);
@@ -189,7 +189,7 @@ export class Route {
    * @param description for the switch
    * @returns {Route} current route
    */
-  commonRequiredSwitch(short: string, long: string, description: string, parameters: string[]) {
+  commonRequiredSwitch(short: string, long?: string, description?: string, parameters?: string[]) {
     const swich = new Switch(short, long, description, parameters);
     const last = this.lastPathItem();
 
@@ -210,7 +210,7 @@ export class Route {
    * @param description for the switch
    * @returns {Route} current route
    */
-  commonOptionalSwitch(short: string, long: string, description: string, parameters: string[]) {
+  commonOptionalSwitch(short: string, long?: string, description?: string, parameters?: string[]) {
     const swich = new Switch(short, long, description, parameters);
     const last = this.lastPathItem();
 
