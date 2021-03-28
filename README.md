@@ -206,6 +206,14 @@ app
   .optionalSwitch('f', 'filter', 'Filter format lists', ['pattern'])
 ```
 
+The `option` method can be used interchangably as an alias to `optionalSwitch` method.
+
+```js
+app
+  .route('/video/formats')
+  .option('f', 'filter', 'Filter format lists', ['pattern'])
+```
+
 ### Common Required, Optional Switches
 
 These type of switches can be defined on a route and will be inherited by all the subordinate routes.
@@ -224,6 +232,8 @@ $ App video -k abc123
 $ App video download --key abc123
 $ App video formats --key abc123 -v
 ```
+
+The `commonOption` method can be used interchangably as an alias to `commonOptionalSwitch` method.
 
 ## Aliases
 
