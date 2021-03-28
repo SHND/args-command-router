@@ -10,8 +10,23 @@ The idea behind **Args Command Router** is from the **ExpressJS** package, in wh
 
 ## Installation
 
-```bash
+```
 npm install --save args-command-router@next
+```
+
+## Executing
+
+### JavaScript
+
+```bash
+$ node index.js
+```
+
+### Typescript
+
+```bash
+$ npx -p typescript tsc index.ts
+$ node index.js
 ```
 
 ## Usage
