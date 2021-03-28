@@ -67,6 +67,7 @@ app
 
 app
   .route('/branch')
+  .alias('b')
   .description('List, create, or delete branches')
   .callback(() => {
     /* Branch command routine */

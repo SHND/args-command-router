@@ -25,6 +25,7 @@ app.route('/commit')
   .callback(params => { console.log('/commit', params) })
 
 app.route('/branch')
+  .alias('b')
   .description('List, create, or delete branches')
   .callback(params => { console.log('/branch', params) })
 
