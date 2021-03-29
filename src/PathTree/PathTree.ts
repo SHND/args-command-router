@@ -1,4 +1,5 @@
 // import { PathItem } from "./PathItem";
+import { treeToString } from "../utility";
 import { RootPathItem } from "./RootPathItem";
 
 export class PathTree {
@@ -13,8 +14,8 @@ export class PathTree {
     return this._root
   }
 
-  public printPathItems = (shortForm: boolean = false) => {
-    console.log(this.getRoot().listPathItems(shortForm))
+  public toString = (shortForm: boolean = false) => {
+    return treeToString(this.getRoot(), shortForm);
   }
 
 }

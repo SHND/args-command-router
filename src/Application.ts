@@ -259,7 +259,7 @@ export default class Application {
    * Prints the tree to the terminal
    */
   public debug() {
-    this._tree.printPathItems();
+    console.log(this._tree.toString());
   }
 
 }

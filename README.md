@@ -356,6 +356,10 @@ Help switches are configurable when instantiating the Application.
 
 In case you want to disable default help set the configuration option `helpType` to `null`.
 
+## Debug
+
+After a while, number of routes can increase and get complicated. In order to get an idea of how pathItems are connected in the tree, you can call the `app.debug()`. This will print the entire tree on the console.
+
 ## Application Configuration
 
 You can configure the args-command-router behavior when instantiating the Application.
