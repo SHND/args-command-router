@@ -6,8 +6,12 @@ export class PathTree {
   
   private _root: RootPathItem;
 
-  constructor() {
-    this._root = new RootPathItem();
+  constructor(root?: RootPathItem) {
+    if (root) {
+      this._root = root;
+    } else {
+      this._root = new RootPathItem();
+    }
   }
 
   public getRoot = () => {

@@ -309,6 +309,14 @@ describe('SwitchPathItem', () => {
       expect(expressions[1].getSwitchValue()).equals('1');
     });
 
+    it('parse() for "[a b]" throws', () => {
+      const switchExprString = '[a b]';
+
+      expect(() => {
+        new SwitchPathItem(switchExprString, null);
+      }).throws();
+    });
+
     it('getDynamicPathItemName', () => {
       const pathItem = new SwitchPathItem('', null);
   

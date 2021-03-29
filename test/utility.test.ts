@@ -19,7 +19,8 @@ import {
   processCallbacks, 
   matchRuntimeAndDefinedSwitches, 
   checkSwitchNameConflicts,
-  generateHelp
+  generateHelp,
+  treeToString
 } from '../src/utility';
 
 describe('utility', () => {
@@ -3740,6 +3741,307 @@ describe('utility', () => {
       const helpSections = generateHelp(rootPathItem, 'app');
       expect(helpSections.length).equal(1);
       expect(helpSections).deep.equal([{header: 'Name', content: '{reset app}'}])
+    });
+
+    it('generateHelp for complex case with DynamicPathItem', () => {
+      const staticRoot = new StaticPathItem('staticRoot', null);
+      const static1 = new StaticPathItem('static1', staticRoot);
+      const static2 = new StaticPathItem('static2', staticRoot);
+      const dynamic1 = new DynamicPathItem('dynamic1', staticRoot);
+      const swich1 = new SwitchPathItem('[a]', staticRoot)
+      const swich2 = new SwitchPathItem('[a][bb=1]', staticRoot)
+      staticRoot.addStaticPathItem(static1);
+      staticRoot.addStaticPathItem(static2);
+      staticRoot.setDynamicPathItem(dynamic1);
+      staticRoot.addSwitchPathItem(swich1);
+      staticRoot.addSwitchPathItem(swich2);
+
+      staticRoot.setDescription('description1');
+
+      staticRoot.addCommonOptionalSwitch(new Switch('a', 'aa', 'aa description', ['paramA']))
+      staticRoot.addCommonRequiredSwitch(new Switch('b', 'bb', 'bb description', ['paramB']))
+      staticRoot.addOptionalSwitch(new Switch('c', 'cc', 'cc description', ['paramC']))
+      staticRoot.addRequiredSwitch(new Switch('d', 'dd', 'dd description', ['paramD']))
+
+      const helpSections = generateHelp(staticRoot, 'app');
+      expect(helpSections).deep.equal([
+        { header: "Name", content: "{dim.italic app }staticRoot" },
+        { header: "Description", content: "description1" },
+        {
+          header: "Commands",
+          content: [
+            { name: "{dim.italic app staticRoot }:dynamic1" },
+            { name: "{dim.italic app staticRoot }[a]" },
+            { name: "{dim.italic app staticRoot }[a][bb=1]" },
+            { name: "{dim.italic app staticRoot }static1" },
+            { name: "{dim.italic app staticRoot }static2" }
+          ]
+        },
+        {
+          header: "Required Options",
+          optionList: [
+            {
+              name: "dd",
+              alias: "d",
+              description: "dd description",
+              type: undefined,
+              typeLabel: "{underline paramD}"
+            },
+            {
+              name: "bb",
+              alias: "b",
+              description: "bb description",
+              type: undefined,
+              typeLabel: "{underline paramB}"
+            }
+          ]
+        },
+        {
+          header: "Options",
+          optionList: [
+            {
+              name: "cc",
+              alias: "c",
+              description: "cc description",
+              type: undefined,
+              typeLabel: "{underline paramC}"
+            },
+            {
+              name: "aa",
+              alias: "a",
+              description: "aa description",
+              type: undefined,
+              typeLabel: "{underline paramA}"
+            }
+          ]
+        }
+      ]); // end of expect
+    });
+
+    it('generateHelp for complex case with SpreadPathItem', () => {
+      const staticRoot = new StaticPathItem('staticRoot', null);
+
+      const spread1 = new SpreadPathItem('spread1', staticRoot);
+      staticRoot.setSpreadPathItem(spread1);
+
+      const helpSections = generateHelp(staticRoot, 'app');
+      expect(helpSections).deep.equal([
+        { header: "Name", content: "{dim.italic app }staticRoot" },
+        {
+          header: "Commands",
+          content: [
+            { name: "{dim.italic app staticRoot }...spread1" },
+          ]
+        }
+      ]); // end of expect
+    });
+
+    it('generateHelp for complex case with StaticPathItem', () => {
+      const root = new RootPathItem();
+      
+      const staticRoot = new StaticPathItem('staticRoot', root);
+      root.addStaticPathItem(staticRoot);
+      staticRoot.addAlias('alias1');
+
+      const static1 = new StaticPathItem('static1', staticRoot);
+      staticRoot.addStaticPathItem(static1);
+
+      const helpSections = generateHelp(staticRoot, 'app');
+      expect(helpSections).deep.equal([
+        { header: "Name", content: "{dim.italic app }staticRoot" },
+        {
+          header: "Commands",
+          content: [
+            { name: "{dim.italic app staticRoot }static1" },
+          ]
+        },
+        {
+          header: "Aliases",
+          content: [
+            { name: "{dim.italic app }alias1" }
+          ]
+        }
+      ]); // end of expect
+    });
+
+  });
+  
+  
+
+  describe('treeToString', () => {
+    it('treeToString for single RootPathItem', () => {
+      const rootPathItem = new RootPathItem();
+
+      const output = treeToString(rootPathItem);
+      expect(output).contain('/')
+      expect(output).not.contain('│');
+      expect(output).not.contain('─');
+      expect(output).not.contain('├');
+      expect(output).not.contain('└');
+
+      const linesNumbers = output.split('\n').length - 1;
+      expect(linesNumbers).equal(1);
+    });
+
+    it('treeToString for single StaticPathItem', () => {
+      const staticPathItem = new StaticPathItem('static1', null);
+
+      const output = treeToString(staticPathItem);
+      expect(output).contain('static1');
+      expect(output).not.contain('│');
+      expect(output).not.contain('─');
+      expect(output).not.contain('├');
+      expect(output).not.contain('└');
+
+      const linesNumbers = output.split('\n').length - 1;
+      expect(linesNumbers).equal(1);
+    });
+
+    it('treeToString for single DynamicPathItem', () => {
+      const dynamicPathItem = new DynamicPathItem('dynamic1', null);
+
+      const output = treeToString(dynamicPathItem);
+      expect(output).contain(':dynamic1');
+      expect(output).not.contain('│');
+      expect(output).not.contain('─');
+      expect(output).not.contain('├');
+      expect(output).not.contain('└');
+
+      const linesNumbers = output.split('\n').length - 1;
+      expect(linesNumbers).equal(1);
+    });
+
+    it('treeToString for single SpreadPathItem', () => {
+      const dynamicPathItem = new SpreadPathItem('spread1', null);
+
+      const output = treeToString(dynamicPathItem);
+      expect(output).contain('...spread1');
+      expect(output).not.contain('│');
+      expect(output).not.contain('─');
+      expect(output).not.contain('├');
+      expect(output).not.contain('└');
+
+      const linesNumbers = output.split('\n').length - 1;
+      expect(linesNumbers).equal(1);
+    });
+
+    it('treeToString for single SwitchPathItem', () => {
+      const switchPathItem = new SwitchPathItem(`[a][b=1][cc][dd=2][e="3 4"][f='5 6']`, null);
+
+      const output = treeToString(switchPathItem);
+      expect(output).contain(`[a][b=1][cc][dd=2][e='3 4'][f='5 6']`);
+      expect(output).not.contain('│');
+      expect(output).not.contain('─');
+      expect(output).not.contain('├');
+      expect(output).not.contain('└');
+
+      const linesNumbers = output.split('\n').length - 1;
+      expect(linesNumbers).equal(1);
+    });
+
+    it('treeToString for single StaticPathItem as a child', () => {
+      const rootPathItem = new RootPathItem();
+      const staticPathItem = new StaticPathItem('static1', rootPathItem);
+      rootPathItem.addStaticPathItem(staticPathItem);
+
+      const output = treeToString(rootPathItem);
+      expect(output).contain(
+`/
+└── static1`
+      );
+
+      const linesNumbers = output.split('\n').length - 1;
+      expect(linesNumbers).equal(2);
+    });
+
+    it('treeToString for single DynamicPathItem as a child', () => {
+      const rootPathItem = new RootPathItem();
+      const dynamicPathItem = new DynamicPathItem('dynamic1', rootPathItem);
+      rootPathItem.setDynamicPathItem(dynamicPathItem);
+
+      const output = treeToString(rootPathItem);
+      expect(output).contain(
+`/
+└── :dynamic1`
+      );
+
+      const linesNumbers = output.split('\n').length - 1;
+      expect(linesNumbers).equal(2);
+    });
+
+    it('treeToString for single SpreadPathItem as a child', () => {
+      const rootPathItem = new RootPathItem();
+      const spreadPathItem = new SpreadPathItem('spread1', rootPathItem);
+      rootPathItem.setSpreadPathItem(spreadPathItem);
+
+      const output = treeToString(rootPathItem);
+      expect(output).contain(
+`/
+└── ...spread1`
+      );
+
+      const linesNumbers = output.split('\n').length - 1;
+      expect(linesNumbers).equal(2);
+    });
+
+    it('treeToString for single SwitchPathItem as a child', () => {
+      const rootPathItem = new RootPathItem();
+      const switchPathItem = new SwitchPathItem('[a][bb=1]', rootPathItem);
+      rootPathItem.addSwitchPathItem(switchPathItem);
+
+      const output = treeToString(rootPathItem);
+      expect(output).contain(
+`/
+└── [a][bb=1]`
+      );
+
+      const linesNumbers = output.split('\n').length - 1;
+      expect(linesNumbers).equal(2);
+    });
+
+    it('treeToString for general tree', () => {
+      const root = new RootPathItem();
+      const dynamic1 = new DynamicPathItem('dynamic1', root);
+      const static2 = new StaticPathItem('static2', root);
+      const static3 = new StaticPathItem('static3', root);
+      const static4 = new StaticPathItem('static4', root);
+      root.setDynamicPathItem(dynamic1);
+      root.addStaticPathItem(static2);
+      root.addStaticPathItem(static3);
+      root.addStaticPathItem(static4);
+
+      const dynamic11 = new DynamicPathItem('dynamic11', dynamic1);
+      dynamic1.setDynamicPathItem(dynamic11)
+
+      const switch21 = new SwitchPathItem('[a][b=1]', static2);
+      const static22 = new StaticPathItem('static11', static2);
+      static2.addSwitchPathItem(switch21);
+      static2.addStaticPathItem(static22);
+
+      const switch41 = new SwitchPathItem('[cc][cc=22]', static4);
+      const spread42 = new SpreadPathItem('spread42', static4);
+      const static43 = new StaticPathItem('static43', static4);
+      const static44 = new StaticPathItem('static44', static4);
+      static4.addSwitchPathItem(switch41);
+      static4.setSpreadPathItem(spread42);
+      static4.addStaticPathItem(static43);
+      static4.addStaticPathItem(static44);
+
+      const output = treeToString(root);
+      expect(output).contains(
+`/
+├── :dynamic1
+│   └── :dynamic11
+├── static2
+│   ├── [a][b=1]
+│   └── static11
+├── static3
+└── static4
+    ├── ...spread42
+    ├── [cc][cc=22]
+    ├── static43
+    └── static44`
+      );
     });
 
   });
