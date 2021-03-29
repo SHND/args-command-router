@@ -11,7 +11,7 @@ The idea behind **Args Command Router** is from the **ExpressJS** package, in wh
 ## Installation
 
 ```
-npm install --save args-command-router@next
+npm install --save args-command-router
 ```
 
 ## Executing
