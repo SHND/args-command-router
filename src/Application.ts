@@ -12,7 +12,8 @@ import {
   matchCommandsGetPathParameters, 
   processCallbacks, 
   matchRuntimeAndDefinedSwitches, 
-  checkSwitchNameConflicts 
+  checkSwitchNameConflicts, 
+  shellSuggestions
 } from './utility';
 
 
@@ -181,6 +182,14 @@ export default class Application {
     if (afterAllResult === STOP) return;
     else context = afterAllResult || context;
     // ---------------------------------------------------
+  }
+
+  public appName() {
+    return this._config.applicationName;
+  }
+
+  public autoComplete(commands: string[]) {
+    return shellSuggestions(this._tree, commands);
   }
 
   /**

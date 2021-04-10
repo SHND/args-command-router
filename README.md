@@ -332,6 +332,16 @@ app.beforeAll(inputs => {
 })
 ```
 
+## Hide Path
+
+In order to prevent displying some paths in help and auto completion output, you can hide them.
+
+```js
+app.route('/_hideme').hide()
+```
+
+This is can be useful to hide some functionality from users. You can still chain the hidden path with other route methods.
+
 ## Context
 
 You can also add new properties and values to your inputs for the next hooks and callbacks. In order to do that just return an object with those properties. Those will be available in the following hooks and callbacks in the context object.

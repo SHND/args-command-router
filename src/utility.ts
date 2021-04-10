@@ -9,6 +9,7 @@ import { SwitchPathItem } from "./PathTree/SwitchPathItem";
 import { DynamicPathItem } from "./PathTree/DynamicPathItem";
 import { Callback, CallbackContext, CallbackReturnType, Config, ExternalArgsType } from "./types";
 import { PATH_ITEM_DELIMITER, DYNAMIC_PATH_PREFIX, OPEN_SWITCH_EXPR_SYMBOL, CLOSE_SWITCH_EXPR_SYMBOL, SINGLE_QUOTE_LITERAL, DOUBLE_QUOTE_LITERAL, STOP, SPREAD_PATH_PREFIX } from "./constants";
+import { Visibility } from "./enums";
 
 /**
  * Empty (no-operation) function
@@ -652,23 +653,27 @@ export function generateHelp(pathItem: PathItem, applicationName: string): objec
   const subPathItemNames = [];
 
   if (pathItem instanceof BlockPathItem && pathItem.hasSpreadPathItem()) {
-    const branchNames = pathItem
-      .path(false)
-      .split(PATH_ITEM_DELIMITER);
+    if (pathItem.getSpreadPathItem().getVisibility() !== Visibility.PRIVATE) {
+      const branchNames = pathItem
+        .path(false)
+        .split(PATH_ITEM_DELIMITER);
 
-    subPathItemNames.push(
-      `{dim.italic ${applicationName + branchNames.join(' ')}${branchNames[1].length === 0 ? '' : ' '}}${pathItem.getSpreadPathItem().getUniqueName(false)}`
-    )
+      subPathItemNames.push(
+        `{dim.italic ${applicationName + branchNames.join(' ')}${branchNames[1].length === 0 ? '' : ' '}}${pathItem.getSpreadPathItem().getUniqueName(false)}`
+      )
+    }
   }
   
   if (pathItem instanceof BlockPathItem && pathItem.hasDynamicPathItem()) {
-    const branchNames = pathItem
-      .path(false)
-      .split(PATH_ITEM_DELIMITER);
+    if (pathItem.getDynamicPathItem().getVisibility() !== Visibility.PRIVATE) {
+      const branchNames = pathItem
+        .path(false)
+        .split(PATH_ITEM_DELIMITER);
 
-    subPathItemNames.push(
-      `{dim.italic ${applicationName + branchNames.join(' ')}${branchNames[1].length === 0 ? '' : ' '}}${pathItem.getDynamicPathItem().getUniqueName(false)}`
-    );
+      subPathItemNames.push(
+        `{dim.italic ${applicationName + branchNames.join(' ')}${branchNames[1].length === 0 ? '' : ' '}}${pathItem.getDynamicPathItem().getUniqueName(false)}`
+      );
+    }
   }
 
   if ((pathItem instanceof BlockPathItem || pathItem instanceof SpreadPathItem) && pathItem.getSwitchPathItems().length > 0) {
@@ -678,6 +683,7 @@ export function generateHelp(pathItem: PathItem, applicationName: string): objec
 
     subPathItemNames.push(
       ...Object.values(pathItem.getSwitchPathItems())
+        .filter(subPathItem => subPathItem.getVisibility() !== Visibility.PRIVATE)
         .map(subPathItem => 
           `{dim.italic ${applicationName + branchNames.join(' ')}${branchNames[1].length === 0 ? '' : ' '}}${subPathItem.getUniqueName(false)}`
         )
@@ -691,6 +697,7 @@ export function generateHelp(pathItem: PathItem, applicationName: string): objec
 
     subPathItemNames.push(
       ...Object.values(pathItem.getStaticPathItems())
+        .filter(subPathItem => subPathItem.getVisibility() !== Visibility.PRIVATE)
         .map(subPathItem => 
           `{dim.italic ${applicationName + branchNames.join(' ')}${branchNames[1].length === 0 ? '' : ' '}}${subPathItem.getUniqueName(false)}`
         )
@@ -794,7 +801,13 @@ export function treeToString (pathItem: PathItem, shortForm: boolean = false) {
   function _treeToString(pathItem: PathItem, indent: number, indentsDone: boolean[]) {
 
     const _indentsDone = [...indentsDone];
-    output += line(pathItem.getUniqueName(false), indent, _indentsDone);
+
+    let text = pathItem.getUniqueName(false);
+    if (pathItem.getVisibility() === Visibility.PRIVATE) {
+      text = `${text} (PRIVATE)`;
+    }
+
+    output += line(text, indent, _indentsDone);
 
     if (pathItem instanceof BlockPathItem) {
       if (pathItem.hasSpreadPathItem()) {
@@ -876,4 +889,25 @@ export function treeToString (pathItem: PathItem, shortForm: boolean = false) {
     
     return `${output}${indent > 0 ? ' ' : ''}${text}\n`;
   }
+}
+
+export function shellSuggestions(tree: PathTree, commands: string[]) {
+  const output = [];
+  const root = tree.getRoot();
+
+  const targetPathItem = matchCommands(commands, root);
+
+  if (targetPathItem instanceof BlockPathItem) {
+    for (const staticPathItem of Object.values(targetPathItem.getStaticPathItems())) {
+      if (staticPathItem.getVisibility() !== Visibility.PRIVATE) {
+        output.push(staticPathItem.getUniqueName(true));
+
+        output.push(...Object.keys(staticPathItem.getAliases()));  
+      }
+    }
+  }
+
+  output.sort();
+
+  return output;
 }

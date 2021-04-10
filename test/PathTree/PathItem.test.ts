@@ -5,6 +5,7 @@ import { RootPathItem } from '../../src/PathTree/RootPathItem';
 import { StaticPathItem } from '../../src/PathTree/StaticPathItem';
 import { SwitchPathItem } from '../../src/PathTree/SwitchPathItem';
 import { DynamicPathItem } from '../../src/PathTree/DynamicPathItem';
+import { Visibility } from '../../src/enums';
 
 
 class TestPathItem extends PathItem {
@@ -74,6 +75,13 @@ describe('PathItem', () => {
     pathItem.setDescription("description 1");
     expect(pathItem.getDescription()).to.equal('description 1');
   });
+
+  it ('getVisibility, setVisibility methods', () => {
+    const pathItem = new TestPathItem();
+    expect(pathItem.getVisibility()).equal(Visibility.PUBLIC);
+    pathItem.setVisibility(Visibility.PRIVATE);
+    expect(pathItem.getVisibility()).equal(Visibility.PRIVATE);
+  })
 
   it('callbacks property, callback addCallback, hasCallback methods', () => {
     const pathItem = new TestPathItem();

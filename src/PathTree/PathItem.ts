@@ -1,11 +1,13 @@
 import { Switch } from "../Switch";
 import { Callback } from "../types";
+import { Visibility } from "../enums";
 import { treeToString } from "../utility";
 import { PATH_ITEM_DELIMITER } from "../constants";
 
 export abstract class PathItem {
 
   protected parentPathItem: PathItem;
+  protected visibility: Visibility = Visibility.PUBLIC;
   protected description: string;
   protected callbacks: Callback[] = [];
   protected requiredSwitches: Switch[] = [];
@@ -53,6 +55,22 @@ export abstract class PathItem {
    * Display help for the current PathItem
    */
   public abstract getHelp: (applicationName: string) => void;
+
+  /**
+   * Visibility Getter
+   * @returns visibility
+   */
+  public getVisibility() {
+    return this.visibility;
+  }
+
+  /**
+   * Visibility Setter
+   * @param visibility
+   */
+  public setVisibility(visibility: Visibility) {
+    this.visibility = visibility;
+  }
 
   /**
    * Check if the pathItem is in a branch that has a RootPathItem

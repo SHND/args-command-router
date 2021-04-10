@@ -1,5 +1,6 @@
 import { Switch } from './Switch';
 import { Callback } from './types';
+import { Visibility } from './enums';
 import { parsePath } from './utility';
 import { PathTree } from './PathTree/PathTree';
 import { PathItem } from './PathTree/PathItem';
@@ -145,6 +146,15 @@ export class Route {
    */
   description(text: string) {
     this.lastPathItem().setDescription(text);
+
+    return this;
+  }
+
+  /**
+   * Hide from help by setting visibility of the pathItem to PRIVATE
+   */
+  hide() {
+    this.lastPathItem().setVisibility(Visibility.PRIVATE);
 
     return this;
   }
