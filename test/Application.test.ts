@@ -9,4 +9,17 @@ describe('Application', () => {
 
     expect(app.appName()).equal('Application Name');
   });
+
+  it('plugin method', () => {
+    const app = new Application({
+      applicationName: 'Application Name'
+    });
+
+    const _plugin = function(_app: Application) {
+      expect(_app).equal(app);
+    }
+
+    app.plugin(_plugin);
+  });
+
 });

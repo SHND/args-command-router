@@ -64,6 +64,19 @@ export default class Application {
   }
 
   /**
+   * Run a plugin
+   * 
+   * Any function that recieves an Application object
+   * can be a plugin. This function will be run immediately.
+   * BE CAREFUL OF WHAT YOU PASS AS PLUGIN. ONLY PASS PLUGINS THAT YOU TRUST.
+   * 
+   * @param pluginFn plugin entry function
+   */
+  public plugin(pluginFn: (app: Application) => void) {
+    pluginFn.call(null, this);
+  }
+
+  /**
    * Create a path in the PathTree and returns a route builder to 
    * add functionality for path (pathItem in the leaf of that path)
    * @param path of commands representing the path in PathTree
@@ -184,10 +197,18 @@ export default class Application {
     // ---------------------------------------------------
   }
 
+  /**
+   * Returns Application Name
+   */
   public appName() {
     return this._config.applicationName;
   }
 
+  /**
+   * By giving an array of commands, this will returns suggestions
+   * @param commands array of strings representing commands
+   * @returns array of suggestions
+   */
   public autoComplete(commands: string[]) {
     return shellSuggestions(this._tree, commands);
   }
