@@ -64,6 +64,14 @@ export default class Application {
   }
 
   /**
+   * Returns PathTree for this application
+   * @returns PathTree
+   */
+  public tree() {
+    return this._tree;
+  }
+
+  /**
    * Run a plugin
    * 
    * Any function that recieves an Application object
@@ -283,13 +291,6 @@ export default class Application {
    */
   public onVerifySwitchFailure(hook: Callback) {
     this._onVerifySwitchFailure.push(hook);
-  }
-
-  /**
-   * Prints the tree to the terminal
-   */
-  public debug() {
-    console.log(this._tree.toString());
   }
 
 }

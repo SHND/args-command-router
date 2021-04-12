@@ -1,13 +1,16 @@
-const { default: Application } = require('../dist/Application')
+const { argsCommandRouter, plugins } = require('../dist');
 
 /**
  * Before running the example, you need to run `npm install` in the root of the project.
  * Run this example using: `node ./npm.js`
  */
 
-const app = new Application({
-  applicationName: 'npm',
+const app = argsCommandRouter({
+  applicationName: 'npmx',
 })
+
+app.plugin(plugins.debug);
+app.plugin(plugins.autoComplete);
 
 app.route('/')
   .option('l')

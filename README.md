@@ -98,8 +98,8 @@ All arguments below, would matched the route above:
 
 ```bash
 $ APP say hi john --age 21 -s
-$ APP say hey john marry -s --age 123
-$ APP say hello 'everyone here' -s --age 123
+$ APP say hey john marry -s --age 21
+$ APP say hello 'everyone here' -s --age 21
 ```
 
 The `say`, `:greet`, `...names` and `[age=21][s]` are called **PathItem**.
@@ -332,16 +332,6 @@ app.beforeAll(inputs => {
 })
 ```
 
-## Hide Path
-
-In order to prevent displying some paths in help and auto completion output, you can hide them.
-
-```js
-app.route('/_hideme').hide()
-```
-
-This is can be useful to hide some functionality from users. You can still chain the hidden path with other route methods.
-
 ## Context
 
 You can also add new properties and values to your inputs for the next hooks and callbacks. In order to do that just return an object with those properties. Those will be available in the following hooks and callbacks in the context object.
@@ -356,6 +346,80 @@ app.beforeAll(inputs => {
 app.route('/video/formats').callback(inputs => {
   console.log(inputs.context.hello)
 })
+```
+
+## Hide Path
+
+In order to prevent displying some paths in help and auto completion output, you can hide them.
+
+```js
+app.route('/_hideme').hide()
+```
+
+This is can be useful to hide some functionality from users. You can still chain the hidden path with other route methods.
+
+## Plugin
+
+Plugins allow to add functionality from internal or external sources. Plugins are simply functions that receives the Application instance as their first argument.
+
+```js
+function myDebugPlugin(app) {
+  app.route('/_debug', () => {
+    console.log('debug output.')
+  })
+}
+```
+
+In order to use plugin in your application, you can pass the plugin function to `plugin` method.
+
+```js
+app.plugin(myDebugPlugin)
+```
+
+Be careful of plugins you import. If you don't know or trust a plugin, proceed with cautious.
+
+## Builtin Plugins
+
+### autoComplete
+
+In order to add shell autocompletion, you can use the buildtin **autoComplete** plugin. Right now it supports only _bash_ shell autocompletion. In order to set it up:
+
+1. Include the autoComplete plugin.
+
+```js
+const { argsCommandRouter, plugins } = require('args-command-router')
+
+const app = argsCommandRouter({
+  applicationName: 'myApp',
+})
+
+app.plugin(plugins.autoComplete)
+```
+
+2. Create an executable with the exact name you instantiated your Application with and Add it to the `PATH` environment variable. For example here we are using `alias` bash builtin to create a temporary executable in the current bash session and assuming that **nodejs** is already installed on the machine and been added to the `PATH` environment variable.
+
+```bash
+alias myApp="node <ABSOLUTE PATH>/index.js"
+```
+
+3. Get the bash autocomplete script in bash shell and append it to your _.bash_profile_ file.
+
+```bash
+myApp __AUTOCOMPLETE__ generate bash >> ~/.bash_profile
+```
+
+### debug
+
+debug plugin adds a route to the application instance to print a application tree on console.
+
+```js
+const { argsCommandRouter, plugins } = require('args-command-router')
+
+const app = argsCommandRouter({
+  applicationName: 'myApp',
+})
+
+app.plugin(plugins.debug('/debug'))
 ```
 
 ## Help
