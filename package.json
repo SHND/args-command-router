@@ -1,6 +1,6 @@
 {
   "name": "args-command-router",
-  "version": "3.6.0",
+  "version": "3.6.1",
   "description": "Nodejs command-line argument router",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -45,7 +45,7 @@
     "typescript": "^3.9.7"
   },
   "dependencies": {
-    "args-command-parser": "^1.1.11",
+    "args-command-parser": "^1.1.13",
     "command-line-usage": "^6.1.1"
   }
 }
