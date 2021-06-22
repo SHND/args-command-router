@@ -1,8 +1,11 @@
-const { default: Application } = require('../dist/Application');
+const { argsCommandRouter, plugins} = require('../dist');
 
-const app = new Application({
+const app = new argsCommandRouter({
   applicationName: 'git',
 });
+
+app.plugin(plugins.autoComplete)
+app.plugin(plugins.debug('tree'))
 
 // app.beforeAll(() => console.log('beforeAll'))
 // app.afterTargetFound(() => console.log('afterTargetFound'))
