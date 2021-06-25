@@ -1,6 +1,6 @@
 import { PathItem } from "./PathItem";
+import { splitSwitchExpressions } from "../utility";
 import { SwitchExpression } from "./SwitchExpression";
-import { generateHelp, splitSwitchExpressions } from "../utility";
 import { OPEN_SWITCH_EXPR_SYMBOL, CLOSE_SWITCH_EXPR_SYMBOL } from "../constants";
 
 export class SwitchPathItem extends PathItem {
@@ -81,12 +81,5 @@ export class SwitchPathItem extends PathItem {
    * Returns a dictionary of short and long common switch names in the PathItem
    */
   public getCommonSwitchNames = () => ({});
-
-  /**
-   * Display help for the current PathItem
-   */
-  public getHelp = (applicationName: string) => {
-    return generateHelp(this, applicationName);
-  };
   
 }

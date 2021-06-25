@@ -1,12 +1,15 @@
 import { expect } from 'chai'
 import { Switch } from '../src/Switch';
+import { Visibility } from '../src/enums';
 import { PathTree } from '../src/PathTree/PathTree';
 import { RootPathItem } from '../src/PathTree/RootPathItem';
+import { generateHelp } from '../src/plugins/help/utilities';
 import { StaticPathItem } from '../src/PathTree/StaticPathItem';
 import { SpreadPathItem } from '../src/PathTree/SpreadPathItem';
 import { SwitchPathItem } from '../src/PathTree/SwitchPathItem';
 import { Callback, Config, ExternalArgsType } from '../src/types';
 import { DynamicPathItem } from '../src/PathTree/DynamicPathItem';
+import { SKIP_matchRuntimeAndDefinedSwitches } from '../src/constants';
 import { 
   parsePath, 
   splitFromSwitchPathItem, 
@@ -19,11 +22,9 @@ import {
   processCallbacks, 
   matchRuntimeAndDefinedSwitches, 
   checkSwitchNameConflicts,
-  generateHelp,
   treeToString,
   shellSuggestions
 } from '../src/utility';
-import { Visibility } from '../src/enums';
 
 describe('utility', () => {
 
@@ -2960,13 +2961,6 @@ describe('utility', () => {
         applicationName: '<App>',
         checkForSwitchConflicts: true,
         strictSwitchMatching: true,
-        helpType: 'switch',
-        helpShortSwitch: 'h',
-        helpLongSwitch: 'help',
-        helpOnNoTarget: true,
-        helpOnNoCallback: true,
-        helpOnVerifySwitchFailure: true,
-        helpOnAskedForHelp: true,
       }
       const tree = new PathTree;
 
@@ -2997,13 +2991,6 @@ describe('utility', () => {
         applicationName: '<App>',
         checkForSwitchConflicts: true,
         strictSwitchMatching: true,
-        helpType: 'switch',
-        helpShortSwitch: 'h',
-        helpLongSwitch: 'help',
-        helpOnNoTarget: true,
-        helpOnNoCallback: true,
-        helpOnVerifySwitchFailure: true,
-        helpOnAskedForHelp: true,
       }
       const tree = new PathTree;
 
@@ -3027,13 +3014,6 @@ describe('utility', () => {
         applicationName: '<App>',
         checkForSwitchConflicts: true,
         strictSwitchMatching: true,
-        helpType: 'switch',
-        helpShortSwitch: 'h',
-        helpLongSwitch: 'help',
-        helpOnNoTarget: true,
-        helpOnNoCallback: true,
-        helpOnVerifySwitchFailure: true,
-        helpOnAskedForHelp: true,
       }
       const tree = new PathTree;
 
@@ -3064,13 +3044,6 @@ describe('utility', () => {
         applicationName: '<App>',
         checkForSwitchConflicts: true,
         strictSwitchMatching: true,
-        helpType: 'switch',
-        helpShortSwitch: 'h',
-        helpLongSwitch: 'help',
-        helpOnNoTarget: true,
-        helpOnNoCallback: true,
-        helpOnVerifySwitchFailure: true,
-        helpOnAskedForHelp: true,
       }
       const tree = new PathTree;
 
@@ -3093,6 +3066,26 @@ describe('utility', () => {
   });
 
   describe('strictSwitchMatching', () => {
+    it('strictSwitchMatching() for when SKIP_matchRuntimeAndDefinedSwitches is set', () => {
+      const rootPathItem = new RootPathItem();
+      const staticPathItem = new StaticPathItem('static', rootPathItem);
+
+      const config: Config = {
+        applicationName: '<App>',
+        checkForSwitchConflicts: true,
+        strictSwitchMatching: true,
+      }
+
+      const context = {
+        [SKIP_matchRuntimeAndDefinedSwitches]: true
+      }
+
+      expect(() => {
+        matchRuntimeAndDefinedSwitches(rootPathItem, {}, {}, config, context);
+        matchRuntimeAndDefinedSwitches(staticPathItem, {}, {}, config, context);
+      }).not.throw();
+    });
+
     it('strictSwitchMatching() for valid empty switches', () => {
       const rootPathItem = new RootPathItem();
       const staticPathItem = new StaticPathItem('static', rootPathItem);
@@ -3101,18 +3094,11 @@ describe('utility', () => {
         applicationName: '<App>',
         checkForSwitchConflicts: true,
         strictSwitchMatching: true,
-        helpType: 'switch',
-        helpShortSwitch: 'z',
-        helpLongSwitch: 'zelp',
-        helpOnNoTarget: false,
-        helpOnNoCallback: false,
-        helpOnVerifySwitchFailure: false,
-        helpOnAskedForHelp: false
       }
 
       expect(() => {
-        matchRuntimeAndDefinedSwitches(rootPathItem, {}, {}, config);
-        matchRuntimeAndDefinedSwitches(staticPathItem, {}, {}, config);
+        matchRuntimeAndDefinedSwitches(rootPathItem, {}, {}, config, {});
+        matchRuntimeAndDefinedSwitches(staticPathItem, {}, {}, config, {});
       }).not.throw();
     });
 
@@ -3156,13 +3142,6 @@ describe('utility', () => {
         applicationName: '<App>',
         checkForSwitchConflicts: true,
         strictSwitchMatching: true,
-        helpType: 'switch',
-        helpShortSwitch: 'z',
-        helpLongSwitch: 'zelp',
-        helpOnNoTarget: false,
-        helpOnNoCallback: false,
-        helpOnVerifySwitchFailure: false,
-        helpOnAskedForHelp: false
       }
 
       /******************************************
@@ -3170,17 +3149,7 @@ describe('utility', () => {
        ******************************************/
 
       expect(() => {
-        matchRuntimeAndDefinedSwitches(rootPathItem, {a: [], c: [], d: [], f: [], g:[], i: [], j: [], l: [] }, {bb: [], ee: [], hh: [], kk: [] }, config);
-      }).not.throws();
-
-      // short help
-      expect(() => {
-        matchRuntimeAndDefinedSwitches(rootPathItem, {a: [], c: [], d: [], f: [], g:[], i: [], j: [], l: [], z: [] }, {bb: [], ee: [], hh: [], kk: [] }, config);
-      }).not.throws();
-
-      // long help
-      expect(() => {
-        matchRuntimeAndDefinedSwitches(rootPathItem, {a: [], c: [], d: [], f: [], g:[], i: [], j: [], l: [] }, {bb: [], ee: [], hh: [], kk: [], zelp: [] }, config);
+        matchRuntimeAndDefinedSwitches(rootPathItem, {a: [], c: [], d: [], f: [], g:[], i: [], j: [], l: [] }, {bb: [], ee: [], hh: [], kk: [] }, config, {});
       }).not.throws();
 
       /******************************************
@@ -3188,17 +3157,7 @@ describe('utility', () => {
        ******************************************/
 
       expect(() => {
-        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], d: [], f: [], m: [], o: [], p: [], r: [], s: [], u: [], v: [], x: []}, {bb: [], ee: [], nn: [], qq: [], tt: [], ww: [] }, config);
-      }).not.throws();
-
-      // short help
-      expect(() => {
-        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], d: [], f: [], m: [], o: [], p: [], r: [], s: [], u: [], v: [], x: [], z: []}, {bb: [], ee: [], nn: [], qq: [], tt: [], ww: [] }, config);
-      }).not.throws();
-
-      // long help
-      expect(() => {
-        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], d: [], f: [], m: [], o: [], p: [], r: [], s: [], u: [], v: [], x: []}, {bb: [], ee: [], nn: [], qq: [], tt: [], ww: [], zelp: [] }, config);
+        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], d: [], f: [], m: [], o: [], p: [], r: [], s: [], u: [], v: [], x: []}, {bb: [], ee: [], nn: [], qq: [], tt: [], ww: [] }, config, {});
       }).not.throws();
     });
 
@@ -3242,13 +3201,6 @@ describe('utility', () => {
         applicationName: '<App>',
         checkForSwitchConflicts: true,
         strictSwitchMatching: true,
-        helpType: 'switch',
-        helpShortSwitch: 'z',
-        helpLongSwitch: 'zelp',
-        helpOnNoTarget: false,
-        helpOnNoCallback: false,
-        helpOnVerifySwitchFailure: false,
-        helpOnAskedForHelp: false
       }
 
       /******************************************
@@ -3256,56 +3208,56 @@ describe('utility', () => {
        ******************************************/
 
       expect(() => {
-        matchRuntimeAndDefinedSwitches(rootPathItem, {}, {}, config);
+        matchRuntimeAndDefinedSwitches(rootPathItem, {}, {}, config, {});
       }, 'missing required switches (1)').throws('is required');
       
       expect(() => {
-        matchRuntimeAndDefinedSwitches(rootPathItem, {a: []}, {}, config);
+        matchRuntimeAndDefinedSwitches(rootPathItem, {a: []}, {}, config, {});
       }, 'missing required switches (2)').throws('is required');
 
       expect(() => {
-        matchRuntimeAndDefinedSwitches(rootPathItem, {a: []}, {bb: []}, config);
+        matchRuntimeAndDefinedSwitches(rootPathItem, {a: []}, {bb: []}, config, {});
       }, 'missing required switches (3)').throws('is required');
 
       expect(() => {
-        matchRuntimeAndDefinedSwitches(rootPathItem, {a: [], c: []}, {bb: []}, config);
+        matchRuntimeAndDefinedSwitches(rootPathItem, {a: [], c: []}, {bb: []}, config, {});
       }, 'missing required switches (4)').throws('is required');
 
       expect(() => {
-        matchRuntimeAndDefinedSwitches(rootPathItem, {a: [], c: [], g:[]}, {bb: []}, config);
+        matchRuntimeAndDefinedSwitches(rootPathItem, {a: [], c: [], g:[]}, {bb: []}, config, {});
       }, 'missing required switches (5)').throws('is required');
 
       expect(() => {
-        matchRuntimeAndDefinedSwitches(rootPathItem, {a: [], c: [], g:[]}, {bb: [], hh: []}, config);
+        matchRuntimeAndDefinedSwitches(rootPathItem, {a: [], c: [], g:[]}, {bb: [], hh: []}, config, {});
       }, 'missing required switches (6)').throws('is required');
 
       expect(() => {
         // not throws
-        matchRuntimeAndDefinedSwitches(rootPathItem, {a: [], c: [], g:[], i: []}, {bb: [], hh: []}, config);
+        matchRuntimeAndDefinedSwitches(rootPathItem, {a: [], c: [], g:[], i: []}, {bb: [], hh: []}, config, {});
       }, 'no missing required switches (7)').not.throws();
 
       expect(() => {
-        matchRuntimeAndDefinedSwitches(rootPathItem, {a: [], c: [], g:[], i: []}, {bb: [], cc: [], hh: []}, config);
+        matchRuntimeAndDefinedSwitches(rootPathItem, {a: [], c: [], g:[], i: []}, {bb: [], cc: [], hh: []}, config, {});
       }, 'short "c" and long "cc" switches passed').throws('can be passed at the same time');
 
       expect(() => {
-        matchRuntimeAndDefinedSwitches(rootPathItem, {a: [], c: [], g:[], i: [], f: []}, {bb: [], hh: [], ff: []}, config);
+        matchRuntimeAndDefinedSwitches(rootPathItem, {a: [], c: [], g:[], i: [], f: []}, {bb: [], hh: [], ff: []}, config, {});
       }, 'short "f" and long "ff" switches passed').throws('can be passed at the same time');
 
       expect(() => {
-        matchRuntimeAndDefinedSwitches(rootPathItem, {a: [], c: [], g:[], i: []}, {bb: [], hh: [], ii: []}, config);
+        matchRuntimeAndDefinedSwitches(rootPathItem, {a: [], c: [], g:[], i: []}, {bb: [], hh: [], ii: []}, config, {});
       }, 'short "i" and long "ii" switches passed').throws('can be passed at the same time');
 
       expect(() => {
-        matchRuntimeAndDefinedSwitches(rootPathItem, {a: [], c: [], g:[], i: [], l: []}, {bb: [], hh: [], ll: []}, config);
+        matchRuntimeAndDefinedSwitches(rootPathItem, {a: [], c: [], g:[], i: [], l: []}, {bb: [], hh: [], ll: []}, config, {});
       }, 'short "l" and long "ll" switches passed').throws('can be passed at the same time');
 
       expect(() => {
-        matchRuntimeAndDefinedSwitches(rootPathItem, {a: [], c: [], g:[], i: [], l: [], y: []}, {bb: [], hh: []}, config);
+        matchRuntimeAndDefinedSwitches(rootPathItem, {a: [], c: [], g:[], i: [], l: [], y: []}, {bb: [], hh: []}, config, {});
       }, 'passed not defined switch "y"').throws('is not recognized');
 
       expect(() => {
-        matchRuntimeAndDefinedSwitches(rootPathItem, {a: [], c: [], g:[], i: [], l: []}, {bb: [], hh: [], yy: []}, config);
+        matchRuntimeAndDefinedSwitches(rootPathItem, {a: [], c: [], g:[], i: [], l: []}, {bb: [], hh: [], yy: []}, config, {});
       }, 'passed not defined switch "yy"').throws('is not recognized');
 
       /******************************************
@@ -3313,88 +3265,88 @@ describe('utility', () => {
        ******************************************/
 
       expect(() => {
-        matchRuntimeAndDefinedSwitches(staticPathItem, {}, {}, config);
+        matchRuntimeAndDefinedSwitches(staticPathItem, {}, {}, config, {});
       }, 'missing required switches (8)').throws('is required');
       
       expect(() => {
-        matchRuntimeAndDefinedSwitches(staticPathItem, {a: []}, {}, config);
+        matchRuntimeAndDefinedSwitches(staticPathItem, {a: []}, {}, config, {});
       }, 'missing required switches (9)').throws('is required');
 
       expect(() => {
-        matchRuntimeAndDefinedSwitches(staticPathItem, {a: []}, {bb: []}, config);
+        matchRuntimeAndDefinedSwitches(staticPathItem, {a: []}, {bb: []}, config, {});
       }, 'missing required switches (10)').throws('is required');
 
       expect(() => {
-        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: []}, {bb: []}, config);
+        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: []}, {bb: []}, config, {});
       }, 'missing required switches (11)').throws('is required');
 
       expect(() => {
-        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: []}, {bb: []}, config);
+        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: []}, {bb: []}, config, {});
       }, 'missing required switches (12)').throws('is required');
 
       expect(() => {
-        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: []}, {bb: []}, config);
+        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: []}, {bb: []}, config, {});
       }, 'missing required switches (13)').throws('is required');
 
       expect(() => {
-        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: []}, {bb: []}, config);
+        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: []}, {bb: []}, config, {});
       }, 'missing required switches (14)').throws('is required');
 
       expect(() => {
-        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], m: []}, {bb: []}, config);
+        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], m: []}, {bb: []}, config, {});
       }, 'missing required switches (15)').throws('is required');
 
       expect(() => {
-        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], m: []}, {bb: [], nn: []}, config);
+        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], m: []}, {bb: [], nn: []}, config, {});
       }, 'missing required switches (16)').throws('is required');
 
       expect(() => {
-        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], m: [], o: []}, {bb: [], nn: []}, config);
+        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], m: [], o: []}, {bb: [], nn: []}, config, {});
       }, 'missing required switches (17)').throws('is required');
 
       expect(() => {
-        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], m: [], o: [], s: []}, {bb: [], nn: []}, config);
+        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], m: [], o: [], s: []}, {bb: [], nn: []}, config, {});
       }, 'missing required switches (18)').throws('is required');
       
       expect(() => {
-        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], m: [], o: [], s: []}, {bb: [], nn: [], tt: []}, config);
+        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], m: [], o: [], s: []}, {bb: [], nn: [], tt: []}, config, {});
       }, 'missing required switches (19)').throws('is required');
 
       expect(() => {
         // not throws
-        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], m: [], o: [], s: [], u: []}, {bb: [], nn: [], tt: []}, config);
+        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], m: [], o: [], s: [], u: []}, {bb: [], nn: [], tt: []}, config, {});
       }, 'missing required switches (20)').not.throws();
 
       expect(() => {
-        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], m: [], o: [], s: [], u: []}, {bb: [], cc: [], nn: [], tt: []}, config);
+        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], m: [], o: [], s: [], u: []}, {bb: [], cc: [], nn: [], tt: []}, config, {});
       }, 'short "c" and long "cc" switches passed').throws('can be passed at the same time');
       
       expect(() => {
-        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], f: [], m: [], o: [], s: [], u: []}, {bb: [], ff:[], nn: [], tt: []}, config);
+        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], f: [], m: [], o: [], s: [], u: []}, {bb: [], ff:[], nn: [], tt: []}, config, {});
       }, 'short "f" and long "ff" switches passed').throws('can be passed at the same time');
 
       expect(() => {
-        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], m: [], o: [], s: [], u: []}, {bb: [], nn: [], oo: [], tt: []}, config);
+        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], m: [], o: [], s: [], u: []}, {bb: [], nn: [], oo: [], tt: []}, config, {});
       }, 'short "o" and long "oo" switches passed').throws('can be passed at the same time');
 
       expect(() => {
-        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], m: [], o: [], r: [], s: [], u: []}, {bb: [], nn: [], rr: [], tt: []}, config);
+        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], m: [], o: [], r: [], s: [], u: []}, {bb: [], nn: [], rr: [], tt: []}, config, {});
       }, 'short "r" and long "rr" switches passed').throws('can be passed at the same time');
 
       expect(() => {
-        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], m: [], o: [], s: [], u: []}, {bb: [], nn: [], tt: [], uu: []}, config);
+        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], m: [], o: [], s: [], u: []}, {bb: [], nn: [], tt: [], uu: []}, config, {});
       }, 'short "u" and long "uu" switches passed').throws('can be passed at the same time');
 
       expect(() => {
-        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], m: [], o: [], s: [], u: [], x: []}, {bb: [], nn: [], tt: [], xx: []}, config);
+        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], m: [], o: [], s: [], u: [], x: []}, {bb: [], nn: [], tt: [], xx: []}, config, {});
       }, 'short "x" and long "xx" switches passed').throws('can be passed at the same time');
 
       expect(() => {
-        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], m: [], o: [], s: [], u: [], y: []}, {bb: [], nn: [], tt: []}, config);
+        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], m: [], o: [], s: [], u: [], y: []}, {bb: [], nn: [], tt: []}, config, {});
       }, 'passed not defined switch "y"').throws('is not recognized');
 
       expect(() => {
-        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], m: [], o: [], s: [], u: []}, {bb: [], nn: [], tt: [], yy: []}, config);
+        matchRuntimeAndDefinedSwitches(staticPathItem, {a: [], c: [], m: [], o: [], s: [], u: []}, {bb: [], nn: [], tt: [], yy: []}, config, {});
       }, 'passed not defined switch "yy"').throws('is not recognized');
     });
 

@@ -52,11 +52,6 @@ export abstract class PathItem {
   public abstract getCommonSwitchNames: () => Record<string, Switch>;
 
   /**
-   * Display help for the current PathItem
-   */
-  public abstract getHelp: (applicationName: string) => void;
-
-  /**
    * Visibility Getter
    * @returns visibility
    */

@@ -42,3 +42,8 @@ export const DOUBLE_QUOTE_LITERAL = `"`;
  * keyword that can be returned in callback meaning stop processing next callbacks
  */
 export const STOP = 'stop';
+
+/**
+ * Symbol to skip matchRuntimeAndDefinedSwitches (used for help plugin)
+ */
+export const SKIP_matchRuntimeAndDefinedSwitches = 'SKIP_matchRuntimeAndDefinedSwitches';

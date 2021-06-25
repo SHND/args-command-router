@@ -1,4 +1,3 @@
-import { PathItem } from "./PathItem";
 import { BlockPathItem } from "./BlockPathItem";
 import { PATH_ITEM_DELIMITER } from "../constants";
 

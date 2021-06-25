@@ -1,9 +1,9 @@
 import { expect } from 'chai';
-import { PathTree } from '../../src/PathTree/PathTree';
-import { PathItem } from '../../src/PathTree/PathItem';
-import { CallbackInput, Config } from '../../src/types';
-import { notFoundHook } from '../../src/hooks/notFoundHook';
-import { StaticPathItem } from '../../src/PathTree/StaticPathItem';
+import { PathTree } from '../../../src/PathTree/PathTree';
+import { PathItem } from '../../../src/PathTree/PathItem';
+import { CallbackInput, Config } from '../../../src/types';
+import { createNotFoundHook } from '../../../src/plugins/help/createNotFoundHook';
+import { StaticPathItem } from '../../../src/PathTree/StaticPathItem';
 
 
 describe('notFoundHook', () => {
@@ -18,16 +18,18 @@ describe('notFoundHook', () => {
       applicationName: '<App>',
       checkForSwitchConflicts: true,
       strictSwitchMatching: true,
-      helpType: null,
+    }
+    const tree = new PathTree();
+    tree.getRoot().addStaticPathItem(pathItem);
+
+    const notFoundHook = createNotFoundHook({
       helpShortSwitch: 'x',
       helpLongSwitch: 'xelp',
       helpOnNoTarget: true,
       helpOnNoCallback: true,
       helpOnVerifySwitchFailure: true,
       helpOnAskedForHelp: true,
-    }
-    const tree = new PathTree();
-    tree.getRoot().addStaticPathItem(pathItem);
+    });
 
     notFoundHook.call(pathItem, inputs, config, tree);
     expect(consolelogMessage).be.null;
@@ -46,6 +48,11 @@ describe('notFoundHook', () => {
       applicationName: '<App>',
       checkForSwitchConflicts: true,
       strictSwitchMatching: true,
+    }
+    const tree = new PathTree();
+    tree.getRoot().addStaticPathItem(pathItem);
+
+    const notFoundHook = createNotFoundHook({
       helpType: 'switch',
       helpShortSwitch: 'x',
       helpLongSwitch: 'xelp',
@@ -53,9 +60,7 @@ describe('notFoundHook', () => {
       helpOnNoCallback: true,
       helpOnVerifySwitchFailure: true,
       helpOnAskedForHelp: true,
-    }
-    const tree = new PathTree();
-    tree.getRoot().addStaticPathItem(pathItem);
+    });
 
     notFoundHook.call(pathItem, inputs, config, tree);
     expect(consolelogMessage).contains('<App>');
@@ -75,6 +80,10 @@ describe('notFoundHook', () => {
       applicationName: '<App>',
       checkForSwitchConflicts: true,
       strictSwitchMatching: true,
+    }
+    const tree = new PathTree();
+
+    const notFoundHook = createNotFoundHook({
       helpType: 'switch',
       helpShortSwitch: 'x',
       helpLongSwitch: 'xelp',
@@ -82,8 +91,7 @@ describe('notFoundHook', () => {
       helpOnNoCallback: true,
       helpOnVerifySwitchFailure: true,
       helpOnAskedForHelp: true,
-    }
-    const tree = new PathTree();
+    });
 
     notFoundHook.call(pathItem, inputs, config, tree);
     expect(consolelogMessage).contains('<App>')

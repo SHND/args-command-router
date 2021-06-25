@@ -1,6 +1,5 @@
 import { Switch } from "../Switch";
 import { PathItem } from "./PathItem";
-import { generateHelp } from "../utility";
 import { SwitchPathItem } from "./SwitchPathItem";
 
 export class SpreadPathItem extends PathItem {
@@ -80,12 +79,5 @@ export class SpreadPathItem extends PathItem {
    * SpreadPathItems could not have any common switches
    */
   public getCommonSwitchNames: () => Record<string, Switch> = () => ({});
-
-  /**
-   * Display help for the current PathItem
-   */
-  public getHelp = (applicationName: string) => {
-    return generateHelp(this, applicationName);
-  };
   
 }

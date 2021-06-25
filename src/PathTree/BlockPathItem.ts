@@ -1,6 +1,5 @@
 import { Switch } from '../Switch';
 import { PathItem } from './PathItem';
-import { generateHelp } from '../utility';
 import { StaticPathItem } from './StaticPathItem';
 import { SpreadPathItem } from './SpreadPathItem';
 import { SwitchPathItem } from './SwitchPathItem';
@@ -264,12 +263,5 @@ export abstract class BlockPathItem extends PathItem {
   public hasCommonOptionalSwitchWithLongname = (longname: string) => {
     return !!this._longCommonOptionalSwitches[longname];
   }
-
-  /**
-   * Display help for the current PathItem
-   */
-  public getHelp = (applicationName: string) => {
-    return generateHelp(this, applicationName)
-  };
 
 }

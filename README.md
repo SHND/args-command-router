@@ -380,9 +380,43 @@ Be careful of plugins you import. If you don't know or trust a plugin, proceed w
 
 ## Builtin Plugins
 
+### help
+
+You can use the builtin **help** plugin to add help outputs to your application.
+
+```js
+const { argsCommandRouter, plugins } = require('args-command-router')
+
+const app = argsCommandRouter({
+  applicationName: 'myApp',
+})
+
+app.plugin(plugins.help())
+```
+
+By default **help** plugin uses `-h` and `--help` switches for displaying help, but this is configurable through **help** options.
+
+These are the options and their default values that can be configured on the **help** plugin:
+
+```js
+app.plugin(
+  plugins.help({
+    helpType: 'switch', //set null to disable
+    helpShortSwitch: 'h', //short switch to show help
+    helpLongSwitch: 'help', //long switch to show help
+    helpOnNoTarget: true, //show help when no pathItem found
+    helpOnNoCallback: true, //show help when callback not exist
+    helpOnVerifySwitchFailure: true, //show help when switches not match
+    helpOnAskedForHelp: true, //show help when help switches are provided
+  })
+)
+```
+
+**help** sets a property `SKIP_matchRuntimeAndDefinedSwitches` on the context object to prevent mismatch failures on switches.
+
 ### autoComplete
 
-In order to add shell autocompletion, you can use the buildtin **autoComplete** plugin. Right now it supports only _bash_ shell autocompletion. In order to set it up:
+In order to add shell autocompletion, you can use the builtin **autoComplete** plugin. Right now it supports only _bash_ shell autocompletion. In order to set it up:
 
 1. Include the autoComplete plugin.
 
@@ -422,14 +456,6 @@ const app = argsCommandRouter({
 app.plugin(plugins.debug('/debug'))
 ```
 
-## Help
-
-Args Command Router generates help (usage) output out of the box for you. By including `-h` or `--help` the help (usage) will be display on the console.
-
-Help switches are configurable when instantiating the Application.
-
-In case you want to disable default help set the configuration option `helpType` to `null`.
-
 ## Debug
 
 After a while, number of routes can increase and get complicated. In order to get an idea of how pathItems are connected in the tree, you can call the `app.debug()`. This will print the entire tree on the console.
@@ -445,23 +471,9 @@ const app = new Application({
   applicationName: '<App>',
   checkForSwitchConflicts: true,
   strictSwitchMatching: true,
-  helpType: 'switch',
-  helpShortSwitch: 'h',
-  helpLongSwitch: 'help',
-  helpOnNoTarget: true,
-  helpOnNoCallback: true,
-  helpOnVerifySwitchFailure: true,
-  helpOnAskedForHelp: true,
 })
 ```
 
 - `applicationName`: The name of the application used in generating the help (usage) output.
 - `checkForSwitchConflicts`: Verify Switch names are not conflicting in your Application. You can disable this after you're done with your application development to improve performance.
 - `strictSwitchMatching`: Verify if the passed switches are matched with switches defined on the found pathItem. If it's set to false, the requiredSwitches won't be enforced, and switched that are not defined are accepted.
-- `helpType`: If you want to disable the help functionality, set this to `null`.
-- `helpShortSwitch`: The short switch name for showing help (usage) output.
-- `helpLongSwitch`: The long switch name for showing help (usage) output.
-- `helpOnNoTarget`: Show help when no PathItem found for the passed commands.
-- `helpOnNoCallback`: Show help when PathItem is found but no callbacks are defined on that pathItem.
-- `helpOnVerifySwitchFailure`: Show help if the `strictSwitchMatching` config is set to true but switches for that pathItem not matched.
-- `helpOnAskedForHelp`: Show help when user deliberatly asks for help. e.g. when user pass `-h`.

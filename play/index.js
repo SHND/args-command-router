@@ -4,6 +4,7 @@ const app = new argsCommandRouter({
   applicationName: 'git',
 });
 
+app.plugin(plugins.help({ helpShortSwitch: 'h', helpLongSwitch: 'help' }))
 app.plugin(plugins.autoComplete)
 app.plugin(plugins.debug('tree'))
 

@@ -1,9 +1,9 @@
 import { expect } from 'chai';
-import { PathItem } from '../../src/PathTree/PathItem';
-import { askForHelpHook } from '../../src/hooks/askForHelpHook';
-import { StaticPathItem } from '../../src/PathTree/StaticPathItem';
-import { CallbackInput, Config } from '../../src/types';
-import { PathTree } from '../../src/PathTree/PathTree';
+import { PathItem } from '../../../src/PathTree/PathItem';
+import { createAskForHelpHook } from '../../../src/plugins/help/createAskForHelpHook';
+import { StaticPathItem } from '../../../src/PathTree/StaticPathItem';
+import { CallbackInput, Config } from '../../../src/types';
+import { PathTree } from '../../../src/PathTree/PathTree';
 
 
 describe('askForHelpHook', () => {
@@ -18,6 +18,11 @@ describe('askForHelpHook', () => {
       applicationName: '<App>',
       checkForSwitchConflicts: true,
       strictSwitchMatching: true,
+    }
+    const tree = new PathTree();
+    tree.getRoot().addStaticPathItem(pathItem);
+
+    const askForHelpHook = createAskForHelpHook({
       helpType: null,
       helpShortSwitch: 'x',
       helpLongSwitch: 'xelp',
@@ -25,9 +30,7 @@ describe('askForHelpHook', () => {
       helpOnNoCallback: true,
       helpOnVerifySwitchFailure: true,
       helpOnAskedForHelp: true,
-    }
-    const tree = new PathTree();
-    tree.getRoot().addStaticPathItem(pathItem);
+    });
 
     askForHelpHook.call(pathItem, inputs, config, tree);
     expect(consolelogMessage).be.null;
@@ -46,6 +49,11 @@ describe('askForHelpHook', () => {
       applicationName: '<App>',
       checkForSwitchConflicts: true,
       strictSwitchMatching: true,
+    }
+    const tree = new PathTree();
+    tree.getRoot().addStaticPathItem(pathItem);
+
+    const askForHelpHook = createAskForHelpHook({
       helpType: 'switch',
       helpShortSwitch: 'x',
       helpLongSwitch: 'xelp',
@@ -53,9 +61,7 @@ describe('askForHelpHook', () => {
       helpOnNoCallback: true,
       helpOnVerifySwitchFailure: true,
       helpOnAskedForHelp: true,
-    }
-    const tree = new PathTree();
-    tree.getRoot().addStaticPathItem(pathItem);
+    });
 
     askForHelpHook.call(pathItem, inputs, config, tree);
     expect(consolelogMessage).be.null;
@@ -74,6 +80,11 @@ describe('askForHelpHook', () => {
       applicationName: '<App>',
       checkForSwitchConflicts: true,
       strictSwitchMatching: true,
+    }
+    const tree = new PathTree();
+    tree.getRoot().addStaticPathItem(pathItem);
+
+    const askForHelpHook = createAskForHelpHook({
       helpType: 'switch',
       helpShortSwitch: 'x',
       helpLongSwitch: 'xelp',
@@ -81,9 +92,7 @@ describe('askForHelpHook', () => {
       helpOnNoCallback: true,
       helpOnVerifySwitchFailure: true,
       helpOnAskedForHelp: true,
-    }
-    const tree = new PathTree();
-    tree.getRoot().addStaticPathItem(pathItem);
+    });
 
     askForHelpHook.call(pathItem, inputs, config, tree);
     expect(consolelogMessage).contains('<App>')
@@ -103,6 +112,11 @@ describe('askForHelpHook', () => {
       applicationName: '<App>',
       checkForSwitchConflicts: true,
       strictSwitchMatching: true,
+    }
+    const tree = new PathTree();
+    tree.getRoot().addStaticPathItem(pathItem);
+
+    const askForHelpHook = createAskForHelpHook({
       helpType: 'switch',
       helpShortSwitch: 'x',
       helpLongSwitch: 'xelp',
@@ -110,9 +124,7 @@ describe('askForHelpHook', () => {
       helpOnNoCallback: true,
       helpOnVerifySwitchFailure: true,
       helpOnAskedForHelp: true,
-    }
-    const tree = new PathTree();
-    tree.getRoot().addStaticPathItem(pathItem);
+    });
 
     askForHelpHook.call(pathItem, inputs, config, tree);
     expect(consolelogMessage).contains('<App>')
@@ -132,6 +144,10 @@ describe('askForHelpHook', () => {
       applicationName: '<App>',
       checkForSwitchConflicts: true,
       strictSwitchMatching: true,
+    }
+    const tree = new PathTree();
+
+    const askForHelpHook = createAskForHelpHook({
       helpType: 'switch',
       helpShortSwitch: 'x',
       helpLongSwitch: 'xelp',
@@ -139,8 +155,7 @@ describe('askForHelpHook', () => {
       helpOnNoCallback: true,
       helpOnVerifySwitchFailure: true,
       helpOnAskedForHelp: true,
-    }
-    const tree = new PathTree();
+    });
 
     askForHelpHook.call(pathItem, inputs, config, tree);
     expect(consolelogMessage).contains('<App>')
