@@ -9,7 +9,7 @@ import { createSkipStrictSwitchMatchingIfAskedForHelpHook } from "./createSkipSt
  * @param options specific for setting up help plugin
  * @returns Plugin
  */
- export function help(options : Options) {
+ export function help(options : Options = {}) {
 
   return function help(app: Application) {
     const newOptions: Options = {
