@@ -84,6 +84,12 @@ app
 app.run()
 ```
 
+> In **Typescript** and **JavaScript ES6**, import argsCommandRouter using code below instead of `require('args-command-router')`:
+>
+> ```js
+> import { argsCommandRouter } from 'args-command-router'
+> ```
+
 ## Routes
 
 The `route()` method maps patterns to callbacks. It receives a series of names separated by `/` and series of optional switch patterns at the end of the path each inside `[]`.
