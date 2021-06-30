@@ -364,7 +364,7 @@ Plugins allow to add functionality from internal or external sources. Plugins ar
 
 ```js
 function myDebugPlugin(app) {
-  app.route('/_debug', () => {
+  app.route('/_debug').callback(() => {
     console.log('debug output.')
   })
 }
