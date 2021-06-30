@@ -1,7 +1,6 @@
 import { Switch } from "../Switch";
 import { Callback } from "../types";
 import { Visibility } from "../enums";
-import { treeToString } from "../utility";
 import { PATH_ITEM_DELIMITER } from "../constants";
 
 export abstract class PathItem {
@@ -324,10 +323,6 @@ export abstract class PathItem {
    */
   public getDisAllowedDynamicPathItemNames = () => {
     return this.getBranchDynamicPathItemNames();
-  }
-
-  public toString = (shortForm: boolean = false) => {
-    return treeToString(this, shortForm);
   }
 
 }
