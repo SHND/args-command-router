@@ -386,7 +386,7 @@ Be careful of plugins you import. If you don't know or trust a plugin, proceed w
 
 ## Builtin Plugins
 
-### help
+### help plugin
 
 You can use the builtin **help** plugin to add help outputs to your application.
 
@@ -420,7 +420,7 @@ app.plugin(
 
 **help** sets a property `SKIP_matchRuntimeAndDefinedSwitches` on the context object to prevent mismatch failures on switches.
 
-### autoComplete
+### autoComplete plugin
 
 In order to add shell autocompletion, you can use the builtin **autoComplete** plugin. Right now it supports only _bash_ shell autocompletion. In order to set it up:
 
@@ -448,9 +448,9 @@ alias myApp="node <ABSOLUTE PATH>/index.js"
 myApp __AUTOCOMPLETE__ generate bash >> ~/.bash_profile
 ```
 
-### debug
+### tree plugin
 
-debug plugin adds a route to the application instance to print a application tree on console.
+After a while, number of routes can increase and gets complicated. Tree plugin adds a route to the application instance to print a application tree on console.
 
 ```js
 const { argsCommandRouter, plugins } = require('args-command-router')
@@ -459,12 +459,8 @@ const app = argsCommandRouter({
   applicationName: 'myApp',
 })
 
-app.plugin(plugins.debug('/debug'))
+app.plugin(plugins.tree('/_tree'))
 ```
-
-## Debug
-
-After a while, number of routes can increase and get complicated. In order to get an idea of how pathItems are connected in the tree, you can call the `app.debug()`. This will print the entire tree on the console.
 
 ## Application Configuration
 

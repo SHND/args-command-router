@@ -6,7 +6,7 @@ const app = new argsCommandRouter({
 
 app.plugin(plugins.help({ helpShortSwitch: 'h', helpLongSwitch: 'help' }))
 app.plugin(plugins.autoComplete)
-app.plugin(plugins.debug('tree'))
+app.plugin(plugins.tree('_tree'))
 
 // app.beforeAll(() => console.log('beforeAll'))
 // app.afterTargetFound(() => console.log('afterTargetFound'))

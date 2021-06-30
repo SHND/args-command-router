@@ -9,7 +9,7 @@ const app = argsCommandRouter({
   applicationName: 'npmx',
 })
 
-app.plugin(plugins.debug);
+app.plugin(plugins.tree('_tree'));
 app.plugin(plugins.autoComplete);
 
 app.route('/')

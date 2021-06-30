@@ -1,6 +1,6 @@
 import Application from './Application'
 import { help } from './plugins/help'
-import { debug } from './plugins/debug'
+import { tree } from './plugins/tree'
 import { autoComplete } from './plugins/autoComplete'
 
 export const argsCommandRouter = function(config = {}) {
@@ -11,6 +11,6 @@ export const argsCommandRouter = function(config = {}) {
 
 export const plugins = {
   help,
-  debug,
+  tree,
   autoComplete
 }
