@@ -11,7 +11,6 @@ import {
   processCallbacks, 
   matchRuntimeAndDefinedSwitches, 
   checkSwitchNameConflicts, 
-  shellSuggestions
 } from './utility';
 
 
@@ -185,15 +184,6 @@ export default class Application {
    */
   public appName() {
     return this._config.applicationName;
-  }
-
-  /**
-   * By giving an array of commands, this will returns suggestions
-   * @param commands array of strings representing commands
-   * @returns array of suggestions
-   */
-  public autoComplete(commands: string[]) {
-    return shellSuggestions(this._tree, commands);
   }
 
   /**

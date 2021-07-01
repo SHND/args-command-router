@@ -1,4 +1,5 @@
 import Application from "../../Application";
+import { shellSuggestions } from "./utilities";
 
 /**
  * plugin autoComplete setup shell auto completion
@@ -10,7 +11,7 @@ export function autoComplete(app: Application) {
 
   app.route('/__AUTOCOMPLETE__/suggest')
     .callback(function() {
-      console.log(app.autoComplete([]).join(' '));
+      console.log(shellSuggestions(app.tree(), []).join(' '))
     });
 
   app.route('/__AUTOCOMPLETE__/suggest/...cmds')
@@ -18,7 +19,7 @@ export function autoComplete(app: Application) {
       const { pathParams: { cmds }} = input;
       (cmds as string[]).pop();
 
-      console.log(app.autoComplete(cmds as string[]).join(' '));
+      console.log(shellSuggestions(app.tree(), cmds as string[]).join(' '))
     });
   
   app.route('/__AUTOCOMPLETE__/generate/bash')
